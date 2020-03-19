@@ -1,0 +1,7 @@
+
+.vscode/settings.json
+Assembly-CSharp.csproj
+Library/*
+LayouTaro.sln
+obj/*
+Temp/*
