@@ -1,3 +1,4 @@
+using UILayouTaro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -5,11 +6,11 @@ using UnityEngine.UI;
 // monobe付ければPrefab化できる、Prefabを放り込むべきなのか。
 
 
-public class ImageElement : MonoBehaviour, ILayoutElement, ILayoutableImage
+public class ImageElement : LTElement, ILayoutableImage
 {
-    public LayoutElementType GetLayoutElementType()
+    public override LTElementType GetLTElementType()
     {
-        return global::LayoutElementType.Image;
+        return LTElementType.Image;
     }
 
     public Image Image;
@@ -19,7 +20,6 @@ public class ImageElement : MonoBehaviour, ILayoutElement, ILayoutableImage
         // prefab名を固定してGOを作ってしまおう
         var prefabName = "Image";
         var res = Resources.Load(prefabName) as GameObject;
-        Debug.Log("res:" + res);
         var r = Instantiate(res).AddComponent<ImageElement>();
 
         r.Image = image;

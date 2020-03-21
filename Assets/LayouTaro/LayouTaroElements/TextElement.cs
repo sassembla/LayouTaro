@@ -1,13 +1,12 @@
-using System;
+using UILayouTaro;
 using UnityEngine;
 
 
-// monobe付ければPrefab化できる、なんか適当にインターフェース作れるといいなー、やるか。
-public class TextElement : MonoBehaviour, ILayoutElement, ILayoutableText
+public class TextElement : LTElement, ILayoutableText
 {
-    public LayoutElementType GetLayoutElementType()
+    public override LTElementType GetLTElementType()
     {
-        return global::LayoutElementType.Text;
+        return LTElementType.Text;
     }
 
     public string TextContent;
@@ -24,6 +23,6 @@ public class TextElement : MonoBehaviour, ILayoutElement, ILayoutableText
 
     public string Text()
     {
-        return "here comes!";
+        return TextContent;
     }
 }

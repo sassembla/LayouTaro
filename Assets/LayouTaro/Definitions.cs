@@ -1,26 +1,31 @@
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
-public enum LayoutElementType
+namespace UILayouTaro
 {
-    Box,
-    Image,
-    Text,
-    Button
-}
+    public abstract class LTElement : MonoBehaviour
+    {
+        public abstract LTElementType GetLTElementType();
+    }
 
+    public abstract class LTRootElement : LTElement
+    {
+        public abstract LTElement[] GetLTElements();
+    }
 
-public interface ILayoutElement
-{
-    LayoutElementType GetLayoutElementType();
-}
+    public interface ILayouter
+    {
+        void Layout(Vector2 size, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements);
+        void UpdateValues(LTElement[] elements, Dictionary<LTElementType, object> updateValues);
+    }
 
-public interface ILayoutableImage
-{
-    Vector2 RectSize();
-}
+    public interface ILayoutableImage
+    {
+        Vector2 RectSize();
+    }
 
-public interface ILayoutableText
-{
-    string Text();
+    public interface ILayoutableText
+    {
+        string Text();
+    }
 }

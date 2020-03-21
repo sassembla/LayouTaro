@@ -1,64 +1,53 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class LayouTaro
+namespace UILayouTaro
 {
-    public static GameObject Layout(ElementBox box)
+    public class LayouTaro
     {
-        var boxGO = box.gameObject;
-
-
-        // 
-        Debug.Log("box:" + box + " boxG:" + box.gameObject);
-        // parse
-        var originX = 0;
-        var originY = 0;
-
-        // boxのInsetとかを作ると、上下左右の余白とか作れそうだなー。
-        // ここは起点になるので、起点をいじっていこう。
-
-
-        var elements = box.Elements;
-        foreach (var element in elements)
+        public static GameObject Layout<T>(Transform parent, Vector2 size, GameObject rootObject, ILayouter layouter) where T : LTRootElement
         {
-            var type = element.GetLayoutElementType();
-            switch (type)
+
+            var originX = 0f;
+            var originY = 0f;
+
+            var rootElement = rootObject.GetComponent<T>();
+            var elements = rootElement.GetLTElements();
+
+            var rootRect = rootObject.GetComponent<RectTransform>();
+
+            // 親の基礎サイズをセット
+            rootRect.sizeDelta = size;
+
+            // set parent.
+            foreach (var element in elements)
             {
-                case LayoutElementType.Image:
-                    var imageElement = (ImageElement)element;
-
-                    var rectSize = imageElement.RectSize();
-                    Debug.Log("rectSize:" + rectSize);
-
-                    imageElement.gameObject.transform.SetParent(boxGO.transform);
-                    break;
-                case LayoutElementType.Text:
-                    var textElement = (TextElement)element;
-                    var contentText = textElement.Text();
-                    Debug.Log("contentText:" + contentText);
-
-                    textElement.gameObject.transform.SetParent(boxGO.transform);
-                    break;
-                case LayoutElementType.Box:
-                    throw new Exception("unsupported layout:" + type);
-                case LayoutElementType.Button:
-                    Debug.LogError("まだない");
-                    break;
-                default:
-                    break;
+                element.gameObject.transform.SetParent(rootObject.transform);
             }
+
+            // ここでCanvas要素にセットしちゃう(でないとTMProのinfoが取れない。)
+            rootObject.transform.SetParent(parent);
+
+            layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements);
+
+            // var lastHeight = originY + elements[elements.Length - 1].GetComponent<RectTransform>().sizeDelta.y;
+
+            return rootObject;
         }
 
-        return box.gameObject;
-    }
+        public static GameObject RelayoutWithUpdate<T>(Vector2 size, GameObject rootObject, Dictionary<LTElementType, object> updateValues, ILayouter layouter) where T : LTRootElement
+        {
+            // parse
+            var originX = 0f;
+            var originY = 0f;
 
-    public static GameObject Relayout(GameObject elementGameObj)
-    {
-        var l = elementGameObj.GetComponent<ILayoutElement>();
-        // relayoutする
+            var rootElement = rootObject.GetComponent<T>();
+            var elements = rootElement.GetLTElements();
 
-        return elementGameObj;
+            layouter.UpdateValues(elements, updateValues);
+            layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements);
+
+            return rootObject;
+        }
     }
 }
