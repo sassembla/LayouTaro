@@ -18,7 +18,19 @@ public class BoxElement : LTRootElement
 
     public Image BGImage;// 9パッチにすると良さそう
 
-    // こういう関数をインターフェースで縛りたいんだけど、引数が自由すぎて無理。
+    /*
+        ユーザーはこのような
+        ・prefabを持ってきて
+        ・instantiateし
+        ・LTElement型をAddComponentし
+        ・初期値をセットして
+        ・LTElement型を返す
+        という所作を求められる。
+
+        本当は、MonoBehaviour自体が独自定義なコンストラクタでnewできれば、
+        そしてMonoBeをnewしたタイミングでGameObjectが勝手に生成されてMonoBeがAddされれば、
+        とてもいいインターフェースが作れたんだが。まあはい。
+    */
     public static BoxElement GO(Image bg, params LTElement[] elements)
     {
         var prefabName = "LayouTaroPrefabs/Box";
