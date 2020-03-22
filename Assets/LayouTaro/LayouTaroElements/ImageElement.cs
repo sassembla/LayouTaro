@@ -18,7 +18,7 @@ public class ImageElement : LTElement, ILayoutableImage
     public static ImageElement GO(Image image)
     {
         // prefab名を固定してGOを作ってしまおう
-        var prefabName = "Image";
+        var prefabName = "LayouTaroPrefabs/Image";
         var res = Resources.Load(prefabName) as GameObject;
         var r = Instantiate(res).AddComponent<ImageElement>();
 

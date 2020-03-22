@@ -11,9 +11,9 @@ public class TextElement : LTElement, ILayoutableText
 
     public string TextContent;
 
-    internal static TextElement GO(string text)
+    public static TextElement GO(string text)
     {
-        var prefabName = "Text";
+        var prefabName = "LayouTaroPrefabs/Text";
         var res = Resources.Load(prefabName) as GameObject;
         var r = Instantiate(res).AddComponent<TextElement>();
 

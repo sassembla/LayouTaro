@@ -18,11 +18,10 @@ public class BoxElement : LTRootElement
 
     public Image BGImage;// 9パッチにすると良さそう
 
-
-    // この関数をnew thisで実現できるといいなあー。
+    // こういう関数をインターフェースで縛りたいんだけど、引数が自由すぎて無理。
     public static BoxElement GO(Image bg, params LTElement[] elements)
     {
-        var prefabName = "Box";
+        var prefabName = "LayouTaroPrefabs/Box";
         var res = Resources.Load(prefabName) as GameObject;
         var r = Instantiate(res).AddComponent<BoxElement>();
 
