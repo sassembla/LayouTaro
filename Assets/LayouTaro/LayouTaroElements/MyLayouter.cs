@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 public class MyLayouter : ILayouter
 {
+    List<LTElement> lineContents = new List<LTElement>();// 同じ行に入っている要素を整列させるために必要
     public void Layout(Vector2 size, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements)
     {
         originX = 0f;
@@ -18,6 +19,7 @@ public class MyLayouter : ILayouter
         // ここは起点になるので、必要であれば起点をいじっていこう。
 
         var currentLineMaxHeight = 0f;
+        lineContents.Clear();
 
         for (var i = 0; i < elements.Length; i++)
         {
@@ -25,6 +27,8 @@ public class MyLayouter : ILayouter
 
             var rectTrans = element.GetComponent<RectTransform>();
             var restWidth = viewWidh - originX;
+
+            lineContents.Add(element);
 
             var type = element.GetLTElementType();
             switch (type)
@@ -36,31 +40,37 @@ public class MyLayouter : ILayouter
 
                     if (restWidth < rectSize.x)// 同じ列にレイアウトできないので次の列に行く。
                     {
-                        LineFeed(ref originX, ref originY, rectSize.y, ref currentLineMaxHeight);
+                        // 最後の追加要素である自分自身を取り出し、整列させる。
+                        lineContents.RemoveAt(lineContents.Count - 1);
+                        LineFeed(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
+                        lineContents.Add(imageElement);
+
+                        // 位置をセット
+                        rectTrans.anchoredPosition = new Vector2(originX, originY);
+                    }
+                    else
+                    {
+                        // 位置をセット
+                        rectTrans.anchoredPosition = new Vector2(originX, originY);
                     }
 
-                    // 位置をセット
-                    rectTrans.anchoredPosition = new Vector2(originX, originY);
-
-                    // ジャストで埋まったら、次の行に行く。
+                    // ジャストで埋まったら、次の行を作成する。
                     if (restWidth == rectSize.x)
                     {
-                        LineFeed(ref originX, ref originY, rectTrans.sizeDelta.y, ref currentLineMaxHeight);
+                        LineFeed(ref originX, ref originY, rectTrans.sizeDelta.y, ref currentLineMaxHeight, ref lineContents);
                         continue;
                     }
 
                     ContinueLine(ref originX, rectSize.x, rectTrans.sizeDelta.y, ref currentLineMaxHeight);
                     break;
                 case LTElementType.Text:
-                    var textElement = (TextElement)element;
-                    var contentText = textElement.Text();
+                    var newTailTextElement = (TextElement)element;
+                    var contentText = newTailTextElement.Text();
+
+                    var continueContent = false;
 
                 NextLine:
-                    var textComponent = textElement.GetComponent<TMPro.TextMeshProUGUI>();
-                    var textPrefabHeight = textComponent.rectTransform.sizeDelta.y;
-
-                    // prefabでAlignmentをセットしていても、prefabからロードした段階でLeft + Middleになるという設定が消えている。ここでは、Leftをセットすることで、なんでかLeft + Middleに戻るようにする。
-                    textComponent.alignment = TMPro.TextAlignmentOptions.Left;
+                    var textComponent = newTailTextElement.GetComponent<TMPro.TextMeshProUGUI>();
 
                     // wordWrappingを可能にすると、表示はともかく実際にこの行にどれだけの文字が入っているか判断できる。
                     textComponent.enableWordWrapping = true;
@@ -75,75 +85,102 @@ public class MyLayouter : ILayouter
 
                     var firstLineWidth = tmGeneratorLines[0].length;
 
-                    // 文字を中央ゾロ絵ではなく適正な位置にセットするためにラッピングを解除する。
+                    // 文字を中央揃えではなく適正な位置にセットするためにラッピングを解除する。
                     textComponent.enableWordWrapping = false;
+
+                    var currentFirstLineHeight = tmGeneratorLines[0].lineHeight;
 
                     var isHeadOfLine = originX == 0;
                     var isMultiLined = 1 < tmLineCount;
 
+
+                    Debug.LogWarning("一文字も入らない、という可能性を考えてなかった、、、そのパターンもある。ミニマムサイズ決めちゃうか。その方が綺麗かも。");
+
+
                     var status = GetTextLayoutStatus(isHeadOfLine, isMultiLined);
                     switch (status)
                     {
-                        case TextLayoutStatus.HeadAndSingle:
                         case TextLayoutStatus.NotHeadAndSingle:
+                        case TextLayoutStatus.HeadAndSingle:
                             // 全文を表示して終了
                             textComponent.text = contentText;
                             textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
-                            textComponent.rectTransform.sizeDelta = new Vector2(firstLineWidth, textPrefabHeight);
+                            textComponent.rectTransform.sizeDelta = new Vector2(firstLineWidth, currentFirstLineHeight);
 
-                            ContinueLine(ref originX, firstLineWidth, textPrefabHeight, ref currentLineMaxHeight);
+                            ContinueLine(ref originX, firstLineWidth, currentFirstLineHeight, ref currentLineMaxHeight);
                             break;
-                        case TextLayoutStatus.HeadAndMulti:
-                            // 41から引くと、9。これを2倍すると、18。かなり近い値になる。このへんかなー。
 
-                            var lineCount = textInfos.lineCount;
-                            var lineStrs = new string[lineCount];
-
-                            // 改行を入れる
-                            for (var j = 0; j < lineCount; j++)
-                            {
-                                var lInfo = textInfos.lineInfo[j];
-                                lineStrs[j] = contentText.Substring(lInfo.firstCharacterIndex, lInfo.lastCharacterIndex - lInfo.firstCharacterIndex);
-                            }
-
-                            Debug.Log("textInfos.lineInfo[0].lineHeight:" + textInfos.lineInfo[0].lineHeight);
-                            // たぶんもっと難しい式だ。これは諦めるかなー。フォントによって違うだろうし。
-                            // textComponent.lineSpacing = (textPrefabHeight - textInfos.lineInfo[0].lineHeight) * 2;
-
-                            var totalHeight = textPrefabHeight * lineCount;
-
-                            textComponent.text = string.Join("\n", lineStrs);
-                            textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
-                            textComponent.rectTransform.sizeDelta = new Vector2(restWidth, totalHeight);
-
-                            // ここでの高さ系はミスってるな
-                            originX = textInfos.lineInfo[lineCount - 1].length;
-                            originY -= textPrefabHeight * lineCount;
-                            break;
                         case TextLayoutStatus.NotHeadAndMulti:
-                            var height = textInfos.lineInfo[0].lineHeight;
-                            var baseLine = textInfos.lineInfo[0].baseline;
-                            var asscend = textInfos.lineInfo[0].ascender;
-
-                            // これは2コンテンツにできる
+                            // これは、この行 + HeadAndMultiの最大2コンテンツにできる。
                             var nextLineTextIndex = tmGeneratorLines[1].firstCharacterIndex;
                             var nextLineText = contentText.Substring(nextLineTextIndex);
 
                             // 現在の行のセット
                             textComponent.text = contentText.Substring(0, nextLineTextIndex);
                             textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
-                            textComponent.rectTransform.sizeDelta = new Vector2(firstLineWidth, textPrefabHeight);
+                            textComponent.rectTransform.sizeDelta = new Vector2(firstLineWidth, currentFirstLineHeight);
 
-                            LineFeed(ref originX, ref originY, textPrefabHeight, ref currentLineMaxHeight);// 文字コンテンツの高さ分改行する
+                            var childOriginX = originX;
+
+                            LineFeed(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
 
                             // gotoを使って次の行に行くので、計算に使う残り幅をビュー幅へとセットする。
                             restWidth = viewWidh;
 
                             // 次の行のコンテンツを入れる
                             contentText = nextLineText;
-                            textElement = TextElement.GO(contentText);
-                            textElement.transform.SetParent(rootObject.transform);
+                            newTailTextElement = TextElement.GO(contentText);
+                            newTailTextElement.transform.SetParent(element.transform);// 消しやすくするため、親にセットする
+
+                            var yPosFromLinedParentY = -(Mathf.Abs(textComponent.rectTransform.anchoredPosition.y) + textComponent.rectTransform.sizeDelta.y);
+
+                            // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeedで変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
+                            newTailTextElement.GetComponent<RectTransform>().anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);
+                            continueContent = true;
+
+                            // 追加する(次の処理で確実に消されるが、足しておかないと次の行頭複数行で-されるケースがあり詰む)
+                            lineContents.Add(newTailTextElement);
                             goto NextLine;
+
+                        case TextLayoutStatus.HeadAndMulti:
+                            // この形式のコンテンツは明示的に行に追加しない。末行が行中で終わるケースがあるため、追加するとコンテンツ全体が上下してしまう。
+                            lineContents.RemoveAt(lineContents.Count - 1);
+
+                            var lineCount = textInfos.lineCount;
+                            var lineStrs = new string[lineCount];
+
+                            var totalHeight = 0f;
+                            // totalHeightを出す + 改行を入れる
+                            for (var j = 0; j < lineCount; j++)
+                            {
+                                var lInfo = textInfos.lineInfo[j];
+                                totalHeight += lInfo.lineHeight;
+                                lineStrs[j] = contentText.Substring(lInfo.firstCharacterIndex, lInfo.lastCharacterIndex - lInfo.firstCharacterIndex);
+                            }
+
+                            textComponent.text = string.Join("\n", lineStrs);
+
+                            textComponent.rectTransform.sizeDelta = new Vector2(restWidth, totalHeight);
+
+                            // なんらかの続きの文字コンテンツである場合、そのコンテンツの子になっているので位置情報を調整しない。
+                            if (continueContent)
+                            {
+                                continueContent = false;
+
+                                originX = textInfos.lineInfo[lineCount - 1].length;// 最終ラインのx位置を次のコンテンツに使う
+                                originY -= (totalHeight - textInfos.lineInfo[lineCount - 1].lineHeight);// 最終行
+                                restWidth = viewWidh - textInfos.lineInfo[lineCount - 1].length;
+                                currentLineMaxHeight = textInfos.lineInfo[lineCount - 1].lineHeight;
+
+                                Debug.Log("originX:" + originX + " originY:" + originY + " currentLineMaxHeight:" + currentLineMaxHeight);
+                            }
+                            else
+                            {
+                                textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
+                                // まだ適当
+                            }
+
+                            break;
                     }
                     break;
                 case LTElementType.Box:
@@ -156,12 +193,30 @@ public class MyLayouter : ILayouter
                     break;
             }
         }
+
+        foreach (var element in lineContents)
+        {
+            var rectTrans = element.GetComponent<RectTransform>();
+            var elementHeight = rectTrans.sizeDelta.y;
+            rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, originY - (currentLineMaxHeight - elementHeight) / 2);
+        }
+        lineContents.Clear();
     }
 
-    private void LineFeed(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight)
+    private void LineFeed(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<LTElement> linedElements)
     {
+        // 列の概念の中で最大の高さを持つ要素を中心に、それより小さい要素をy軸に対して整列させる
+        var lineHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
+        foreach (var element in linedElements)
+        {
+            var rectTrans = element.GetComponent<RectTransform>();
+            var elementHeight = rectTrans.sizeDelta.y;
+            rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, -(lineHeight - elementHeight) / 2);
+        }
+        linedElements.Clear();
+
         x = 0;
-        y -= Mathf.Max(currentElementHeight, currentLineMaxHeight);
+        y -= lineHeight;
         currentLineMaxHeight = 0f;
     }
 

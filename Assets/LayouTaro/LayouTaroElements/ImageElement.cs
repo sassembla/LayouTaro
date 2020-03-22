@@ -28,6 +28,8 @@ public class ImageElement : LTElement, ILayoutableImage
 
     public Vector2 RectSize()
     {
-        return new Vector2(100, 100);
+        // ここで、最低でもこのサイズ、とか、ロード失敗したらこのサイズ、とかができる。
+        var imageRect = this.GetComponent<RectTransform>().sizeDelta;
+        return imageRect;
     }
 }
