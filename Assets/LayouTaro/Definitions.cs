@@ -6,6 +6,7 @@ namespace UILayouTaro
     public abstract class LTElement : MonoBehaviour
     {
         public abstract LTElementType GetLTElementType();
+        public string debugPos;
     }
 
     public abstract class LTRootElement : LTElement

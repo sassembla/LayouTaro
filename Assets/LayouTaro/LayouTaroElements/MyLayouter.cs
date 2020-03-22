@@ -29,7 +29,7 @@ public class MyLayouter : ILayouter
             var restWidth = viewWidh - originX;
 
             lineContents.Add(currentElementRectTrans);
-
+            // Debug.Log("originX:" + originX + " originY:" + originY);
             var type = element.GetLTElementType();
             switch (type)
             {
@@ -83,7 +83,7 @@ public class MyLayouter : ILayouter
                     var lineSpacing = textComponent.lineSpacing;
                     var tmLineCount = textInfos.lineCount;
 
-                    var firstLineWidth = tmGeneratorLines[0].length;
+                    var currentFirstLineWidth = tmGeneratorLines[0].length;
 
                     // 文字を中央揃えではなく適正な位置にセットするためにラッピングを解除する。
                     textComponent.enableWordWrapping = false;
@@ -104,44 +104,63 @@ public class MyLayouter : ILayouter
                         case TextLayoutStatus.HeadAndSingle:
                             // 全文を表示して終了
                             textComponent.text = contentText;
-                            textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
-                            textComponent.rectTransform.sizeDelta = new Vector2(firstLineWidth, currentFirstLineHeight);
+                            if (continueContent)
+                            {
+                                continueContent = false;
+                                restWidth = viewWidh - currentFirstLineWidth;
+                                currentLineMaxHeight = currentFirstLineHeight;
+                            }
+                            else
+                            {
+                                textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
+                            }
 
-                            ContinueLine(ref originX, firstLineWidth, currentFirstLineHeight, ref currentLineMaxHeight);
+                            textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
+
+                            ContinueLine(ref originX, currentFirstLineWidth, currentFirstLineHeight, ref currentLineMaxHeight);
                             break;
 
                         case TextLayoutStatus.NotHeadAndMulti:
-                            // これは、この行 + HeadAndMultiの最大2コンテンツにできる。
+                            // これは、この行 + 追加のHead ~ 系の最大2コンテンツにできる。
                             var nextLineTextIndex = tmGeneratorLines[1].firstCharacterIndex;
                             var nextLineText = contentText.Substring(nextLineTextIndex);
 
                             // 現在の行のセット
                             textComponent.text = contentText.Substring(0, nextLineTextIndex);
                             textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
-                            textComponent.rectTransform.sizeDelta = new Vector2(firstLineWidth, currentFirstLineHeight);
+                            textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
                             var childOriginX = originX;
 
-                            LineFeed(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
+                            var currentTotalLineHeight = LineFeed(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
+                            Debug.Log("currentTotalLineHeight:" + currentTotalLineHeight);
+                            // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
+                            // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
+                            {
+                                // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
+                                restWidth = viewWidh;
 
-                            // gotoを使って次の行に行くので、計算に使う残り幅をビュー幅へとセットする。
-                            restWidth = viewWidh;
+                                // 次の行のコンテンツを入れる
+                                contentText = nextLineText;
+                                newTailTextElement = TextElement.GO(contentText);
+                                newTailTextElement.transform.SetParent(element.transform);// 消しやすくするため、この新規コンテンツを子にする
 
-                            // 次の行のコンテンツを入れる
-                            contentText = nextLineText;
-                            newTailTextElement = TextElement.GO(contentText);
-                            newTailTextElement.transform.SetParent(element.transform);// 消しやすくするため、親にセットする
+                                // xは-に、yは親の直下に置く。yは特に、「親が親の行上でどのように配置されたのか」を加味する必要がある。
+                                // 例えば親行の中で親が最大の背の高さのコンテンツでない場合、改行すべき値は 親の背 + (行の背 - 親の背)/2 になる。
+                                var yPosFromLinedParentY = -(currentFirstLineHeight + (currentTotalLineHeight - currentFirstLineHeight) / 2);
 
-                            var yPosFromLinedParentY = -(Mathf.Abs(textComponent.rectTransform.anchoredPosition.y) + textComponent.rectTransform.sizeDelta.y);
+                                // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeedで変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
+                                var newTailTextElementRectTrans = newTailTextElement.GetComponent<RectTransform>();
+                                newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);
 
-                            // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeedで変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
-                            var newTailTextElementRectTrans = newTailTextElement.GetComponent<RectTransform>();
-                            newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);
-                            continueContent = true;
+                                // テキスト特有の継続したコンテンツ扱いする。
+                                continueContent = true;
 
-                            // 追加する(次の処理で確実に消されるが、足しておかないと次の行頭複数行で-されるケースがあり詰む)
-                            lineContents.Add(newTailTextElementRectTrans);
-                            goto NextLine;
+                                // 追加する(次の処理で確実に消されるが、足しておかないと次の行頭複数行で-されるケースがあり詰む)
+                                lineContents.Add(newTailTextElementRectTrans);
+                                newTailTextElement.debugPos = "originX:" + originX + " originY:" + originY + " currentLineMaxHeight:" + currentLineMaxHeight;
+                                goto NextLine;
+                            }
 
                         case TextLayoutStatus.HeadAndMulti:
                             // この形式のコンテンツは明示的に行に追加しない。末行が行中で終わるケースがあるため、追加するとコンテンツ全体が上下してしまう。
@@ -156,22 +175,26 @@ public class MyLayouter : ILayouter
                             {
                                 var lInfo = textInfos.lineInfo[j];
                                 totalHeight += lInfo.lineHeight;
-                                lineStrs[j] = contentText.Substring(lInfo.firstCharacterIndex, lInfo.lastCharacterIndex - lInfo.firstCharacterIndex);
+                                lineStrs[j] = contentText.Substring(lInfo.firstCharacterIndex, lInfo.lastCharacterIndex - lInfo.firstCharacterIndex + 1);
                             }
 
+                            // 改行コードを入れ、複数行での表示をいい感じにする。
                             textComponent.text = string.Join("\n", lineStrs);
-
                             textComponent.rectTransform.sizeDelta = new Vector2(restWidth, totalHeight);
+
+                            // 最終行関連のデータを揃える
+                            var lastLineWidth = textInfos.lineInfo[lineCount - 1].length;
+                            var lastLineHeight = textInfos.lineInfo[lineCount - 1].lineHeight;
+                            var contentHeightWithoutLastLine = totalHeight - lastLineHeight;
 
                             // なんらかの続きの文字コンテンツである場合、そのコンテンツの子になっているので位置情報を調整しない。
                             if (continueContent)
                             {
                                 continueContent = false;
-
-                                originX = textInfos.lineInfo[lineCount - 1].length;// 最終ラインのx位置を次のコンテンツに使う
-                                originY -= (totalHeight - textInfos.lineInfo[lineCount - 1].lineHeight);// 最終行
-                                restWidth = viewWidh - textInfos.lineInfo[lineCount - 1].length;
-                                currentLineMaxHeight = textInfos.lineInfo[lineCount - 1].lineHeight;
+                                originX = lastLineWidth;// 最終ラインのx位置を次のコンテンツに使う
+                                originY -= contentHeightWithoutLastLine;// Y位置の継続ポイントとして、最終行の高さを引いたコンテンツの高さを足す
+                                restWidth = viewWidh - lastLineWidth;// この行に入る残りのコンテンツの幅を初期化する
+                                currentLineMaxHeight = lastLineHeight;// 最終行の高さを使ってコンテンツの高さを初期化する
                             }
                             else
                             {
@@ -192,6 +215,7 @@ public class MyLayouter : ILayouter
                 default:
                     break;
             }
+            element.debugPos = "originX:" + originX + " originY:" + originY + " currentLineMaxHeight:" + currentLineMaxHeight;
         }
 
         // レイアウト終了後、最後の列の要素を並べる。
@@ -199,27 +223,72 @@ public class MyLayouter : ILayouter
         {
             var rectTrans = element.GetComponent<RectTransform>();
             var elementHeight = rectTrans.sizeDelta.y;
-            rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, originY - (currentLineMaxHeight - elementHeight) / 2);
+            var isParentRoot = rectTrans.parent.GetComponent<LTElement>() is LTRootElement;
+            if (isParentRoot)
+            {
+                rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, originY - (currentLineMaxHeight - elementHeight) / 2);
+            }
+            else
+            {
+                // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
+                rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, -elementHeight - (currentLineMaxHeight - elementHeight) / 2);
+            }
         }
+
         lineContents.Clear();
 
         Debug.LogWarning("この辺まとめ終わったら、抽象化すると良さそう。textとrectで抽象化できそう。");
+
+        // json化して見やすくする機構作ろう、、デバッグし辛い、、
+        // Jsonize(elements);
     }
 
-    private void LineFeed(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedElements)
+    private void Jsonize(LTElement[] elements)
+    {
+        var buf = new System.Text.StringBuilder();
+        foreach (var element in elements)
+        {
+            buf.AppendLine("kind:" + element.GetLTElementType());
+            buf.AppendLine("    origins:" + element.debugPos);
+            var rectTrans = element.GetComponent<RectTransform>();
+            // buf.AppendLine("    rectTrans:" + rectTrans);
+            if (0 < element.transform.childCount)
+            {
+                var rectTrans2 = element.transform.GetChild(0).GetComponent<RectTransform>();
+                buf.AppendLine("        child origins:" + rectTrans2.GetComponent<LTElement>().debugPos);
+                // buf.AppendLine("        child rectTrans:" + rectTrans2);
+            }
+        }
+        // Debug.Log("buf:" + buf);
+    }
+
+    private float LineFeed(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedElements)
     {
         // 列の概念の中で最大の高さを持つ要素を中心に、それより小さい要素をy軸に対して整列させる
         var lineHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
         foreach (var rectTrans in linedElements)
         {
             var elementHeight = rectTrans.sizeDelta.y;
-            rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, -(lineHeight - elementHeight) / 2);
+            // var isParentRoot = rectTrans.parent.GetComponent<LTElement>() is LTRootElement;
+            // if (isParentRoot)
+            // {
+            //     // rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, originY - (currentLineMaxHeight - elementHeight) / 2);
+            // }
+            // else
+            // {
+            //     // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
+            //     // rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, -elementHeight - (currentLineMaxHeight - elementHeight) / 2);
+            // }
+            rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, y - (lineHeight - elementHeight) / 2);
         }
         linedElements.Clear();
 
         x = 0;
         y -= lineHeight;
         currentLineMaxHeight = 0f;
+
+        // 純粋にその行の中でどの要素が最も背が高かったのかを判別するために、計算結果による変数の初期化に関係なくこの値が必要な箇所がある。
+        return lineHeight;
     }
 
     private void ContinueLine(ref float x, float newX, float currentElementHeight, ref float currentLineMaxHeight)
