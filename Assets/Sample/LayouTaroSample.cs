@@ -19,9 +19,9 @@ public class LayouTaroSample : MonoBehaviour
         // データ構造を作る、自由に構造を書いていい。初期化子で初期化できる。
         var box = BoxElement.GO(
             null,// bg画像
-            ImageElement.GO(null),// 画像
             TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
-            TextElement.GO("dijklmno"),// ここか。2連続でのやつかー
+            ImageElement.GO(null),// 画像
+            TextElement.GO("dijklmno"),
             TextElement.GO("h"),
             ImageElement.GO(null),
             TextElement.GO("g"),

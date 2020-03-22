@@ -13,7 +13,7 @@ public class MyLayouter : ILayouter
         originX = 0f;
         originY = 0f;
 
-        var viewWidh = size.x;
+        var viewWidth = size.x;
 
         // boxのInsetとかを作ると、上下左右の余白とか作れそうだなー。
         // ここは起点になるので、必要であれば起点をいじっていこう。
@@ -26,10 +26,10 @@ public class MyLayouter : ILayouter
             var element = elements[i];
 
             var currentElementRectTrans = element.GetComponent<RectTransform>();
-            var restWidth = viewWidh - originX;
+            var restWidth = viewWidth - originX;
 
             lineContents.Add(currentElementRectTrans);
-            // Debug.Log("originX:" + originX + " originY:" + originY);
+
             var type = element.GetLTElementType();
             switch (type)
             {
@@ -42,7 +42,7 @@ public class MyLayouter : ILayouter
                     {
                         // 最後の追加要素である自分自身を取り出し、整列させる。
                         lineContents.RemoveAt(lineContents.Count - 1);
-                        LineFeed(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
+                        ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
                         lineContents.Add(currentElementRectTrans);
 
                         // 位置をセット
@@ -57,11 +57,11 @@ public class MyLayouter : ILayouter
                     // ジャストで埋まったら、次の行を作成する。
                     if (restWidth == rectSize.x)
                     {
-                        LineFeed(ref originX, ref originY, currentElementRectTrans.sizeDelta.y, ref currentLineMaxHeight, ref lineContents);
+                        ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentElementRectTrans.sizeDelta.y, ref currentLineMaxHeight, ref lineContents);
                         continue;
                     }
 
-                    ContinueLine(ref originX, rectSize.x, currentElementRectTrans.sizeDelta.y, ref currentLineMaxHeight);
+                    ElementLayoutFunctions.ContinueLine(ref originX, rectSize.x, currentElementRectTrans.sizeDelta.y, ref currentLineMaxHeight);
                     break;
                 case LTElementType.Text:
                     var newTailTextElement = (TextElement)element;
@@ -97,7 +97,7 @@ public class MyLayouter : ILayouter
                     Debug.LogWarning("一文字も入らない、という可能性を考えてなかった、、、そのパターンもある。ミニマムサイズ決めちゃうか。その方が綺麗かも。");
 
 
-                    var status = GetTextLayoutStatus(isHeadOfLine, isMultiLined);
+                    var status = TextLayoutDefinitions.GetTextLayoutStatus(isHeadOfLine, isMultiLined);
                     switch (status)
                     {
                         case TextLayoutStatus.NotHeadAndSingle:
@@ -107,7 +107,7 @@ public class MyLayouter : ILayouter
                             if (continueContent)
                             {
                                 continueContent = false;
-                                restWidth = viewWidh - currentFirstLineWidth;
+                                restWidth = viewWidth - currentFirstLineWidth;
                                 currentLineMaxHeight = currentFirstLineHeight;
                             }
                             else
@@ -117,7 +117,7 @@ public class MyLayouter : ILayouter
 
                             textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
-                            ContinueLine(ref originX, currentFirstLineWidth, currentFirstLineHeight, ref currentLineMaxHeight);
+                            ElementLayoutFunctions.ContinueLine(ref originX, currentFirstLineWidth, currentFirstLineHeight, ref currentLineMaxHeight);
                             break;
 
                         case TextLayoutStatus.NotHeadAndMulti:
@@ -132,13 +132,13 @@ public class MyLayouter : ILayouter
 
                             var childOriginX = originX;
 
-                            var currentTotalLineHeight = LineFeed(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
+                            var currentTotalLineHeight = ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
 
                             // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                             // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
                             {
                                 // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
-                                restWidth = viewWidh;
+                                restWidth = viewWidth;
 
                                 // 次の行のコンテンツを入れる
                                 contentText = nextLineText;
@@ -158,7 +158,6 @@ public class MyLayouter : ILayouter
 
                                 // 追加する(次の処理で確実に消されるが、足しておかないと次の行頭複数行で-されるケースがあり詰む)
                                 lineContents.Add(newTailTextElementRectTrans);
-                                newTailTextElement.debugPos = "originX:" + originX + " originY:" + originY + " currentLineMaxHeight:" + currentLineMaxHeight;
                                 goto NextLine;
                             }
 
@@ -191,23 +190,22 @@ public class MyLayouter : ILayouter
                             if (continueContent)
                             {
                                 continueContent = false;
-                                originX = lastLineWidth;// 最終ラインのx位置を次のコンテンツに使う
-                                originY -= contentHeightWithoutLastLine;// Y位置の継続ポイントとして、最終行の高さを引いたコンテンツの高さを足す
-                                restWidth = viewWidh - lastLineWidth;// この行に入る残りのコンテンツの幅を初期化する
-                                currentLineMaxHeight = lastLineHeight;// 最終行の高さを使ってコンテンツの高さを初期化する
                             }
                             else
                             {
                                 textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
-                                // まだ適当
-                                Debug.Log("まだ適当");
                             }
+
+                            originX = lastLineWidth;// 最終ラインのx位置を次のコンテンツに使う
+                            originY -= contentHeightWithoutLastLine;// Y位置の継続ポイントとして、最終行の高さを引いたコンテンツの高さを足す
+                            restWidth = viewWidth - lastLineWidth;// この行に入る残りのコンテンツの幅を初期化する
+                            currentLineMaxHeight = lastLineHeight;// 最終行の高さを使ってコンテンツの高さを初期化する
 
                             break;
                     }
                     break;
                 case LTElementType.Box:
-                    throw new Exception("unsupported layout:" + type);
+                    throw new Exception("unsupported layout:" + type);// 子のレイヤーにBoxが来るのを許可しない。
 
                 case LTElementType.Button:
                     Debug.LogError("まだButtonがない");
@@ -215,7 +213,6 @@ public class MyLayouter : ILayouter
                 default:
                     break;
             }
-            element.debugPos = "originX:" + originX + " originY:" + originY + " currentLineMaxHeight:" + currentLineMaxHeight;
         }
 
         // レイアウト終了後、最後の列の要素を並べる。
@@ -226,57 +223,9 @@ public class MyLayouter : ILayouter
             var isParentRoot = rectTrans.parent.GetComponent<LTElement>() is LTRootElement;
             if (isParentRoot)
             {
-                rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, originY - (currentLineMaxHeight - elementHeight) / 2);
-            }
-            else
-            {
-                // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
-                rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, -elementHeight - (currentLineMaxHeight - elementHeight) / 2);
-            }
-        }
-
-        lineContents.Clear();
-
-        Debug.LogWarning("この辺まとめ終わったら、抽象化すると良さそう。textとrectで抽象化できそう。");
-
-        // json化して見やすくする機構作ろう、、デバッグし辛い、、
-        // Jsonize(elements);
-    }
-
-    private void Jsonize(LTElement[] elements)
-    {
-        var buf = new System.Text.StringBuilder();
-        foreach (var element in elements)
-        {
-            buf.AppendLine("kind:" + element.GetLTElementType());
-            buf.AppendLine("    origins:" + element.debugPos);
-            var rectTrans = element.GetComponent<RectTransform>();
-            // buf.AppendLine("    rectTrans:" + rectTrans);
-            if (0 < element.transform.childCount)
-            {
-                var rectTrans2 = element.transform.GetChild(0).GetComponent<RectTransform>();
-                buf.AppendLine("        child origins:" + rectTrans2.GetComponent<LTElement>().debugPos);
-                // buf.AppendLine("        child rectTrans:" + rectTrans2);
-            }
-        }
-        // Debug.Log("buf:" + buf);
-    }
-
-    private float LineFeed(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedElements)
-    {
-        // 列の概念の中で最大の高さを持つ要素を中心に、それより小さい要素をy軸に対して整列させる
-        var lineHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
-        foreach (var rectTrans in linedElements)
-        {
-            var elementHeight = rectTrans.sizeDelta.y;
-
-            // ついにここの世話になる気がする、っていうかなる。
-            var isParentRoot = rectTrans.parent.GetComponent<LTElement>() is LTRootElement;
-            if (isParentRoot)
-            {
                 rectTrans.anchoredPosition = new Vector2(
-                    rectTrans.anchoredPosition.x,// xは維持
-                    y - (lineHeight - elementHeight) / 2// yは行の高さから要素の高さを引いて/2したものをセット(縦の中央揃え)
+                    rectTrans.anchoredPosition.x,
+                    originY - (currentLineMaxHeight - elementHeight) / 2
                 );
             }
             else
@@ -284,50 +233,18 @@ public class MyLayouter : ILayouter
                 // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
                 rectTrans.anchoredPosition = new Vector2(
                     rectTrans.anchoredPosition.x,
-                    -elementHeight - (currentLineMaxHeight - elementHeight) / 2
+                    -(elementHeight + (currentLineMaxHeight - elementHeight) / 2)
                 );
             }
         }
-        linedElements.Clear();
 
-        x = 0;
-        y -= lineHeight;
-        currentLineMaxHeight = 0f;
+        lineContents.Clear();
 
-        // 純粋にその行の中でどの要素が最も背が高かったのかを判別するために、計算結果による変数の初期化に関係なくこの値が必要な箇所がある。
-        return lineHeight;
+        Debug.LogWarning("この辺まとめ終わったら、抽象化すると良さそう。textとrectで抽象化できそう。");
     }
 
-    private void ContinueLine(ref float x, float newX, float currentElementHeight, ref float currentLineMaxHeight)
-    {
-        x += newX;
-        currentLineMaxHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
-    }
 
-    private enum TextLayoutStatus
-    {
-        HeadAndSingle,
-        HeadAndMulti,
-        NotHeadAndSingle,
-        NotHeadAndMulti
-    }
 
-    private TextLayoutStatus GetTextLayoutStatus(bool isHeadOfLine, bool isMultiLined)
-    {
-        if (isHeadOfLine && isMultiLined)
-        {
-            return TextLayoutStatus.HeadAndMulti;
-        }
-        else if (isHeadOfLine && !isMultiLined)
-        {
-            return TextLayoutStatus.HeadAndSingle;
-        }
-        else if (!isHeadOfLine && !isMultiLined)
-        {
-            return TextLayoutStatus.NotHeadAndSingle;
-        }
-        return TextLayoutStatus.NotHeadAndMulti;
-    }
 
     public void UpdateValues(LTElement[] elements, Dictionary<LTElementType, object> updateValues)
     {
