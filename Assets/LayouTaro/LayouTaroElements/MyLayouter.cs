@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class MyLayouter : ILayouter
 {
-    List<LTElement> lineContents = new List<LTElement>();// 同じ行に入っている要素を整列させるために必要
+    List<RectTransform> lineContents = new List<RectTransform>();// 同じ行に入っている要素を整列させるために必要
     public void Layout(Vector2 size, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements)
     {
         originX = 0f;
@@ -25,10 +25,10 @@ public class MyLayouter : ILayouter
         {
             var element = elements[i];
 
-            var rectTrans = element.GetComponent<RectTransform>();
+            var currentElementRectTrans = element.GetComponent<RectTransform>();
             var restWidth = viewWidh - originX;
 
-            lineContents.Add(element);
+            lineContents.Add(currentElementRectTrans);
 
             var type = element.GetLTElementType();
             switch (type)
@@ -43,25 +43,25 @@ public class MyLayouter : ILayouter
                         // 最後の追加要素である自分自身を取り出し、整列させる。
                         lineContents.RemoveAt(lineContents.Count - 1);
                         LineFeed(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
-                        lineContents.Add(imageElement);
+                        lineContents.Add(currentElementRectTrans);
 
                         // 位置をセット
-                        rectTrans.anchoredPosition = new Vector2(originX, originY);
+                        currentElementRectTrans.anchoredPosition = new Vector2(originX, originY);
                     }
                     else
                     {
                         // 位置をセット
-                        rectTrans.anchoredPosition = new Vector2(originX, originY);
+                        currentElementRectTrans.anchoredPosition = new Vector2(originX, originY);
                     }
 
                     // ジャストで埋まったら、次の行を作成する。
                     if (restWidth == rectSize.x)
                     {
-                        LineFeed(ref originX, ref originY, rectTrans.sizeDelta.y, ref currentLineMaxHeight, ref lineContents);
+                        LineFeed(ref originX, ref originY, currentElementRectTrans.sizeDelta.y, ref currentLineMaxHeight, ref lineContents);
                         continue;
                     }
 
-                    ContinueLine(ref originX, rectSize.x, rectTrans.sizeDelta.y, ref currentLineMaxHeight);
+                    ContinueLine(ref originX, rectSize.x, currentElementRectTrans.sizeDelta.y, ref currentLineMaxHeight);
                     break;
                 case LTElementType.Text:
                     var newTailTextElement = (TextElement)element;
@@ -135,11 +135,12 @@ public class MyLayouter : ILayouter
                             var yPosFromLinedParentY = -(Mathf.Abs(textComponent.rectTransform.anchoredPosition.y) + textComponent.rectTransform.sizeDelta.y);
 
                             // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeedで変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
-                            newTailTextElement.GetComponent<RectTransform>().anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);
+                            var newTailTextElementRectTrans = newTailTextElement.GetComponent<RectTransform>();
+                            newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);
                             continueContent = true;
 
                             // 追加する(次の処理で確実に消されるが、足しておかないと次の行頭複数行で-されるケースがあり詰む)
-                            lineContents.Add(newTailTextElement);
+                            lineContents.Add(newTailTextElementRectTrans);
                             goto NextLine;
 
                         case TextLayoutStatus.HeadAndMulti:
@@ -171,13 +172,12 @@ public class MyLayouter : ILayouter
                                 originY -= (totalHeight - textInfos.lineInfo[lineCount - 1].lineHeight);// 最終行
                                 restWidth = viewWidh - textInfos.lineInfo[lineCount - 1].length;
                                 currentLineMaxHeight = textInfos.lineInfo[lineCount - 1].lineHeight;
-
-                                Debug.Log("originX:" + originX + " originY:" + originY + " currentLineMaxHeight:" + currentLineMaxHeight);
                             }
                             else
                             {
                                 textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
                                 // まだ適当
+                                Debug.Log("まだ適当");
                             }
 
                             break;
@@ -187,13 +187,14 @@ public class MyLayouter : ILayouter
                     throw new Exception("unsupported layout:" + type);
 
                 case LTElementType.Button:
-                    Debug.LogError("まだない");
+                    Debug.LogError("まだButtonがない");
                     break;
                 default:
                     break;
             }
         }
 
+        // レイアウト終了後、最後の列の要素を並べる。
         foreach (var element in lineContents)
         {
             var rectTrans = element.GetComponent<RectTransform>();
@@ -201,15 +202,16 @@ public class MyLayouter : ILayouter
             rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, originY - (currentLineMaxHeight - elementHeight) / 2);
         }
         lineContents.Clear();
+
+        Debug.LogWarning("この辺まとめ終わったら、抽象化すると良さそう。textとrectで抽象化できそう。");
     }
 
-    private void LineFeed(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<LTElement> linedElements)
+    private void LineFeed(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedElements)
     {
         // 列の概念の中で最大の高さを持つ要素を中心に、それより小さい要素をy軸に対して整列させる
         var lineHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
-        foreach (var element in linedElements)
+        foreach (var rectTrans in linedElements)
         {
-            var rectTrans = element.GetComponent<RectTransform>();
             var elementHeight = rectTrans.sizeDelta.y;
             rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, -(lineHeight - elementHeight) / 2);
         }
