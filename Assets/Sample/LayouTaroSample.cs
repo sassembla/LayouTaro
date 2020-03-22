@@ -21,10 +21,11 @@ public class LayouTaroSample : MonoBehaviour
             null,// bg画像
             ImageElement.GO(null),// 画像
             TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
-                                                                                       // TextElement.GO("h"),
+            TextElement.GO("dijklmno"),// ここか。2連続でのやつかー
+            TextElement.GO("h"),
             ImageElement.GO(null),
-            TextElement.GO("g")
-        // ImageElement.GO(null)
+            TextElement.GO("g"),
+            ImageElement.GO(null)
         );
 
         // レイアウトに使うクラスを生成する

@@ -133,7 +133,7 @@ public class MyLayouter : ILayouter
                             var childOriginX = originX;
 
                             var currentTotalLineHeight = LineFeed(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
-                            Debug.Log("currentTotalLineHeight:" + currentTotalLineHeight);
+
                             // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                             // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
                             {
@@ -269,17 +269,24 @@ public class MyLayouter : ILayouter
         foreach (var rectTrans in linedElements)
         {
             var elementHeight = rectTrans.sizeDelta.y;
-            // var isParentRoot = rectTrans.parent.GetComponent<LTElement>() is LTRootElement;
-            // if (isParentRoot)
-            // {
-            //     // rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, originY - (currentLineMaxHeight - elementHeight) / 2);
-            // }
-            // else
-            // {
-            //     // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
-            //     // rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, -elementHeight - (currentLineMaxHeight - elementHeight) / 2);
-            // }
-            rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x, y - (lineHeight - elementHeight) / 2);
+
+            // ついにここの世話になる気がする、っていうかなる。
+            var isParentRoot = rectTrans.parent.GetComponent<LTElement>() is LTRootElement;
+            if (isParentRoot)
+            {
+                rectTrans.anchoredPosition = new Vector2(
+                    rectTrans.anchoredPosition.x,// xは維持
+                    y - (lineHeight - elementHeight) / 2// yは行の高さから要素の高さを引いて/2したものをセット(縦の中央揃え)
+                );
+            }
+            else
+            {
+                // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
+                rectTrans.anchoredPosition = new Vector2(
+                    rectTrans.anchoredPosition.x,
+                    -elementHeight - (currentLineMaxHeight - elementHeight) / 2
+                );
+            }
         }
         linedElements.Clear();
 
