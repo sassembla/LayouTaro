@@ -5,9 +5,9 @@ namespace UILayouTaro
 {
     public class LayouTaro
     {
+
         public static GameObject Layout<T>(Transform parent, Vector2 size, GameObject rootObject, ILayouter layouter) where T : LTRootElement
         {
-
             var originX = 0f;
             var originY = 0f;
 
@@ -28,7 +28,14 @@ namespace UILayouTaro
             // ここでCanvas要素にセットしちゃう(でないとTMProのinfoが取れない。)
             rootObject.transform.SetParent(parent);
 
-            layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements);
+            var lineContents = new List<RectTransform>();// 同じ行に入っている要素を整列させるために使用するリスト
+            var currentLineMaxHeight = 0f;
+
+            layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+
+            LayoutLastLine(ref originY, currentLineMaxHeight, ref lineContents);
+
+            lineContents.Clear();
 
             // var lastHeight = originY + elements[elements.Length - 1].GetComponent<RectTransform>().sizeDelta.y;
 
@@ -37,7 +44,6 @@ namespace UILayouTaro
 
         public static GameObject RelayoutWithUpdate<T>(Vector2 size, GameObject rootObject, Dictionary<LTElementType, object> updateValues, ILayouter layouter) where T : LTRootElement
         {
-            // parse
             var originX = 0f;
             var originY = 0f;
 
@@ -45,9 +51,47 @@ namespace UILayouTaro
             var elements = rootElement.GetLTElements();
 
             layouter.UpdateValues(elements, updateValues);
-            layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements);
+
+            var lineContents = new List<RectTransform>();// 同じ行に入っている要素を整列させるために使用するリスト
+            var currentLineMaxHeight = 0f;
+
+            layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+
+            LayoutLastLine(ref originY, currentLineMaxHeight, ref lineContents);
+
+            lineContents.Clear();
 
             return rootObject;
+        }
+
+
+        private static void LayoutLastLine(ref float originY, float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        {
+            // レイアウト終了後、最後の列の要素を並べる。
+            foreach (var element in lineContents)
+            {
+                var rectTrans = element.GetComponent<RectTransform>();
+                var elementHeight = rectTrans.sizeDelta.y;
+                var isParentRoot = rectTrans.parent.GetComponent<LTElement>() is LTRootElement;
+                if (isParentRoot)
+                {
+                    rectTrans.anchoredPosition = new Vector2(
+                        rectTrans.anchoredPosition.x,
+                        originY - (currentLineMaxHeight - elementHeight) / 2
+                    );
+                }
+                else
+                {
+                    // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
+                    rectTrans.anchoredPosition = new Vector2(
+                        rectTrans.anchoredPosition.x,
+                        -(elementHeight + (currentLineMaxHeight - elementHeight) / 2)
+                    );
+                }
+            }
+
+            // 最終的にyを更新する。
+            originY -= currentLineMaxHeight;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace UILayouTaro
 
     public interface ILayouter
     {
-        void Layout(Vector2 size, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements);
+        void Layout(Vector2 size, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents);
         void UpdateValues(LTElement[] elements, Dictionary<LTElementType, object> updateValues);
     }
 

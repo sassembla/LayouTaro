@@ -1,25 +1,29 @@
+using System;
 using UILayouTaro;
 using UnityEngine;
 using UnityEngine.UI;
 
 
-public class ImageElement : LTElement, ILayoutableImage
+public class ButtonElement : LTElement, ILayoutableImage
 {
     public override LTElementType GetLTElementType()
     {
-        return LTElementType.Image;
+        return LTElementType.Button;
     }
 
     public Image Image;
+    public Action OnTapped;
 
-    public static ImageElement GO(Image image)
+    public static ButtonElement GO(Image image, Action onTapped)
     {
         // prefab名を固定してGOを作ってしまおう
-        var prefabName = "LayouTaroPrefabs/Image";
+        var prefabName = "LayouTaroPrefabs/Button";
         var res = Resources.Load(prefabName) as GameObject;
-        var r = Instantiate(res).AddComponent<ImageElement>();
+        var r = Instantiate(res).AddComponent<ButtonElement>();
 
         r.Image = image;
+        r.OnTapped = onTapped;
+
         return r;
     }
 

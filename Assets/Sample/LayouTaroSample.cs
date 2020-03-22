@@ -25,7 +25,8 @@ public class LayouTaroSample : MonoBehaviour
             TextElement.GO("h"),
             ImageElement.GO(null),
             TextElement.GO("g"),
-            ImageElement.GO(null)
+            ImageElement.GO(null),
+            ButtonElement.GO(null, () => { Debug.Log("ボタンが押された"); })
         );
 
         // レイアウトに使うクラスを生成する
