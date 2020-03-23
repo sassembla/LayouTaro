@@ -19,7 +19,7 @@ namespace UILayouTaro
         void UpdateValues(LTElement[] elements, Dictionary<LTElementType, object> updateValues);
     }
 
-    public interface ILayoutableImage
+    public interface ILayoutableRect
     {
         Vector2 RectSize();
     }

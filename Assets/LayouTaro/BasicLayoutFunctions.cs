@@ -9,6 +9,7 @@ namespace UILayouTaro
 
         public static void TextLayout(TextElement newTailTextElement, string contentText, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
         {
+            Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             var continueContent = false;
 
         NextLine:
@@ -156,45 +157,48 @@ namespace UILayouTaro
                         break;
                     }
                 case TextLayoutStatus.NotHeadAndOutOfView:
-                    // 次の行にコンテンツを置き、継続する
+                    {
+                        // 次の行にコンテンツを置き、継続する
 
-                    // 現在最後の追加要素である自分自身を取り出し、ここまでの行の要素を整列させる。
-                    lineContents.RemoveAt(lineContents.Count - 1);
-                    ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
+                        // 現在最後の追加要素である自分自身を取り出し、ここまでの行の要素を整列させる。
+                        lineContents.RemoveAt(lineContents.Count - 1);
+                        ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
 
-                    // レイアウト対象のビューサイズを新しい行のものとして更新する
-                    restWidth = viewWidth;
-                    lineContents.Add(textComponent.rectTransform);
-                    goto NextLine;
+                        // レイアウト対象のビューサイズを新しい行のものとして更新する
+                        restWidth = viewWidth;
+                        lineContents.Add(textComponent.rectTransform);
+                        goto NextLine;
+                    }
             }
         }
 
-        public static void RectLayout(LTElement rectElement, RectTransform currentElementRectTrans, Vector2 rectSize, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        public static void RectLayout(LTElement rectElement, RectTransform transform, Vector2 rectSize, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
         {
+            Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             if (restWidth < rectSize.x)// 同じ列にレイアウトできないので次の列に行く。
             {
                 // 現在最後の追加要素である自分自身を取り出し、整列させる。
                 lineContents.RemoveAt(lineContents.Count - 1);
                 ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
-                lineContents.Add(currentElementRectTrans);
+                lineContents.Add(transform);
 
                 // 位置をセット
-                currentElementRectTrans.anchoredPosition = new Vector2(originX, originY);
+                transform.anchoredPosition = new Vector2(originX, originY);
             }
             else
             {
                 // 位置をセット
-                currentElementRectTrans.anchoredPosition = new Vector2(originX, originY);
+                transform.anchoredPosition = new Vector2(originX, originY);
             }
 
             // ジャストで埋まったら、次の行を作成する。
             if (restWidth == rectSize.x)
             {
-                ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentElementRectTrans.sizeDelta.y, ref currentLineMaxHeight, ref lineContents);
+                ElementLayoutFunctions.LineFeed(ref originX, ref originY, transform.sizeDelta.y, ref currentLineMaxHeight, ref lineContents);
                 return;
             }
 
-            ElementLayoutFunctions.ContinueLine(ref originX, rectSize.x, currentElementRectTrans.sizeDelta.y, ref currentLineMaxHeight);
+            ElementLayoutFunctions.ContinueLine(ref originX, rectSize.x, transform.sizeDelta.y, ref currentLineMaxHeight);
         }
     }
 }

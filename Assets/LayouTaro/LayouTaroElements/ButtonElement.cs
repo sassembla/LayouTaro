@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-public class ButtonElement : LTElement, ILayoutableImage
+public class ButtonElement : LTElement, ILayoutableRect
 {
     public override LTElementType GetLTElementType()
     {

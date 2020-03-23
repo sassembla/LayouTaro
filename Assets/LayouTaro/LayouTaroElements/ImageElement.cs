@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-public class ImageElement : LTElement, ILayoutableImage
+public class ImageElement : LTElement, ILayoutableRect
 {
     public override LTElementType GetLTElementType()
     {
