@@ -28,7 +28,7 @@ namespace UILayouTaro
                     // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
                     rectTrans.anchoredPosition = new Vector2(
                         rectTrans.anchoredPosition.x,// xは維持
-                        -(elementHeight + (currentLineMaxHeight - elementHeight) / 2)
+                        rectTrans.anchoredPosition.y - (currentLineMaxHeight - elementHeight) / 2
                     );
                 }
             }

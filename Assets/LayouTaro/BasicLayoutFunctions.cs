@@ -73,7 +73,6 @@ namespace UILayouTaro
                     textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
                     var childOriginX = originX;
-
                     var currentTotalLineHeight = ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
 
                     // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
@@ -89,11 +88,20 @@ namespace UILayouTaro
 
                         // xは-に、yは親の直下に置く。yは特に、「親が親の行上でどのように配置されたのか」を加味する必要がある。
                         // 例えば親行の中で親が最大の背の高さのコンテンツでない場合、改行すべき値は 親の背 + (行の背 - 親の背)/2 になる。
-                        var yPosFromLinedParentY = -(currentFirstLineHeight + (currentTotalLineHeight - currentFirstLineHeight) / 2);
+
+                        var yPosFromLinedParentY =
+                            -(// 下向きがマイナスな座標系なのでマイナス
+                                currentFirstLineHeight// 現在の文字の高さと行の高さを比較し、文字の高さ + 上側の差の高さ(差/2)を足して返す。
+                                + (
+                                    currentTotalLineHeight
+                                    - currentFirstLineHeight
+                                )
+                                / 2
+                            );
 
                         // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeedで変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
                         var newTailTextElementRectTrans = newTailTextElement.GetComponent<RectTransform>();
-                        newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);
+                        newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);// ここかー
 
                         // テキスト特有の継続したコンテンツ扱いする。
                         continueContent = true;

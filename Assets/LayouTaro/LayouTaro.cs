@@ -99,8 +99,13 @@ namespace UILayouTaro
                     // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
                     rectTrans.anchoredPosition = new Vector2(
                         rectTrans.anchoredPosition.x,
-                        -(elementHeight + (currentLineMaxHeight - elementHeight) / 2)
-                    );
+                        rectTrans.anchoredPosition.y -// 子要素は親からの絶対的な距離を独自に保持しているので、それ + 行全体を整頓した際の高さの隙間、という計算を行う。
+                            (
+                                currentLineMaxHeight// この行全体の高さからこの要素の高さを引いて/2して、「要素の上の方の隙間高さ」を手に入れる
+                                - elementHeight
+                            )
+                            / 2
+                        );
                 }
             }
 
