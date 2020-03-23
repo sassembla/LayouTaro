@@ -9,12 +9,13 @@ namespace UILayouTaro
         HeadAndSingle,
         HeadAndMulti,
         NotHeadAndSingle,
-        NotHeadAndMulti
+        NotHeadAndMulti,
+        NotHeadAndOutOfView
     }
 
     public static class TextLayoutDefinitions
     {
-        public static TextLayoutStatus GetTextLayoutStatus(bool isHeadOfLine, bool isMultiLined)
+        public static TextLayoutStatus GetTextLayoutStatus(bool isHeadOfLine, bool isMultiLined, bool isLayoutedOutOfView)
         {
             if (isHeadOfLine && isMultiLined)
             {
@@ -24,10 +25,15 @@ namespace UILayouTaro
             {
                 return TextLayoutStatus.HeadAndSingle;
             }
+            else if (!isHeadOfLine && isLayoutedOutOfView)
+            {
+                return TextLayoutStatus.NotHeadAndOutOfView;
+            }
             else if (!isHeadOfLine && !isMultiLined)
             {
                 return TextLayoutStatus.NotHeadAndSingle;
             }
+
             return TextLayoutStatus.NotHeadAndMulti;
         }
     }
