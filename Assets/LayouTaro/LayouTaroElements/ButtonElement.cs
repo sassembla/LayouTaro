@@ -24,6 +24,10 @@ public class ButtonElement : LTElement, ILayoutableImage
         r.Image = image;
         r.OnTapped = onTapped;
 
+        // このへんでレシーバセットする
+        var button = r.GetComponent<Button>();
+        button.onClick.AddListener(() => r.OnTapped());
+
         return r;
     }
 

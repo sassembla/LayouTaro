@@ -6,7 +6,7 @@ public class BoxElement : LTRootElement
 {
     public override LTElementType GetLTElementType()
     {
-        return LTElementType.Image;
+        return LTElementType.Box;
     }
 
     public override LTElement[] GetLTElements()

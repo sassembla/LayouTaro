@@ -16,6 +16,11 @@ public class LayouTaroSample : MonoBehaviour
         // データのインスタンスを元に、レイアウトを開始する。
         Debug.Log("レイアウト開始！");
 
+        /*
+            ・マルチ文字列、ラストが1ラインなら別にレイアウト巻き込まれていいよね
+            ・同じマルチ文字列で結果が違うやつがいる
+        */
+
         // データ構造を作る、自由に構造を書いていい。初期化子で初期化できる。
         var box = BoxElement.GO(
             null,// bg画像
@@ -26,7 +31,9 @@ public class LayouTaroSample : MonoBehaviour
             ImageElement.GO(null),
             TextElement.GO("g"),
             ImageElement.GO(null),
-            ButtonElement.GO(null, () => { Debug.Log("ボタンが押された"); })
+            TextElement.GO("dijklghere")
+        // TextElement.GO("2ijklmno"),
+        // ButtonElement.GO(null, () => { Debug.Log("ボタンが押された"); })
         );
 
         // レイアウトに使うクラスを生成する
@@ -48,13 +55,13 @@ public class LayouTaroSample : MonoBehaviour
         go.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
 
         // // 値の更新とリレイアウトを行う
-        // // goからBoxを取得し、Relayoutを行い、行った後のGameObjectを受け取る。同じインスタンスで値が変わったものが返ってくる。
+        // // goからBoxを取得し、Relayoutを行い、行った後のGameObjectを受け取る。同じインスタンスで中身の値が変わったものが返ってくる。
         // go = LayouTaro.RelayoutWithUpdate<BoxElement>(
         //     size,
         //     go,
-        //     new Dictionary<LayoutElementType, object> {
-        //         {LayoutElementType.Image, null},
-        //         {LayoutElementType.Text, "relayout!"}
+        //     new Dictionary<LTElementType, object> {
+        //         {LTElementType.Image, null},
+        //         {LTElementType.Text, "relayout!"}
         //     },
         //     layouter
         // );

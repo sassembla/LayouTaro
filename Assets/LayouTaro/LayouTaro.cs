@@ -49,6 +49,20 @@ namespace UILayouTaro
 
             var rootElement = rootObject.GetComponent<T>();
             var elements = rootElement.GetLTElements();
+            foreach (var element in elements)
+            {
+                if (element is ILayoutableText)
+                {
+                    if (0 < element.transform.childCount)
+                    {
+                        for (var i = 0; i < element.transform.childCount; i++)
+                        {
+                            var child = element.transform.GetChild(i);
+                            GameObject.Destroy(child.gameObject);
+                        }
+                    }
+                }
+            }
 
             layouter.UpdateValues(elements, updateValues);
 

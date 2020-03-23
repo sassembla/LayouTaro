@@ -97,6 +97,13 @@ public class MyLayouter : ILayouter
                     var p = updateValues[LTElementType.Image] as Image;
                     i.Image = p;
                     break;
+                case LTElementType.Text:
+                    var t = (TextElement)e;
+
+                    // get value from updateValues and cast to the type what you set.
+                    var tVal = updateValues[LTElementType.Text] as string;
+                    t.TextContent = tVal;
+                    break;
 
                 default:
                     break;
