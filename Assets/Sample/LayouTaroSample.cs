@@ -21,26 +21,23 @@ public class LayouTaroSample : MonoBehaviour
             ・同じマルチ文字列で結果が違うやつがいる
         */
 
-        // データ構造を作る、自由に構造を書いていい。初期化子で初期化できる。
+        // データ構造を作る、自由に構造を書いていい。
         var box = BoxElement.GO(
             null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
             TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
             ImageElement.GO(null),// 画像
-            TextElement.GO("dijklmno"),
-            TextElement.GO("h"),
-            ImageElement.GO(null),
-            TextElement.GO("g"),
-            ImageElement.GO(null),
-            TextElement.GO("dijklghere"),
-            TextElement.GO("2ijklmno"),
-            ButtonElement.GO(null, () => { Debug.Log("ボタンが押された"); })
+            ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
         );
 
         // レイアウトに使うクラスを生成する
         var layouter = new MyLayouter();
 
         // コンテンツのサイズをセットする
-        var size = new Vector2(200, 100);
+        var size = new Vector2(600, 100);
 
         // レイアウトを行う
         var go = box.gameObject;
@@ -54,16 +51,16 @@ public class LayouTaroSample : MonoBehaviour
         go.transform.SetParent(canvas.transform);
         go.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
 
-        // // 値の更新とリレイアウトを行う
-        // // goからBoxを取得し、Relayoutを行い、行った後のGameObjectを受け取る。同じインスタンスで中身の値が変わったものが返ってくる。
-        // go = LayouTaro.RelayoutWithUpdate<BoxElement>(
-        //     size,
-        //     go,
-        //     new Dictionary<LTElementType, object> {
-        //         {LTElementType.Image, null},
-        //         {LTElementType.Text, "relayout!"}
-        //     },
-        //     layouter
-        // );
+        // 値の更新とリレイアウトを行う
+        // goからBoxを取得し、Relayoutを行い、行った後のGameObjectを受け取る。同じインスタンスで中身の値が変わったものが返ってくる。
+        go = LayouTaro.RelayoutWithUpdate<BoxElement>(
+            size,
+            go,
+            new Dictionary<LTElementType, object> {
+                {LTElementType.Image, null},
+                {LTElementType.Text, "relayout!"}
+            },
+            layouter
+        );
     }
 }
