@@ -33,8 +33,6 @@ namespace UILayouTaro
 
             layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
 
-            LayoutLastLine(ref originY, currentLineMaxHeight, ref lineContents);
-
             lineContents.Clear();
 
             // var lastHeight = originY + elements[elements.Length - 1].GetComponent<RectTransform>().sizeDelta.y;
@@ -71,46 +69,9 @@ namespace UILayouTaro
 
             layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
 
-            LayoutLastLine(ref originY, currentLineMaxHeight, ref lineContents);
-
             lineContents.Clear();
 
             return rootObject;
-        }
-
-
-        private static void LayoutLastLine(ref float originY, float currentLineMaxHeight, ref List<RectTransform> lineContents)
-        {
-            // レイアウト終了後、最後の列の要素を並べる。
-            foreach (var element in lineContents)
-            {
-                var rectTrans = element.GetComponent<RectTransform>();
-                var elementHeight = rectTrans.sizeDelta.y;
-                var isParentRoot = rectTrans.parent.GetComponent<LTElement>() is LTRootElement;
-                if (isParentRoot)
-                {
-                    rectTrans.anchoredPosition = new Vector2(
-                        rectTrans.anchoredPosition.x,
-                        originY - (currentLineMaxHeight - elementHeight) / 2
-                    );
-                }
-                else
-                {
-                    // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
-                    rectTrans.anchoredPosition = new Vector2(
-                        rectTrans.anchoredPosition.x,
-                        rectTrans.anchoredPosition.y -// 子要素は親からの絶対的な距離を独自に保持しているので、それ + 行全体を整頓した際の高さの隙間、という計算を行う。
-                            (
-                                currentLineMaxHeight// この行全体の高さからこの要素の高さを引いて/2して、「要素の上の方の隙間高さ」を手に入れる
-                                - elementHeight
-                            )
-                            / 2
-                        );
-                }
-            }
-
-            // 最終的にyを更新する。
-            originY -= currentLineMaxHeight;
         }
     }
 }

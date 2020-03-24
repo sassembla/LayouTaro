@@ -12,10 +12,11 @@ public class MyLayouter : ILayouter
         originX = 0f;
         originY = 0f;
 
-        var viewWidth = viewSize.x;
+        var viewWidth = viewSize.x - 20;
 
-        // boxのInsetとかを作ると、上下左右の余白とか作れそうだなー。
-        // ここは起点になるので、必要であれば起点をいじっていこう。
+        // MyLayputはrootとしてboxがくる前提で作られている、という想定のサンプル
+        var root = rootObject.GetComponent<BoxElement>();
+        var rootTrans = root.GetComponent<RectTransform>();
 
         for (var i = 0; i < elements.Length; i++)
         {
@@ -81,6 +82,18 @@ public class MyLayouter : ILayouter
                     Debug.LogError("unsupported element type:" + type);
                     break;
             }
+        }
+
+        // 自分で最終行のレイアウトを行う
+        BasicLayoutFunctions.LayoutLastLine(ref originY, currentLineMaxHeight, ref lineContents);
+
+        // サイズを調整する
+        rootTrans.sizeDelta = new Vector2(viewWidth + 10, Mathf.Abs(originY) + 20);
+
+        foreach (var e in elements)
+        {
+            var rectTrans = e.GetComponent<RectTransform>();
+            rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x + 10, rectTrans.anchoredPosition.y - 10);
         }
     }
 
