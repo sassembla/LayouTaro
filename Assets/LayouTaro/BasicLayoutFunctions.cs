@@ -7,7 +7,7 @@ namespace UILayouTaro
     public static class BasicLayoutFunctions
     {
 
-        public static void TextLayout(TextElement newTailTextElement, string contentText, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        public static void TextLayout(LTElement newTailTextElement, string contentText, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
         {
             Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             var continueContent = false;
