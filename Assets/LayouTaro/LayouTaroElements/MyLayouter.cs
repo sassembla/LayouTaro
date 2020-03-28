@@ -93,7 +93,7 @@ public class MyLayouter : ILayouter
         // 最終行のレイアウトを行う
         BasicLayoutFunctions.LayoutLastLine(ref originY, currentLineMaxHeight, ref lineContents);
 
-        // サイズを調整する
+        // boxのサイズを調整する
         rootTrans.sizeDelta = new Vector2(originalViewWidth, Mathf.Abs(originY) + OutsideSpacing * 2);// オリジナル幅で、高さに対して2倍分の余白を足す。
 
         // 子要素の余白分の移動
