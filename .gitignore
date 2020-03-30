@@ -5,3 +5,11 @@ Library/*
 LayouTaro.sln
 obj/*
 Temp/*
+miyamasu.log
+LayouTaroTests.csproj
+Logs/Packages-Update.log
+Tests.csproj
+UnityEditor.TestRunner.csproj
+UnityEngine.TestRunner.csproj
+.DS_Store
+Assembly-CSharp-Editor.csproj

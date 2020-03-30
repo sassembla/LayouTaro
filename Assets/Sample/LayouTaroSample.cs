@@ -51,16 +51,16 @@ public class LayouTaroSample : MonoBehaviour
         go.transform.SetParent(canvas.transform);
         go.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
 
-        // 値の更新とリレイアウトを行う
-        // goからBoxを取得し、Relayoutを行い、行った後のGameObjectを受け取る。同じインスタンスで中身の値が変わったものが返ってくる。
-        go = LayouTaro.RelayoutWithUpdate<BoxElement>(
-            size,
-            go,
-            new Dictionary<LTElementType, object> {
-                {LTElementType.Image, null},
-                {LTElementType.Text, "relayout!"}
-            },
-            layouter
-        );
+        // // 値の更新とリレイアウトを行う
+        // // goからBoxを取得し、Relayoutを行うと、中身の値が変わったgoインスタンスが返ってくる。
+        // go = LayouTaro.RelayoutWithUpdate<BoxElement>(
+        //     size,
+        //     go,
+        //     new Dictionary<LTElementType, object> {
+        //         {LTElementType.Image, null},
+        //         {LTElementType.Text, "relayout!"}
+        //     },
+        //     layouter
+        // );
     }
 }

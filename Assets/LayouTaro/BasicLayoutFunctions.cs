@@ -64,6 +64,9 @@ namespace UILayouTaro
 
                 case TextLayoutStatus.NotHeadAndMulti:
                     {
+                        // textComponent.text = "<indent=" + originX + "pixels>"  でindentを付けられるが、これの恩恵を素直に受けられるケースが少ない。
+                        // この行が高さ整列の影響をどう受けるか、続くテキストが複数か1行か、中央終わりかそうでないか、終わったタイミングで行に並ぶコンテンツで高さがどう整列されるか、というパターンがあり、
+                        // 特に「後から分離したパーツの最終行が分離してレイアウトされる」パターンが辛すぎる。
                         // これは、この行 + 追加のHead ~ 系の最大2コンテンツにできる。
                         var nextLineTextIndex = tmGeneratorLines[1].firstCharacterIndex;
                         var nextLineText = contentText.Substring(nextLineTextIndex);
