@@ -27,5 +27,7 @@ namespace UILayouTaro
     public interface ILayoutableText
     {
         string Text();
+
+        GameObject GenerateGO(string text);
     }
 }
