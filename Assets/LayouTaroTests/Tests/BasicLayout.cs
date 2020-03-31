@@ -7,7 +7,7 @@ using Miyamasu;
 using System;
 using UnityEngine.EventSystems;
 
-public class BasicLayout : MiyamasuTestRunner
+public class BasicLayoutTest : MiyamasuTestRunner
 {
     private Canvas canvas;
 
@@ -99,8 +99,8 @@ public class BasicLayout : MiyamasuTestRunner
             ImageElement.GO(null),// 画像
             ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
             TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
-            ImageElement.GO(null),// 画像
-            TextElement.GO("hannidjkfajfaoooood2")
+            ImageElement.GO(null)// 画像
+                                 // TextElement.GO("hannidjkfajfaoooood2")
         );
 
         // レイアウトに使うクラスを生成する
@@ -124,7 +124,10 @@ public class BasicLayout : MiyamasuTestRunner
 
 
         ScreenCapture.CaptureScreenshot("./images/1_ComplexPattern");
-
+        while (true)
+        {
+            yield return null;
+        }
         yield break;
     }
 

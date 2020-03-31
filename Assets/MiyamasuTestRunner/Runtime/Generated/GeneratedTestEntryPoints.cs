@@ -4,10 +4,10 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Miyamasu;
-public class BasicLayout_Miyamasu {
+public class BasicLayoutTest_Miyamasu {
     [UnityTest] public IEnumerator BasicPattern() {
-        var instance = new BasicLayout();
-        instance.SetInfo("BasicLayout", "BasicPattern");
+        var instance = new BasicLayoutTest();
+        instance.SetInfo("BasicLayoutTest", "BasicPattern");
         
         try {
             instance.Setup();
@@ -28,8 +28,8 @@ public class BasicLayout_Miyamasu {
         }
     }
     [UnityTest] public IEnumerator ComplexPattern() {
-        var instance = new BasicLayout();
-        instance.SetInfo("BasicLayout", "ComplexPattern");
+        var instance = new BasicLayoutTest();
+        instance.SetInfo("BasicLayoutTest", "ComplexPattern");
         
         try {
             instance.Setup();

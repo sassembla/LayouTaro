@@ -7,13 +7,13 @@ namespace UILayouTaro
     public static class BasicLayoutFunctions
     {
 
-        public static void TextLayout(LTElement newTailTextElement, string contentText, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        public static void TextLayout(LTElement textElement, string contentText, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
         {
             Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             var continueContent = false;
 
         NextLine:
-            var textComponent = newTailTextElement.GetComponent<TMPro.TextMeshProUGUI>();
+            var textComponent = textElement.GetComponent<TMPro.TextMeshProUGUI>();
 
             // wordWrappingを可能にすると、表示はともかく実際にこの行にどれだけの文字が入っているか判断できる。
             textComponent.enableWordWrapping = true;
@@ -65,9 +65,10 @@ namespace UILayouTaro
                 case TextLayoutStatus.NotHeadAndMulti:
                     {
                         // textComponent.text = "<indent=" + originX + "pixels>"  でindentを付けられるが、これの恩恵を素直に受けられるケースが少ない。
-                        // この行が高さ整列の影響をどう受けるか、続くテキストが複数か1行か、中央終わりかそうでないか、終わったタイミングで行に並ぶコンテンツで高さがどう整列されるか、というパターンがあり、
-                        // 特に「後から分離したパーツの最終行が分離してレイアウトされる」パターンが辛すぎる。
-                        // これは、この行 + 追加のHead ~ 系の最大2コンテンツにできる。
+                        // この行をレイアウトした際、行頭の文字のレイアウトが変わるようであれば、利用できない。
+                        // 最適化としてはケースが複雑なので後回しにする。
+
+                        // これは、この行 + 追加のHead ~ 系の複数のコンテンツに分割する。
                         var nextLineTextIndex = tmGeneratorLines[1].firstCharacterIndex;
                         var nextLineText = contentText.Substring(nextLineTextIndex);
 
@@ -76,19 +77,24 @@ namespace UILayouTaro
                         textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
+                        Debug.Log("textComponent.text:" + textComponent.text);
+
                         var childOriginX = originX;
                         var currentTotalLineHeight = ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
 
                         // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                         // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
+
+                        // if (false)
                         {
                             // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
                             restWidth = viewWidth;
 
                             // 次の行のコンテンツを入れる
-                            contentText = nextLineText;
-                            newTailTextElement = TextElement.GO(contentText);
-                            newTailTextElement.transform.SetParent(transform);// 消しやすくするため、この新規コンテンツを子にする
+                            Debug.Log("nextLineText:" + nextLineText);
+                            var newTextElement = TextElement.GO(nextLineText);
+                            newTextElement.gameObject.name = "は？";
+                            newTextElement.transform.SetParent(textElement.transform);// 消しやすくするため、この新規コンテンツを子にする
 
                             // xは-に、yは親の直下に置く。yは特に、「親が親の行上でどのように配置されたのか」を加味する必要がある。
                             // 例えば親行の中で親が最大の背の高さのコンテンツでない場合、改行すべき値は 親の背 + (行の背 - 親の背)/2 になる。
@@ -104,28 +110,31 @@ namespace UILayouTaro
                                 );
 
                             // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeedで変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
-                            var newTailTextElementRectTrans = newTailTextElement.GetComponent<RectTransform>();
-                            newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);// ここかー
+                            var newTailTextElementRectTrans = newTextElement.GetComponent<RectTransform>();
+                            newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);
 
                             // テキスト特有の継続したコンテンツ扱いする。
                             continueContent = true;
 
-                            // 追加する(次の処理で確実に消されるが、足しておかないと次の行頭複数行で-されるケースがあり詰む)
+                            // 生成したコンテンツを次の行の要素へと追加する
                             lineContents.Add(newTailTextElementRectTrans);
                             goto NextLine;
                         }
+                        break;
                     }
 
                 case TextLayoutStatus.HeadAndMulti:
                     {
-                        // この形式のコンテンツは明示的に行に追加しない。末行が行中で終わるケースがあるため、追加するとコンテンツ全体が上下してしまう。
+                        return;
+                        // このコンテンツは矩形で、行揃えの影響を受けないため、明示的に行から取り除く。
                         lineContents.RemoveAt(lineContents.Count - 1);
 
                         var lineCount = textInfos.lineCount;
                         var lineStrs = new string[lineCount];
 
                         var totalHeight = 0f;
-                        // totalHeightを出す + 改行を入れる
+
+                        // このコンテンツのtotalHeightを出す + 改行を入れる
                         for (var j = 0; j < lineCount; j++)
                         {
                             var lInfo = textInfos.lineInfo[j];
@@ -133,30 +142,81 @@ namespace UILayouTaro
                             lineStrs[j] = contentText.Substring(lInfo.firstCharacterIndex, lInfo.lastCharacterIndex - lInfo.firstCharacterIndex + 1);
                         }
 
-                        // 改行コードを入れ、複数行での表示をいい感じにする。
-                        textComponent.text = string.Join("\n", lineStrs);
-                        textComponent.rectTransform.sizeDelta = new Vector2(restWidth, totalHeight);
+                        // 矩形になるテキスト = 最終行を取り除いたテキストを得る
+                        var rectTexts = new string[lineStrs.Length - 1];
+                        for (var i = 0; i < rectTexts.Length; i++)
+                        {
+                            rectTexts[i] = lineStrs[i];
+                        }
 
-                        // 最終行関連のデータを揃える
-                        var lastLineWidth = textInfos.lineInfo[lineCount - 1].length;
+                        // 最終行のテキストを得る
+                        var lastLineText = lineStrs[lineStrs.Length - 1];
+                        Debug.Log("lastLineText:" + lastLineText);
+
+                        // rectの高さの取得
                         var lastLineHeight = textInfos.lineInfo[lineCount - 1].lineHeight;
-                        var contentHeightWithoutLastLine = totalHeight - lastLineHeight;
+                        var rectHeight = totalHeight - lastLineHeight;
 
-                        // なんらかの続きの文字コンテンツである場合、そのコンテンツの子になっているので位置情報を調整しない。
+                        // 改行コードを入れ、複数行での表示をいい感じにする。
+                        textComponent.text = string.Join("\n", rectTexts);
+
+                        Debug.Log("textComponent.text:" + textComponent.text);
+                        textComponent.rectTransform.sizeDelta = new Vector2(restWidth, rectHeight);
+
+                        // なんらかの続きの文字コンテンツである場合、そのコンテンツの子になっているので位置情報を調整しない。最終行を分割する。
                         if (continueContent)
                         {
-                            continueContent = false;
-                        }
-                        else
-                        {
-                            textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
+                            // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
+                            restWidth = viewWidth;
+
+                            // 最終行のコンテンツを入れる
+                            var newBrotherTextElement = TextElement.GO(lastLineText);
+                            newBrotherTextElement.transform.SetParent(transform.parent);// 消しやすくするため、この新規コンテンツを現在の要素の親の子にする
+
+                            // 次の行の行頭になる = 続いている要素と同じxを持つ
+                            var childX = textComponent.rectTransform.anchoredPosition.x;
+
+                            // yは親の分移動する
+                            var childY = textComponent.rectTransform.anchoredPosition.y - rectHeight;
+
+                            var newBrotherTailTextElementRectTrans = newBrotherTextElement.GetComponent<RectTransform>();
+                            newBrotherTailTextElementRectTrans.anchoredPosition = new Vector2(childX, childY);
+
+                            // 継続させる
+                            continueContent = true;
+
+                            // 生成したコンテンツを次の行の要素へと追加する
+                            lineContents.Add(newBrotherTailTextElementRectTrans);
+                            // goto NextLine;
+                            return;
                         }
 
-                        originX = lastLineWidth;// 最終ラインのx位置を次のコンテンツに使う
-                        originY -= contentHeightWithoutLastLine;// Y位置の継続ポイントとして、最終行の高さを引いたコンテンツの高さを足す
-                        restWidth = viewWidth - lastLineWidth;// この行に入る残りのコンテンツの幅を初期化する
-                        currentLineMaxHeight = lastLineHeight;// 最終行の高さを使ってコンテンツの高さを初期化する
 
+                        // 誰かの子ではないので、独自に自分の位置をセットする
+                        textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
+
+                        // 最終行のコンテンツを入れる
+                        var newTextElement = TextElement.GO(lastLineText);
+                        newTextElement.transform.SetParent(transform);// 消しやすくするため、この新規コンテンツを現在の要素の子にする
+
+                        // 残りの行のサイズは最大化する
+                        restWidth = viewWidth;
+
+                        // 次の行の行頭になる
+                        originX = 0;
+
+                        // yは親の分移動する
+                        originY -= rectHeight;
+
+                        var newTailTextElementRectTrans = newTextElement.GetComponent<RectTransform>();
+                        newTailTextElementRectTrans.anchoredPosition = new Vector2(originX, originY);
+
+                        // 残りのデータをテキスト特有の継続したコンテンツ扱いする。
+                        continueContent = true;
+
+                        // 生成したコンテンツを次の行の要素へと追加する
+                        lineContents.Add(newTailTextElementRectTrans);
+                        // goto NextLine;
                         break;
                     }
                 case TextLayoutStatus.NotHeadAndOutOfView:
