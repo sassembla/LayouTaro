@@ -92,8 +92,7 @@ namespace UILayouTaro
 
                             // 次の行のコンテンツを入れる
                             Debug.Log("nextLineText:" + nextLineText);
-                            var newTextElement = TextElement.GO(nextLineText);
-                            newTextElement.gameObject.name = "は？";
+                            var newTextElement = TextElement.GO(nextLineText).gameObject;
                             newTextElement.transform.SetParent(textElement.transform);// 消しやすくするため、この新規コンテンツを子にする
 
                             // xは-に、yは親の直下に置く。yは特に、「親が親の行上でどのように配置されたのか」を加味する必要がある。
