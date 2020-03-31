@@ -25,4 +25,10 @@ public class TextElement : LTElement, ILayoutableText
     {
         return TextContent;
     }
+
+    public GameObject GenerateGO(string text)
+    {
+        var element = GO(text);
+        return element.gameObject;
+    }
 }

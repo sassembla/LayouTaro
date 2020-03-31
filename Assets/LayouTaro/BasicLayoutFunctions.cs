@@ -7,13 +7,13 @@ namespace UILayouTaro
     public static class BasicLayoutFunctions
     {
 
-        public static void TextLayout(LTElement newTailTextElement, string contentText, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        public static void TextLayout<T>(T textElement, string contentText, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
         {
             Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             var continueContent = false;
 
         NextLine:
-            var textComponent = newTailTextElement.GetComponent<TMPro.TextMeshProUGUI>();
+            var textComponent = textElement.GetComponent<TMPro.TextMeshProUGUI>();
 
             // wordWrappingを可能にすると、表示はともかく実際にこの行にどれだけの文字が入っているか判断できる。
             textComponent.enableWordWrapping = true;
@@ -87,8 +87,8 @@ namespace UILayouTaro
 
                             // 次の行のコンテンツを入れる
                             contentText = nextLineText;
-                            newTailTextElement = TextElement.GO(contentText);
-                            newTailTextElement.transform.SetParent(transform);// 消しやすくするため、この新規コンテンツを子にする
+                            textElement = textElement.GenerateGO(contentText).GetComponent<T>();
+                            textElement.transform.SetParent(transform);// 消しやすくするため、この新規コンテンツを子にする
 
                             // xは-に、yは親の直下に置く。yは特に、「親が親の行上でどのように配置されたのか」を加味する必要がある。
                             // 例えば親行の中で親が最大の背の高さのコンテンツでない場合、改行すべき値は 親の背 + (行の背 - 親の背)/2 になる。
@@ -104,7 +104,7 @@ namespace UILayouTaro
                                 );
 
                             // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeedで変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
-                            var newTailTextElementRectTrans = newTailTextElement.GetComponent<RectTransform>();
+                            var newTailTextElementRectTrans = textElement.GetComponent<RectTransform>();
                             newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);// ここかー
 
                             // テキスト特有の継続したコンテンツ扱いする。
