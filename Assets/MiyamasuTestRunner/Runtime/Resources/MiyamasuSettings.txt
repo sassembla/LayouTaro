@@ -1,1 +1,1 @@
-{"runOnPlay":true,"slackToken":"xoxp-","slackChannelName":""}
+{"runOnPlay":false,"slackToken":"xoxp-","slackChannelName":""}
