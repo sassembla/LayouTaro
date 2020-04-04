@@ -1,5 +1,7 @@
 
+using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 namespace UILayouTaro
@@ -7,30 +9,56 @@ namespace UILayouTaro
     public static class BasicLayoutFunctions
     {
 
-        public static void TextLayout<T>(T textElement, string contentText, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
+        public static void TextLayout<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
         {
-            Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
+            Debug.Assert(rectTrans.pivot.x == 0 && rectTrans.pivot.y == 1 && rectTrans.anchorMin.x == 0 && rectTrans.anchorMin.y == 1 && rectTrans.anchorMax.x == 0 && rectTrans.anchorMax.y == 1, "rectTransform for BasicLayoutFunctions.TextLayout should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
+            Debug.Assert(textElement.transform.childCount == 0, "BasicLayoutFunctions.TextLayout not allows text element which has child.");
             var continueContent = false;
 
         NextLine:
-            var textComponent = textElement.GetComponent<TMPro.TextMeshProUGUI>();
+            var textComponent = textElement.GetComponent<TextMeshProUGUI>();
 
-            // wordWrappingを可能にすると、表示はともかく実際にこの行にどれだけの文字が入っているか判断できる。
-            textComponent.enableWordWrapping = true;
-            textComponent.text = contentText;
+            TMPro.TMP_TextInfo textInfos = null;
+            {
+                // wordWrappingを可能にすると、表示はともかく実際にこの行にどれだけの文字が入っているか判断できる。
+                textComponent.enableWordWrapping = true;
+                textComponent.text = contentText;
 
-            textComponent.rectTransform.sizeDelta = new Vector2(restWidth, float.PositiveInfinity);
-            var textInfos = textComponent.GetTextInfo(contentText);
+                // 文字が入る箱のサイズを縦に無限にして、どの程度入るかのレイアウト情報を取得する。
+                textComponent.rectTransform.sizeDelta = new Vector2(restWidth, float.PositiveInfinity);
+                textInfos = textComponent.GetTextInfo(contentText);
+
+                // 文字を中央揃えではなく適正な位置にセットするためにラッピングを解除する。
+                textComponent.enableWordWrapping = false;
+            }
+
+            // 絵文字が含まれていると、ここで子のオブジェクトを生成している。これらを全て消し、レイアウトの構成を見直す。(絵文字が発生していなければ何も起こらない)
+            if (0 < textComponent.transform.childCount)
+            {
+                textComponent.text = string.Empty;
+                for (var i = 0; i < textComponent.transform.childCount; i++)
+                {
+                    GameObject.Destroy(textComponent.transform.GetChild(i).gameObject);
+                }
+
+                // 絵文字が含まれている。
+
+                // 今後のレイアウトに自分自身を巻き込まないように、レイアウトから自分自身を取り外す
+                lineContents.RemoveAt(lineContents.Count - 1);
+
+                var beforeOriginY = originY;
+                textComponent.rectTransform.sizeDelta = new Vector2(restWidth, 0);// 高さが0で問題ない。
+
+                // この内部で全てのレイアウトを終わらせる。
+                LayoutContentWithEmoji(textElement, contentText, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+                return;
+            }
 
             var tmGeneratorLines = textInfos.lineInfo;
             var lineSpacing = textComponent.lineSpacing;
             var tmLineCount = textInfos.lineCount;
 
             var currentFirstLineWidth = tmGeneratorLines[0].length;
-
-            // 文字を中央揃えではなく適正な位置にセットするためにラッピングを解除する。
-            textComponent.enableWordWrapping = false;
-
             var currentFirstLineHeight = tmGeneratorLines[0].lineHeight;
 
             var isHeadOfLine = originX == 0;
@@ -65,9 +93,10 @@ namespace UILayouTaro
                 case TextLayoutStatus.NotHeadAndMulti:
                     {
                         // textComponent.text = "<indent=" + originX + "pixels>"  でindentを付けられるが、これの恩恵を素直に受けられるケースが少ない。
-                        // この行が高さ整列の影響をどう受けるか、続くテキストが複数か1行か、中央終わりかそうでないか、終わったタイミングで行に並ぶコンテンツで高さがどう整列されるか、というパターンがあり、
-                        // 特に「後から分離したパーツの最終行が分離してレイアウトされる」パターンが辛すぎる。
-                        // これは、この行 + 追加のHead ~ 系の最大2コンテンツにできる。
+                        // この行をレイアウトした際、行頭の文字のレイアウトが変わるようであれば、利用できない。
+                        // 最適化としてはケースが複雑なので後回しにする。
+
+                        // これは、この行 + 追加のHead ~ 系の複数のコンテンツに分割する。
                         var nextLineTextIndex = tmGeneratorLines[1].firstCharacterIndex;
                         var nextLineText = contentText.Substring(nextLineTextIndex);
 
@@ -86,9 +115,8 @@ namespace UILayouTaro
                             restWidth = viewWidth;
 
                             // 次の行のコンテンツを入れる
-                            contentText = nextLineText;
-                            textElement = textElement.GenerateGO(contentText).GetComponent<T>();
-                            textElement.transform.SetParent(transform);// 消しやすくするため、この新規コンテンツを子にする
+                            var nextLineTextElement = textElement.GenerateGO(nextLineText).GetComponent<T>();
+                            nextLineTextElement.transform.SetParent(textElement.transform);// 消しやすくするため、この新規コンテンツを子にする
 
                             // xは-に、yは親の直下に置く。yは特に、「親が親の行上でどのように配置されたのか」を加味する必要がある。
                             // 例えば親行の中で親が最大の背の高さのコンテンツでない場合、改行すべき値は 親の背 + (行の背 - 親の背)/2 になる。
@@ -104,60 +132,120 @@ namespace UILayouTaro
                                 );
 
                             // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeedで変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
-                            var newTailTextElementRectTrans = textElement.GetComponent<RectTransform>();
-                            newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);// ここかー
+                            var newTailTextElementRectTrans = nextLineTextElement.GetComponent<RectTransform>();
+                            newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);
 
                             // テキスト特有の継続したコンテンツ扱いする。
                             continueContent = true;
 
-                            // 追加する(次の処理で確実に消されるが、足しておかないと次の行頭複数行で-されるケースがあり詰む)
+                            // 生成したコンテンツを次の行の要素へと追加する
                             lineContents.Add(newTailTextElementRectTrans);
+
+                            // 上書きを行う
+                            textElement = nextLineTextElement;
+                            contentText = nextLineText;
                             goto NextLine;
                         }
                     }
 
                 case TextLayoutStatus.HeadAndMulti:
                     {
-                        // この形式のコンテンツは明示的に行に追加しない。末行が行中で終わるケースがあるため、追加するとコンテンツ全体が上下してしまう。
+                        // このコンテンツは矩形で、行揃えの影響を受けないため、明示的に行から取り除く。
                         lineContents.RemoveAt(lineContents.Count - 1);
 
                         var lineCount = textInfos.lineCount;
                         var lineStrs = new string[lineCount];
 
                         var totalHeight = 0f;
-                        // totalHeightを出す + 改行を入れる
                         for (var j = 0; j < lineCount; j++)
                         {
                             var lInfo = textInfos.lineInfo[j];
                             totalHeight += lInfo.lineHeight;
+
+                            // ここで、含まれている絵文字の数がわかれば、そのぶんを後ろに足すことで文字切れを回避できそう、、ではある、、
                             lineStrs[j] = contentText.Substring(lInfo.firstCharacterIndex, lInfo.lastCharacterIndex - lInfo.firstCharacterIndex + 1);
                         }
 
-                        // 改行コードを入れ、複数行での表示をいい感じにする。
-                        textComponent.text = string.Join("\n", lineStrs);
-                        textComponent.rectTransform.sizeDelta = new Vector2(restWidth, totalHeight);
+                        // 矩形になるテキスト = 最終行を取り除いたテキストを得る
+                        var rectTexts = new string[lineStrs.Length - 1];
+                        for (var i = 0; i < rectTexts.Length; i++)
+                        {
+                            rectTexts[i] = lineStrs[i];
+                        }
 
-                        // 最終行関連のデータを揃える
-                        var lastLineWidth = textInfos.lineInfo[lineCount - 1].length;
+                        // 最終行のテキストを得る
+                        var lastLineText = lineStrs[lineStrs.Length - 1];
+
+                        // rectの高さの取得
                         var lastLineHeight = textInfos.lineInfo[lineCount - 1].lineHeight;
-                        var contentHeightWithoutLastLine = totalHeight - lastLineHeight;
+                        var rectHeight = totalHeight - lastLineHeight;
 
-                        // なんらかの続きの文字コンテンツである場合、そのコンテンツの子になっているので位置情報を調整しない。
+                        // 改行コードを入れ、複数行での表示をいい感じにする。
+                        textComponent.text = string.Join("\n", rectTexts);
+                        textComponent.rectTransform.sizeDelta = new Vector2(restWidth, rectHeight);
+
+                        // なんらかの続きの文字コンテンツである場合、そのコンテンツの子になっているので位置情報を調整しない。最終行を分割する。
                         if (continueContent)
                         {
-                            continueContent = false;
-                        }
-                        else
-                        {
-                            textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
+                            // 別のコンテンツから継続している行はじめの処理なので、子をセットする前にここまでの分の改行を行う。
+                            ElementLayoutFunctions.LineFeed(ref originX, ref originY, rectHeight, ref currentLineMaxHeight, ref lineContents);
+
+                            // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
+                            restWidth = viewWidth;
+
+                            // 最終行のコンテンツを入れる
+                            var nextLineTextElement = textElement.GenerateGO(lastLineText).GetComponent<T>();
+                            nextLineTextElement.transform.SetParent(textElement.transform.parent);// 消しやすくするため、この新規コンテンツを現在の要素の親の子にする
+
+                            // 次の行の行頭になる = 続いている要素と同じxを持つ
+                            var childX = textComponent.rectTransform.anchoredPosition.x;
+
+                            // yは親の分移動する
+                            var childY = textComponent.rectTransform.anchoredPosition.y - rectHeight;
+
+                            var newBrotherTailTextElementRectTrans = nextLineTextElement.GetComponent<RectTransform>();
+                            newBrotherTailTextElementRectTrans.anchoredPosition = new Vector2(childX, childY);
+
+                            // 継続させる
+                            continueContent = true;
+
+                            // 生成したコンテンツを次の行の要素へと追加する
+                            lineContents.Add(newBrotherTailTextElementRectTrans);
+
+                            // 上書きを行う
+                            textElement = nextLineTextElement;
+                            contentText = lastLineText;
+                            goto NextLine;
                         }
 
-                        originX = lastLineWidth;// 最終ラインのx位置を次のコンテンツに使う
-                        originY -= contentHeightWithoutLastLine;// Y位置の継続ポイントとして、最終行の高さを引いたコンテンツの高さを足す
-                        restWidth = viewWidth - lastLineWidth;// この行に入る残りのコンテンツの幅を初期化する
-                        currentLineMaxHeight = lastLineHeight;// 最終行の高さを使ってコンテンツの高さを初期化する
+                        // 誰かの子ではないので、独自に自分の位置をセットする
+                        textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
 
-                        break;
+                        // 最終行のコンテンツを入れる
+                        var newTextElement = textElement.GenerateGO(lastLineText).GetComponent<T>();
+                        newTextElement.transform.SetParent(rectTrans);// 消しやすくするため、この新規コンテンツを現在の要素の子にする
+
+                        // 残りの行のサイズは最大化する
+                        restWidth = viewWidth;
+
+                        // 次の行の行頭になる
+                        originX = 0;
+
+                        // yは親の分移動する
+                        originY -= rectHeight;
+
+                        var newTailTextElementRectTrans = newTextElement.GetComponent<RectTransform>();
+                        newTailTextElementRectTrans.anchoredPosition = new Vector2(originX, originY);
+
+                        // 残りのデータをテキスト特有の継続したコンテンツ扱いする。
+                        continueContent = true;
+
+                        // 生成したコンテンツを次の行の要素へと追加する
+                        lineContents.Add(newTailTextElementRectTrans);
+
+                        textElement = newTextElement;
+                        contentText = lastLineText;
+                        goto NextLine;
                     }
                 case TextLayoutStatus.NotHeadAndOutOfView:
                     {
@@ -175,7 +263,117 @@ namespace UILayouTaro
             }
         }
 
-        public static void RectLayout(LTElement rectElement, RectTransform transform, Vector2 rectSize, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        /*
+            絵文字が入った文字列をintenalな矩形と文字としてレイアウトする。ここでやることで、TM Proによるレイアウトの破綻を避ける。
+        */
+        private static void LayoutContentWithEmoji<T>(T textElement, string contentText, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
+        {
+            /*
+                絵文字が含まれている文字列を、絵文字と矩形に分解、再構成を行う。絵文字を単に画像が入る箱としてRectLayoutに放り込む。というのがいいのか、それとも独自にinternalを定義した方がいいのか。
+                後者だなー、EmojiRectみたいなのを用意しよう。
+
+                自分自身を書き換えて、一連のコマンドを実行するようにする。
+                文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
+            */
+            var elementsWithEmoji = DetectEmojiAndText(textElement, contentText);
+
+            for (var i = 0; i < elementsWithEmoji.Count; i++)
+            {
+                var element = elementsWithEmoji[i];
+                var rectTrans = element.GetComponent<RectTransform>();
+
+                restWidth = viewWidth - originX;
+                lineContents.Add(rectTrans);
+
+                if (element is InternalEmojiRect)
+                {
+                    // emojiRectが入っている
+                    var internalRectElement = (InternalEmojiRect)element;
+                    EmojiRectLayout(internalRectElement, rectTrans, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+                    continue;
+                }
+
+                // ここに来るということは、T型が入っている。
+                var internalTextElement = (T)element;
+                var internalContentText = internalTextElement.Text();
+
+                TextLayout(internalTextElement, internalContentText, rectTrans, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+            }
+        }
+
+        private static List<LTElement> DetectEmojiAndText<T>(T textElement, string contentText) where T : LTElement, ILayoutableText
+        {
+            var elementsWithEmoji = new List<LTElement>();
+            var textStartIndex = 0;
+            var length = 0;
+            for (var i = 0; i < contentText.Length; i++)
+            {
+                var firstChar = contentText[i];
+                var isSurrogate = Char.IsSurrogate(firstChar);
+
+                if (isSurrogate)
+                {
+                    if (0 < length)
+                    {
+                        var currentText = contentText.Substring(textStartIndex, length);
+                        var newTextElement = textElement.GenerateGO(currentText).GetComponent<T>();
+                        newTextElement.transform.SetParent(textElement.transform);
+                        elementsWithEmoji.Add(newTextElement);
+                    }
+
+                    length = 0;
+
+                    if (i == contentText.Length - 1)
+                    {
+                        // 続きの文字がないのでサロゲートペアではない。無視する。
+                        // 文字の開始インデックスを次の文字へとセットする。
+                        textStartIndex = i + 1;
+                        continue;
+                    }
+
+                    var nextChar = contentText[i + 1];
+                    var isSurrogatePair = Char.IsSurrogatePair(firstChar, nextChar);
+                    if (isSurrogatePair)
+                    {
+                        // サロゲートペア確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
+                        var emojiElement = InternalEmojiRect.GO(textElement, new Char[] { firstChar, nextChar }).GetComponent<InternalEmojiRect>();
+                        elementsWithEmoji.Add(emojiElement);
+
+                        // 文字は次の次から始まる、、かもしれない。
+                        textStartIndex = i + 2;
+                        i = i + 1;
+                        continue;
+                    }
+
+                    // ペアではなかったので、無視して次の文字へと行く。
+                    textStartIndex = i + 1;
+                    continue;
+                }
+
+                // サロゲートではないので文字として扱う
+                length++;
+            }
+
+            // 残りの文字を足す
+            if (0 < length)
+            {
+                var lastText = contentText.Substring(textStartIndex, length);
+                var lastTextElement = textElement.GenerateGO(lastText).GetComponent<T>();
+                lastTextElement.transform.SetParent(textElement.transform);
+                elementsWithEmoji.Add(lastTextElement);
+            }
+
+            return elementsWithEmoji;
+        }
+
+
+        private static void EmojiRectLayout(InternalEmojiRect rectElement, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        {
+            var rectSize = rectElement.RectSize();
+            RectLayout(rectElement, transform, rectSize, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+        }
+
+        public static void RectLayout(LTElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
         {
             Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             if (restWidth < rectSize.x)// 同じ列にレイアウトできないので次の列に行く。
@@ -211,7 +409,13 @@ namespace UILayouTaro
             {
                 var rectTrans = element.GetComponent<RectTransform>();
                 var elementHeight = rectTrans.sizeDelta.y;
-                var isParentRoot = rectTrans.parent.GetComponent<LTElement>() is LTRootElement;
+                var parent = rectTrans.parent;
+                if (parent == null)
+                {
+                    continue;
+                }
+
+                var isParentRoot = parent.GetComponent<LTElement>() is LTRootElement;
                 if (isParentRoot)
                 {
                     rectTrans.anchoredPosition = new Vector2(
