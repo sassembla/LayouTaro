@@ -1,6 +1,7 @@
 
+using System;
 using System.Collections.Generic;
-using System.Text;
+using TMPro;
 using UnityEngine;
 
 namespace UILayouTaro
@@ -15,40 +16,54 @@ namespace UILayouTaro
             var continueContent = false;
 
         NextLine:
-            var textComponent = textElement.GetComponent<TMPro.TextMeshProUGUI>();
+            var textComponent = textElement.GetComponent<TextMeshProUGUI>();
 
-            // wordWrappingを可能にすると、表示はともかく実際にこの行にどれだけの文字が入っているか判断できる。
-            textComponent.enableWordWrapping = true;
-            textComponent.text = contentText;
+            TMPro.TMP_TextInfo textInfos = null;
+            {
+                // wordWrappingを可能にすると、表示はともかく実際にこの行にどれだけの文字が入っているか判断できる。
+                textComponent.enableWordWrapping = true;
+                textComponent.text = contentText;
 
-            textComponent.rectTransform.sizeDelta = new Vector2(restWidth, float.PositiveInfinity);
-            var textInfos = textComponent.GetTextInfo(contentText);
+                // 文字が入る箱のサイズを縦に無限にして、どの程度入るかのレイアウト情報を取得する。
+                textComponent.rectTransform.sizeDelta = new Vector2(restWidth, float.PositiveInfinity);
+                textInfos = textComponent.GetTextInfo(contentText);
+
+                // 文字を中央揃えではなく適正な位置にセットするためにラッピングを解除する。
+                textComponent.enableWordWrapping = false;
+            }
+
+            // 絵文字が含まれていると、ここで子のオブジェクトを生成している。これらを全て消し、レイアウトの構成を見直す。(絵文字が発生していなければ何も起こらない)
+            if (0 < textComponent.transform.childCount)
+            {
+                textComponent.text = string.Empty;
+                for (var i = 0; i < textComponent.transform.childCount; i++)
+                {
+                    GameObject.Destroy(textComponent.transform.GetChild(i).gameObject);
+                }
+
+                // 絵文字が含まれている。
+
+                // 今後のレイアウトに自分自身を巻き込まないように、レイアウトから自分自身を取り外す
+                lineContents.RemoveAt(lineContents.Count - 1);
+
+                var beforeOriginY = originY;
+                textComponent.rectTransform.sizeDelta = new Vector2(restWidth, 0);// 高さが0で問題ない。
+
+                // この内部で全てのレイアウトを終わらせる。
+                LayoutContentWithEmoji(textElement, contentText, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+                return;
+            }
 
             var tmGeneratorLines = textInfos.lineInfo;
             var lineSpacing = textComponent.lineSpacing;
             var tmLineCount = textInfos.lineCount;
 
             var currentFirstLineWidth = tmGeneratorLines[0].length;
-
-            // 文字を中央揃えではなく適正な位置にセットするためにラッピングを解除する。
-            textComponent.enableWordWrapping = false;
-
             var currentFirstLineHeight = tmGeneratorLines[0].lineHeight;
 
             var isHeadOfLine = originX == 0;
             var isMultiLined = 1 < tmLineCount;
             var isLayoutedOutOfView = viewWidth < originX + currentFirstLineWidth;
-
-            // 絵文字などがこの時点で生成されてしまう場合があり、ここで子のオブジェクトを全て消す(発生していなければ何も起こらない)
-            var isEmojiContained = false;
-            {
-                textComponent.text = string.Empty;
-                for (var i = 0; i < textComponent.transform.childCount; i++)
-                {
-                    isEmojiContained = true;
-                    GameObject.Destroy(textComponent.transform.GetChild(i).gameObject);
-                }
-            }
 
             var status = TextLayoutDefinitions.GetTextLayoutStatus(isHeadOfLine, isMultiLined, isLayoutedOutOfView);
             switch (status)
@@ -248,7 +263,117 @@ namespace UILayouTaro
             }
         }
 
-        public static void RectLayout(LTElement rectElement, RectTransform transform, Vector2 rectSize, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        /*
+            絵文字が入った文字列をintenalな矩形と文字としてレイアウトする。ここでやることで、TM Proによるレイアウトの破綻を避ける。
+        */
+        private static void LayoutContentWithEmoji<T>(T textElement, string contentText, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
+        {
+            /*
+                絵文字が含まれている文字列を、絵文字と矩形に分解、再構成を行う。絵文字を単に画像が入る箱としてRectLayoutに放り込む。というのがいいのか、それとも独自にinternalを定義した方がいいのか。
+                後者だなー、EmojiRectみたいなのを用意しよう。
+
+                自分自身を書き換えて、一連のコマンドを実行するようにする。
+                文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
+            */
+            var elementsWithEmoji = DetectEmojiAndText(textElement, contentText);
+
+            for (var i = 0; i < elementsWithEmoji.Count; i++)
+            {
+                var element = elementsWithEmoji[i];
+                var rectTrans = element.GetComponent<RectTransform>();
+
+                restWidth = viewWidth - originX;
+                lineContents.Add(rectTrans);
+
+                if (element is InternalEmojiRect)
+                {
+                    // emojiRectが入っている
+                    var internalRectElement = (InternalEmojiRect)element;
+                    EmojiRectLayout(internalRectElement, rectTrans, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+                    continue;
+                }
+
+                // ここに来るということは、T型が入っている。
+                var internalTextElement = (T)element;
+                var internalContentText = internalTextElement.Text();
+
+                TextLayout(internalTextElement, internalContentText, rectTrans, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+            }
+        }
+
+        private static List<LTElement> DetectEmojiAndText<T>(T textElement, string contentText) where T : LTElement, ILayoutableText
+        {
+            var elementsWithEmoji = new List<LTElement>();
+            var textStartIndex = 0;
+            var length = 0;
+            for (var i = 0; i < contentText.Length; i++)
+            {
+                var firstChar = contentText[i];
+                var isSurrogate = Char.IsSurrogate(firstChar);
+
+                if (isSurrogate)
+                {
+                    if (0 < length)
+                    {
+                        var currentText = contentText.Substring(textStartIndex, length);
+                        var newTextElement = textElement.GenerateGO(currentText).GetComponent<T>();
+                        newTextElement.transform.SetParent(textElement.transform);
+                        elementsWithEmoji.Add(newTextElement);
+                    }
+
+                    length = 0;
+
+                    if (i == contentText.Length - 1)
+                    {
+                        // 続きの文字がないのでサロゲートペアではない。無視する。
+                        // 文字の開始インデックスを次の文字へとセットする。
+                        textStartIndex = i + 1;
+                        continue;
+                    }
+
+                    var nextChar = contentText[i + 1];
+                    var isSurrogatePair = Char.IsSurrogatePair(firstChar, nextChar);
+                    if (isSurrogatePair)
+                    {
+                        // サロゲートペア確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
+                        var emojiElement = InternalEmojiRect.GO(textElement, new Char[] { firstChar, nextChar }).GetComponent<InternalEmojiRect>();
+                        elementsWithEmoji.Add(emojiElement);
+
+                        // 文字は次の次から始まる、、かもしれない。
+                        textStartIndex = i + 2;
+                        i = i + 1;
+                        continue;
+                    }
+
+                    // ペアではなかったので、無視して次の文字へと行く。
+                    textStartIndex = i + 1;
+                    continue;
+                }
+
+                // サロゲートではないので文字として扱う
+                length++;
+            }
+
+            // 残りの文字を足す
+            if (0 < length)
+            {
+                var lastText = contentText.Substring(textStartIndex, length);
+                var lastTextElement = textElement.GenerateGO(lastText).GetComponent<T>();
+                lastTextElement.transform.SetParent(textElement.transform);
+                elementsWithEmoji.Add(lastTextElement);
+            }
+
+            return elementsWithEmoji;
+        }
+
+
+        private static void EmojiRectLayout(InternalEmojiRect rectElement, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        {
+            var rectSize = rectElement.RectSize();
+            RectLayout(rectElement, transform, rectSize, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+        }
+
+        public static void RectLayout(LTElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
         {
             Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             if (restWidth < rectSize.x)// 同じ列にレイアウトできないので次の列に行く。

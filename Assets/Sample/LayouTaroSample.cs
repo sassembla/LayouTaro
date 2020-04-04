@@ -28,7 +28,7 @@ public class LayouTaroSample : MonoBehaviour
             {
                 Debug.Log("ルートがタップされた");
             },
-            TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
+            TextElement.GO("hannin is yasu! this is public problem! \U0001F60A gooooooooooooood "),// テキスト
             ImageElement.GO(null),// 画像
             ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
         );

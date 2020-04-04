@@ -45,7 +45,6 @@ public class BasicLayoutTest : MiyamasuTestRunner
     [MTest]
     public IEnumerator BasicPattern()
     {
-        Debug.Log("canvas:" + canvas);
         var box = BoxElement.GO(
             null,// bg画像
             () =>
@@ -77,7 +76,7 @@ public class BasicLayoutTest : MiyamasuTestRunner
         rectTrans.localScale = Vector3.one;
 
 
-        ScreenCapture.CaptureScreenshot("./images/0_BasicPattern");
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
     }
 
@@ -119,7 +118,7 @@ public class BasicLayoutTest : MiyamasuTestRunner
         rectTrans.localScale = Vector3.one;
 
 
-        ScreenCapture.CaptureScreenshot("./images/1_ComplexPattern");
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
     }
 
@@ -163,7 +162,7 @@ public class BasicLayoutTest : MiyamasuTestRunner
         rectTrans.localScale = Vector3.one;
 
 
-        ScreenCapture.CaptureScreenshot("./images/2_ComplexPattern2");
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
     }
 
@@ -200,7 +199,11 @@ public class BasicLayoutTest : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
-        ScreenCapture.CaptureScreenshot("./images/3_WithEmoji");
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        while (false)
+        {
+            yield return null;
+        }
 
         yield break;
     }
@@ -219,11 +222,17 @@ public class BasicLayoutTest : MiyamasuTestRunner
             TextElement.GO("hannidjkfajfaoooood"),// テキスト
             ImageElement.GO(null),// 画像
             ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
-            TextElement.GO("hannin is yasu!\U0001F60A this is public problem! goooooooooooooad")// 59から絵文字を1文字削ると？2文字減る。文字数カウント的にはUTF8と同じ扱いなのか。うーん
+            TextElement.GO("hannin is yasu!\U0001F60A\U0001F60B this is public problem! goooooooooooooad")// 59から絵文字を1文字削ると？2文字減る。文字数カウント的にはUTF8と同じ扱いなのか。うーん
 
         // 事前にサイズを取得、インデックスポイントを送り込んで、取り除いて、という形にするか。
         // どうすればできる？載せ替える四角を成立させればいいか。単純に文字列コンテンツを絵文字でぶった切るか！！これは手な気がする。
-        // 他になんかないかな。
+        // 他になんかないかな。いけるな、
+        // 文字列を最初に渡すときに、N個の絵文字が出た場合、\Uで検索して文字を取り出す。そんで、その文字がどんな画像になるか、っていうのを別途やる。そんで、
+        // それぞれの文字を出力して、サイズを割り出し、文字列を再構成する。
+        // 再構成した上でレイアウトすればいい。で、それぞれのレイアウト終了時に絵文字の画像を割り当てるか。
+        // この方法であれば、まあ、そもそも画像を割り当てるような置換ができれば優勝できるな。
+
+        // 割り出し方に問題が出るかな、例があると嬉しいな。ない。今はない。
         );
 
         // レイアウトに使うクラスを生成する
@@ -245,7 +254,13 @@ public class BasicLayoutTest : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
-        ScreenCapture.CaptureScreenshot("./images/4_WithEmoji");
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+
+        while (false)
+        {
+            yield return null;
+        }
+
         yield break;
     }
 
@@ -287,7 +302,12 @@ public class BasicLayoutTest : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
-        ScreenCapture.CaptureScreenshot("./images/5_WithEmoji");
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+
+        while (false)
+        {
+            yield return null;
+        }
 
         yield break;
     }
