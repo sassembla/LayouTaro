@@ -13,33 +13,25 @@ public class LayouTaroSample : MonoBehaviour
     public Canvas canvas;
     void Start()
     {
-        // データのインスタンスを元に、レイアウトを開始する。
-        Debug.Log("レイアウト開始！");
-
-        /*
-            ・マルチ文字列、ラストが1ラインなら別にレイアウト巻き込まれていいよね
-            ・同じマルチ文字列で結果が違うやつがいる
-        */
-
-        // データ構造を作る、自由に構造を書いていい。
+        // generate your own data structure with parameters for UI.
         var box = BoxElement.GO(
-            null,// bg画像
+            null,// UI bg with image
             () =>
             {
-                Debug.Log("ルートがタップされた");
+                Debug.Log("root box element is tapped.");
             },
-            TextElement.GO("hannin is yasu! this is public problem! \U0001F60A gooooooooooooood "),// テキスト
-            ImageElement.GO(null),// 画像
-            ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
+            TextElement.GO("hannin is yasu! this is public problem\U0001F60A! gooooooooooooood "),// text.
+            ImageElement.GO(null),// image.
+            ButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
         );
 
-        // レイアウトに使うクラスを生成する
+        // generate the layouter which you want to use for layout.
         var layouter = new MyLayouter();
 
-        // コンテンツのサイズをセットする
+        // set the default size of content.
         var size = new Vector2(600, 100);
 
-        // レイアウトを行う
+        // do layout with LayouTaro. the GameObject will be returned with layouted structure.
         var go = box.gameObject;
         go = LayouTaro.Layout<BoxElement>(
             canvas.transform,
@@ -51,8 +43,7 @@ public class LayouTaroSample : MonoBehaviour
         go.transform.SetParent(canvas.transform);
         go.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
 
-        // // 値の更新とリレイアウトを行う
-        // // goからBoxを取得し、Relayoutを行うと、中身の値が変わったgoインスタンスが返ってくる。
+        // update element values and re-layout with same GameObject.
         // go = LayouTaro.RelayoutWithUpdate<BoxElement>(
         //     size,
         //     go,
