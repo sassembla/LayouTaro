@@ -8,6 +8,7 @@ namespace UILayouTaro
 
         public static GameObject Layout<T>(Transform parent, Vector2 size, GameObject rootObject, ILayouter layouter) where T : LTRootElement
         {
+            Debug.Assert(parent.GetComponent<Canvas>() != null, "should set parent transform which contains Canvas. this limitation is caused by spec of TextMesh Pro.");
             var originX = 0f;
             var originY = 0f;
 
@@ -64,6 +65,9 @@ namespace UILayouTaro
                         }
                     }
                 }
+
+                var rectTrans = element.GetComponent<RectTransform>();
+                rectTrans.anchoredPosition = Vector2.zero;
             }
 
             layouter.UpdateValues(elements, updateValues);

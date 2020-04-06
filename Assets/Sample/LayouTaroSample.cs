@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UILayouTaro;
 using UnityEngine;
@@ -11,7 +12,7 @@ using UnityEngine.UI;
 public class LayouTaroSample : MonoBehaviour
 {
     public Canvas canvas;
-    void Start()
+    IEnumerator Start()
     {
         // generate your own data structure with parameters for UI.
         var box = BoxElement.GO(
@@ -43,15 +44,19 @@ public class LayouTaroSample : MonoBehaviour
         go.transform.SetParent(canvas.transform);
         go.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
 
-        // update element values and re-layout with same GameObject.
+        yield return null;
+
+        // // update element values and re-layout with same GameObject.
         // go = LayouTaro.RelayoutWithUpdate<BoxElement>(
         //     size,
         //     go,
         //     new Dictionary<LTElementType, object> {
         //         {LTElementType.Image, null},
-        //         {LTElementType.Text, "relayout!"}
+        //         {LTElementType.Text, "relayout\U0001F60A!"}
         //     },
         //     layouter
         // );
+
+        yield return null;
     }
 }

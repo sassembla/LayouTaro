@@ -11,6 +11,7 @@ namespace UILayouTaro
 
         public static void TextLayout<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
         {
+
             Debug.Assert(rectTrans.pivot.x == 0 && rectTrans.pivot.y == 1 && rectTrans.anchorMin.x == 0 && rectTrans.anchorMin.y == 1 && rectTrans.anchorMax.x == 0 && rectTrans.anchorMax.y == 1, "rectTransform for BasicLayoutFunctions.TextLayout should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             Debug.Assert(textElement.transform.childCount == 0, "BasicLayoutFunctions.TextLayout not allows text element which has child.");
             var continueContent = false;
@@ -46,7 +47,6 @@ namespace UILayouTaro
                 // 今後のレイアウトに自分自身を巻き込まないように、レイアウトから自分自身を取り外す
                 lineContents.RemoveAt(lineContents.Count - 1);
 
-                var beforeOriginY = originY;
                 textComponent.rectTransform.sizeDelta = new Vector2(restWidth, 0);// 高さが0で問題ない。
 
                 // この内部で全てのレイアウトを終わらせる。
@@ -281,7 +281,6 @@ namespace UILayouTaro
             {
                 var element = elementsWithEmoji[i];
                 var rectTrans = element.GetComponent<RectTransform>();
-
                 restWidth = viewWidth - originX;
                 lineContents.Add(rectTrans);
 
@@ -317,7 +316,7 @@ namespace UILayouTaro
                     {
                         var currentText = contentText.Substring(textStartIndex, length);
                         var newTextElement = textElement.GenerateGO(currentText).GetComponent<T>();
-                        newTextElement.transform.SetParent(textElement.transform);
+                        newTextElement.transform.SetParent(textElement.transform, false);
                         elementsWithEmoji.Add(newTextElement);
                     }
 
@@ -359,7 +358,7 @@ namespace UILayouTaro
             {
                 var lastText = contentText.Substring(textStartIndex, length);
                 var lastTextElement = textElement.GenerateGO(lastText).GetComponent<T>();
-                lastTextElement.transform.SetParent(textElement.transform);
+                lastTextElement.transform.SetParent(textElement.transform, false);
                 elementsWithEmoji.Add(lastTextElement);
             }
 

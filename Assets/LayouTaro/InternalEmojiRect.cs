@@ -12,9 +12,11 @@ namespace UILayouTaro
             var emojiStr = new string(chars);
 
             var go = parentTextElement.GenerateGO(emojiStr);
-            go.transform.SetParent(parentTextElement.transform);
 
-            // newできないからこの方法で保持するしかない
+            // TMProのレイアウトをするためには、ここでCanvasに乗っている親要素の上に載せるしかない。
+            go.transform.SetParent(parentTextElement.transform, false);
+
+
             var emojiRect = go.AddComponent<InternalEmojiRect>();
 
             // 文字をセットする場所としてRectTransformを取得、レイアウトのために高さに無限値をセット

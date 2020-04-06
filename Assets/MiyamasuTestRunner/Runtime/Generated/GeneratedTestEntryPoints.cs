@@ -4,10 +4,10 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Miyamasu;
-public class BasicLayoutTest_Miyamasu {
+public class BasicLayoutTests_Miyamasu {
     [UnityTest] public IEnumerator BasicPattern() {
-        var instance = new BasicLayoutTest();
-        instance.SetInfo("BasicLayoutTest", "BasicPattern");
+        var instance = new BasicLayoutTests();
+        instance.SetInfo("BasicLayoutTests", "BasicPattern");
         
         try {
             instance.Setup();
@@ -28,8 +28,8 @@ public class BasicLayoutTest_Miyamasu {
         }
     }
     [UnityTest] public IEnumerator ComplexPattern() {
-        var instance = new BasicLayoutTest();
-        instance.SetInfo("BasicLayoutTest", "ComplexPattern");
+        var instance = new BasicLayoutTests();
+        instance.SetInfo("BasicLayoutTests", "ComplexPattern");
         
         try {
             instance.Setup();
@@ -50,8 +50,8 @@ public class BasicLayoutTest_Miyamasu {
         }
     }
     [UnityTest] public IEnumerator ComplexPattern2() {
-        var instance = new BasicLayoutTest();
-        instance.SetInfo("BasicLayoutTest", "ComplexPattern2");
+        var instance = new BasicLayoutTests();
+        instance.SetInfo("BasicLayoutTests", "ComplexPattern2");
         
         try {
             instance.Setup();
@@ -72,8 +72,8 @@ public class BasicLayoutTest_Miyamasu {
         }
     }
     [UnityTest] public IEnumerator WithEmoji() {
-        var instance = new BasicLayoutTest();
-        instance.SetInfo("BasicLayoutTest", "WithEmoji");
+        var instance = new BasicLayoutTests();
+        instance.SetInfo("BasicLayoutTests", "WithEmoji");
         
         try {
             instance.Setup();
@@ -94,8 +94,8 @@ public class BasicLayoutTest_Miyamasu {
         }
     }
     [UnityTest] public IEnumerator WithEmojiComplex() {
-        var instance = new BasicLayoutTest();
-        instance.SetInfo("BasicLayoutTest", "WithEmojiComplex");
+        var instance = new BasicLayoutTests();
+        instance.SetInfo("BasicLayoutTests", "WithEmojiComplex");
         
         try {
             instance.Setup();
@@ -116,8 +116,8 @@ public class BasicLayoutTest_Miyamasu {
         }
     }
     [UnityTest] public IEnumerator WithEmojiComplex2() {
-        var instance = new BasicLayoutTest();
-        instance.SetInfo("BasicLayoutTest", "WithEmojiComplex2");
+        var instance = new BasicLayoutTests();
+        instance.SetInfo("BasicLayoutTests", "WithEmojiComplex2");
         
         try {
             instance.Setup();
@@ -127,6 +127,52 @@ public class BasicLayoutTest_Miyamasu {
         }
         var startDate = DateTime.Now;
         yield return instance.WithEmojiComplex2();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+}
+public class RelayoutTests_Miyamasu {
+    [UnityTest] public IEnumerator RelayoutWithEmoji() {
+        var instance = new RelayoutTests();
+        instance.SetInfo("RelayoutTests", "RelayoutWithEmoji");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.RelayoutWithEmoji();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator RelayoutWithEmojiWithDelay() {
+        var instance = new RelayoutTests();
+        instance.SetInfo("RelayoutTests", "RelayoutWithEmojiWithDelay");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.RelayoutWithEmojiWithDelay();
         instance.MarkAsPassed((DateTime.Now - startDate).ToString());
 
         

@@ -4,7 +4,7 @@ using UILayouTaro;
 using Miyamasu;
 using System;
 
-public class BasicLayoutTest : MiyamasuTestRunner
+public class BasicLayoutTests : MiyamasuTestRunner
 {
     private Canvas canvas;
 
