@@ -53,9 +53,13 @@ namespace UILayouTaro
                 {
                     if (0 < element.transform.childCount)
                     {
-                        for (var i = 0; i < element.transform.childCount; i++)
+                        var count = element.transform.childCount;
+                        for (var i = 0; i < count; i++)
                         {
-                            var child = element.transform.GetChild(i);
+                            // get first child.
+                            var child = element.transform.GetChild(0);
+                            child.gameObject.SetActive(false);
+                            child.transform.SetParent(null);
                             GameObject.Destroy(child.gameObject);
                         }
                     }
