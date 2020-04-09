@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UILayouTaro
@@ -80,6 +81,13 @@ namespace UILayouTaro
             lineContents.Clear();
 
             return rootObject;
+        }
+
+        internal static Action<char[]> _OnMissingCharacter = chs => { };
+
+        public static void SetOnMissingCharacterFound(Action<char[]> OnMissingCharacterFound)
+        {
+            _OnMissingCharacter = OnMissingCharacterFound;
         }
     }
 }

@@ -137,6 +137,50 @@ public class BasicLayoutTests_Miyamasu {
             throw;
         }
     }
+    [UnityTest] public IEnumerator DetectMissingEmoji() {
+        var instance = new BasicLayoutTests();
+        instance.SetInfo("BasicLayoutTests", "DetectMissingEmoji");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.DetectMissingEmoji();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator Mark() {
+        var instance = new BasicLayoutTests();
+        instance.SetInfo("BasicLayoutTests", "Mark");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.Mark();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
 }
 public class RelayoutTests_Miyamasu {
     [UnityTest] public IEnumerator RelayoutWithEmoji() {

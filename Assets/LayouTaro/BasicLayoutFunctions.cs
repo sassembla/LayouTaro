@@ -308,8 +308,33 @@ namespace UILayouTaro
             for (var i = 0; i < contentText.Length; i++)
             {
                 var firstChar = contentText[i];
-                var isSurrogate = Char.IsSurrogate(firstChar);
 
+                // \u26A1
+                var isSymbol = Char.IsSymbol(firstChar);
+                if (isSymbol)
+                {
+                    if (0 < length)
+                    {
+                        var currentText = contentText.Substring(textStartIndex, length);
+                        var newTextElement = textElement.GenerateGO(currentText).GetComponent<T>();
+                        newTextElement.transform.SetParent(textElement.transform, false);
+                        elementsWithEmoji.Add(newTextElement);
+                    }
+
+                    length = 0;
+
+                    // 記号確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
+                    var emojiElement = InternalEmojiRect.GO(textElement, new Char[] { firstChar }).GetComponent<InternalEmojiRect>();
+                    elementsWithEmoji.Add(emojiElement);
+
+                    // 文字は次の次から始まる、、かもしれない。
+                    textStartIndex = i + 2;
+                    i = i + 1;
+                    continue;
+                }
+
+                // \U0001F971
+                var isSurrogate = Char.IsSurrogate(firstChar);
                 if (isSurrogate)
                 {
                     if (0 < length)
@@ -332,6 +357,7 @@ namespace UILayouTaro
 
                     var nextChar = contentText[i + 1];
                     var isSurrogatePair = Char.IsSurrogatePair(firstChar, nextChar);
+
                     if (isSurrogatePair)
                     {
                         // サロゲートペア確定。なので、要素として扱い、次の文字を飛ばす処理を行う。

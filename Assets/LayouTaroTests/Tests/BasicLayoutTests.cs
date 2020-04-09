@@ -3,6 +3,7 @@ using UnityEngine;
 using UILayouTaro;
 using Miyamasu;
 using System;
+using System.Text;
 
 public class BasicLayoutTests : MiyamasuTestRunner
 {
@@ -308,6 +309,100 @@ public class BasicLayoutTests : MiyamasuTestRunner
         {
             yield return null;
         }
+
+        yield break;
+    }
+
+
+
+    [MTest]
+    public IEnumerator DetectMissingEmoji()
+    {
+        // generate your own data structure with parameters for UI.
+        var box = BoxElement.GO(
+            null,// UI bg with image
+            () =>
+            {
+                Debug.Log("root box element is tapped.");
+            },
+            TextElement.GO("\U0001F971\U0001F60A"),// text.
+            ImageElement.GO(null),// image.
+            ButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
+        );
+
+        // generate the layouter which you want to use for layout.
+        var layouter = new MyLayouter();
+
+        // set the default size of content.
+        var size = new Vector2(600, 100);
+
+        var done = false;
+        LayouTaro.SetOnMissingCharacterFound(chs =>
+        {
+            var bytes = Encoding.UTF8.GetBytes(chs);
+            foreach (var ch in bytes)
+            {
+                Debug.Log("missing ch byte:" + ch);
+            }
+            done = true;
+        });
+        // do layout with LayouTaro. the GameObject will be returned with layouted structure.
+        var go = box.gameObject;
+        go = LayouTaro.Layout<BoxElement>(
+            canvas.transform,
+            size,
+            go,
+            layouter
+        );
+
+        var rectTrans = go.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+
+        while (!done)
+        {
+            yield return null;
+        }
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator Mark()
+    {
+        // generate your own data structure with parameters for UI.
+        var box = BoxElement.GO(
+            null,// UI bg with image
+            () =>
+            {
+                Debug.Log("root box element is tapped.");
+            },
+            TextElement.GO("\u26A1"),// text.
+            ImageElement.GO(null),// image.
+            ButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
+        );
+
+        // generate the layouter which you want to use for layout.
+        var layouter = new MyLayouter();
+
+        // set the default size of content.
+        var size = new Vector2(600, 100);
+
+        // do layout with LayouTaro. the GameObject will be returned with layouted structure.
+        var go = box.gameObject;
+        go = LayouTaro.Layout<BoxElement>(
+            canvas.transform,
+            size,
+            go,
+            layouter
+        );
+
+        var rectTrans = go.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
 
         yield break;
     }
