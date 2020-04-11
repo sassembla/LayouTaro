@@ -4,6 +4,7 @@ using UILayouTaro;
 using Miyamasu;
 using System;
 using System.Text;
+using NUnit.Framework;
 
 public class BasicLayoutTests : MiyamasuTestRunner
 {
@@ -361,10 +362,7 @@ public class BasicLayoutTests : MiyamasuTestRunner
 
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
 
-        while (!done)
-        {
-            yield return null;
-        }
+        Assert.True(done);
         yield break;
     }
 

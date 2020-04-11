@@ -182,6 +182,30 @@ public class BasicLayoutTests_Miyamasu {
         }
     }
 }
+public class MissingCharTests_Miyamasu {
+    [UnityTest] public IEnumerator GetMissingChar() {
+        var instance = new MissingCharTests();
+        instance.SetInfo("MissingCharTests", "GetMissingChar");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.GetMissingChar();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+}
 public class RelayoutTests_Miyamasu {
     [UnityTest] public IEnumerator RelayoutWithEmoji() {
         var instance = new RelayoutTests();

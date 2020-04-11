@@ -18,7 +18,6 @@ namespace UILayouTaro
 
         NextLine:
             var textComponent = textElement.GetComponent<TextMeshProUGUI>();
-
             TMPro.TMP_TextInfo textInfos = null;
             {
                 // wordWrappingを可能にすると、表示はともかく実際にこの行にどれだけの文字が入っているか判断できる。
@@ -52,6 +51,14 @@ namespace UILayouTaro
                 // この内部で全てのレイアウトを終わらせる。
                 LayoutContentWithEmoji(textElement, contentText, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
                 return;
+            }
+
+            var fontAsset = textComponent.font;
+            List<char> missingCharacters;
+            if (!fontAsset.HasCharacters(contentText, out missingCharacters))
+            {
+                // missingCharactersを送り出す
+                LayouTaro._OnMissingCharacter(missingCharacters.ToArray());
             }
 
             var tmGeneratorLines = textInfos.lineInfo;

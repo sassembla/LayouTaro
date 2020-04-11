@@ -54,7 +54,7 @@ namespace UILayouTaro
             }
             else
             {
-                // 絵文字/記号がない。つまり、missingしている。
+                // target mark or emoji is missing,
                 LayouTaro._OnMissingCharacter(chars);
             }
 
