@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UILayouTaro
 {
-    public class RefObject
+    public class ParameterReference
     {
         public string id;// 判別用
 
@@ -17,7 +17,7 @@ namespace UILayouTaro
         public float currentLineMaxHeight;
         public List<RectTransform> lineContents;
 
-        public RefObject(float originX, float originY, float restWidth, float currentLineMaxHeight, List<RectTransform> lineContents)
+        public ParameterReference(float originX, float originY, float restWidth, float currentLineMaxHeight, List<RectTransform> lineContents)
         {
             this.id = Guid.NewGuid().ToString();
 
@@ -26,17 +26,6 @@ namespace UILayouTaro
             this.restWidth = restWidth;
             this.currentLineMaxHeight = currentLineMaxHeight;
             this.lineContents = lineContents;
-        }
-
-        public void Set(RefObject baseRefs)
-        {
-            this.id = baseRefs.id;
-
-            this.originX = baseRefs.originX;
-            this.originY = baseRefs.originY;
-            this.restWidth = baseRefs.restWidth;
-            this.currentLineMaxHeight = baseRefs.currentLineMaxHeight;
-            this.lineContents = baseRefs.lineContents;
         }
 
         public override string ToString()
@@ -53,7 +42,7 @@ namespace UILayouTaro
             Debug.Assert(rectTrans.pivot.x == 0 && rectTrans.pivot.y == 1 && rectTrans.anchorMin.x == 0 && rectTrans.anchorMin.y == 1 && rectTrans.anchorMax.x == 0 && rectTrans.anchorMax.y == 1, "rectTransform for BasicAsyncLayoutFunctions.TextLayoutAsync should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             Debug.Assert(textElement.transform.childCount == 0, "BasicAsyncLayoutFunctions.TextLayoutAsync not allows text element which has child.");
 
-            var refs = new RefObject(originX, originY, restWidth, currentLineMaxHeight, lineContents);
+            var refs = new ParameterReference(originX, originY, restWidth, currentLineMaxHeight, lineContents);
 
             var cor = _TextLayoutAsync(textElement, contentText, rectTrans, viewWidth, refs);
             return new AsyncLayoutOperation(
@@ -69,7 +58,7 @@ namespace UILayouTaro
 
         public static AsyncLayoutOperation RectLayoutAsync(LTElement rectElement, RectTransform rectTrans, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
         {
-            var refs = new RefObject(originX, originY, restWidth, currentLineMaxHeight, lineContents);
+            var refs = new ParameterReference(originX, originY, restWidth, currentLineMaxHeight, lineContents);
 
             var cor = _RectLayoutAsync(rectElement, rectTrans, rectSize, viewWidth, refs);
             return new AsyncLayoutOperation(
@@ -87,7 +76,7 @@ namespace UILayouTaro
             内部的な実装部
             どこかから先をstaticではないように作ると良さそう。キャッシュが切れる。まあTextにセットしてあるフォント単位でキャッシュ作っちゃうけどね。
         */
-        private static IEnumerator _TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, RefObject refs) where T : LTElement, ILayoutableText
+        private static IEnumerator _TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ParameterReference refs) where T : LTElement, ILayoutableText
         {
             var continueContent = false;
 
@@ -347,7 +336,7 @@ namespace UILayouTaro
             yield break;
         }
 
-        private static IEnumerator LayoutContentWithEmojiAsync<T>(T textElement, string contentText, float viewWidth, RefObject refs) where T : LTElement, ILayoutableText
+        private static IEnumerator LayoutContentWithEmojiAsync<T>(T textElement, string contentText, float viewWidth, ParameterReference refs) where T : LTElement, ILayoutableText
         {
             /*
                 絵文字が含まれている文字列を、絵文字と矩形に分解、再構成を行う。絵文字を単に画像が入る箱としてRectLayoutに放り込む。というのがいいのか、それとも独自にinternalを定義した方がいいのか。
@@ -482,15 +471,17 @@ namespace UILayouTaro
             yield break;
         }
 
-        private static IEnumerator _EmojiRectLayoutAsync(InternalEmojiRect rectElement, RectTransform transform, float viewWidth, RefObject refs)
+        private static IEnumerator _EmojiRectLayoutAsync(InternalEmojiRect rectElement, RectTransform transform, float viewWidth, ParameterReference refs)
         {
             var rectSize = rectElement.RectSize();
             yield return _RectLayoutAsync(rectElement, transform, rectSize, viewWidth, refs);
         }
 
-        private static IEnumerator _RectLayoutAsync(LTElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, RefObject refs)
+        private static IEnumerator _RectLayoutAsync(LTElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ParameterReference refs)
         {
             Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
+            Debug.Log("refs:" + refs + " rectSize:" + rectSize);
+
             if (refs.restWidth < rectSize.x)// 同じ列にレイアウトできないので次の列に行く。
             {
                 // 現在最後の追加要素である自分自身を取り出し、整列させる。
@@ -511,10 +502,13 @@ namespace UILayouTaro
             if (refs.restWidth == rectSize.x)
             {
                 ElementLayoutFunctions.LineFeed(ref refs.originX, ref refs.originY, transform.sizeDelta.y, ref refs.currentLineMaxHeight, ref refs.lineContents);
+
+                refs.restWidth = viewWidth;
                 yield break;
             }
 
             ElementLayoutFunctions.ContinueLine(ref refs.originX, rectSize.x, transform.sizeDelta.y, ref refs.currentLineMaxHeight);
+            refs.restWidth = viewWidth - refs.originX;
             yield break;
         }
 

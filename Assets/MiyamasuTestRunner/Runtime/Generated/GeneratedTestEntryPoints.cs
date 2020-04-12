@@ -5,9 +5,9 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Miyamasu;
 public class AsyncLayoutTests_Miyamasu {
-    [UnityTest] public IEnumerator BasicAsyncPattern() {
+    [UnityTest] public IEnumerator BasicPatternAsync() {
         var instance = new AsyncLayoutTests();
-        instance.SetInfo("AsyncLayoutTests", "BasicAsyncPattern");
+        instance.SetInfo("AsyncLayoutTests", "BasicPatternAsync");
         
         try {
             instance.Setup();
@@ -16,7 +16,161 @@ public class AsyncLayoutTests_Miyamasu {
             throw;
         }
         var startDate = DateTime.Now;
-        yield return instance.BasicAsyncPattern();
+        yield return instance.BasicPatternAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator ComplexPatternAsync() {
+        var instance = new AsyncLayoutTests();
+        instance.SetInfo("AsyncLayoutTests", "ComplexPatternAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.ComplexPatternAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator ComplexPattern2Async() {
+        var instance = new AsyncLayoutTests();
+        instance.SetInfo("AsyncLayoutTests", "ComplexPattern2Async");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.ComplexPattern2Async();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator WithEmojiAsync() {
+        var instance = new AsyncLayoutTests();
+        instance.SetInfo("AsyncLayoutTests", "WithEmojiAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.WithEmojiAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator WithEmojiComplexAsync() {
+        var instance = new AsyncLayoutTests();
+        instance.SetInfo("AsyncLayoutTests", "WithEmojiComplexAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.WithEmojiComplexAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator WithEmojiComplex2Async() {
+        var instance = new AsyncLayoutTests();
+        instance.SetInfo("AsyncLayoutTests", "WithEmojiComplex2Async");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.WithEmojiComplex2Async();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator DetectMissingEmojiAsync() {
+        var instance = new AsyncLayoutTests();
+        instance.SetInfo("AsyncLayoutTests", "DetectMissingEmojiAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.DetectMissingEmojiAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator MarkAsync() {
+        var instance = new AsyncLayoutTests();
+        instance.SetInfo("AsyncLayoutTests", "MarkAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.MarkAsync();
         instance.MarkAsPassed((DateTime.Now - startDate).ToString());
 
         

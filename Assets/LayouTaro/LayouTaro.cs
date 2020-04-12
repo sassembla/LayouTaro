@@ -124,11 +124,11 @@ namespace UILayouTaro
             var layoutOps = layouter.LayoutAsync(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
 
             var layouted = false;
-            RefObject resultRefObject = null;
+            ParameterReference resultRefObject = null;
 
             Debug.LogWarning("layoutOps[0]をここでいきなりいっぺん回す、というのができるといい気はしている。");
 
-            AsyncLayoutRunner.LaunchLayoutOps(
+            AsyncLayoutExecutor.LaunchLayoutOps(
                 opId,
                 layoutOps,
                 pos =>

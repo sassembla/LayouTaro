@@ -44,8 +44,10 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         GameObject.Destroy(cameraObj);
     }
 
+
+
     [MTest]
-    public IEnumerator BasicAsyncPattern()
+    public IEnumerator BasicPatternAsync()
     {
         var box = BoxElement.GO(
             null,// bg画像
@@ -87,334 +89,323 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         Debug.Log("after:" + Time.frameCount);
         Debug.Log("レイアウト完了、同期版は1フレで終わって欲しい。流石にそれは無理か。");
 
+        yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
-        while (true)
-        {
-            yield return null;
-        }
         yield break;
     }
 
-    // [MTest]
-    // public IEnumerator ComplexPattern()
-    // {
-    //     // 最後のgooooo..dが分離されて浮くように。
-    //     var box = BoxElement.GO(
-    //         null,// bg画像
-    //         () =>
-    //         {
-    //             Debug.Log("ルートがタップされた");
-    //         },
-    //         TextElement.GO("hannidjkfajfaoooood"),// テキスト
-    //         ImageElement.GO(null),// 画像
-    //         ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
-    //         TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
-    //         ImageElement.GO(null)// 画像
-    //                              // TextElement.GO("hannidjkfajfaoooood2")
-    //     );
+    [MTest]
+    public IEnumerator ComplexPatternAsync()
+    {
+        // 最後のgooooo..dが分離されて浮くように。
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("hannidjkfajfaoooood"),// テキスト
+            ImageElement.GO(null),// 画像
+            ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+            TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
+            ImageElement.GO(null)// 画像
+                                 // TextElement.GO("hannidjkfajfaoooood2")
+        );
 
-    //     // レイアウトに使うクラスを生成する
-    //     var layouter = new MyLayouter();
+        // レイアウトに使うクラスを生成する
+        var layouter = new MyAsyncLayouter();
 
-    //     // コンテンツのサイズをセットする
-    //     var size = new Vector2(600, 100);
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
 
-    //     // レイアウトを行う
-    //     var go = box.gameObject;
-    //     go = LayouTaro.Layout<BoxElement>(
-    //         canvas.transform,
-    //         size,
-    //         go,
-    //         layouter
-    //     );
+        // レイアウトを行う
+        var go = box.gameObject;
+        yield return LayouTaro.LayoutAsync<BoxElement>(
+            canvas.transform,
+            size,
+            go,
+            layouter
+        );
 
-    //     var rectTrans = go.GetComponent<RectTransform>();
-    //     rectTrans.anchoredPosition3D = Vector3.zero;
-    //     rectTrans.localScale = Vector3.one;
+        var rectTrans = go.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
 
-
-    //     ScreenCapture.CaptureScreenshot("./images/" + methodName);
-    //     yield break;
-    // }
-
-
-    // [MTest]
-    // public IEnumerator ComplexPattern2()
-    // {
-    //     // 最後のgooooo..dが分離されて浮くように。
-    //     var box = BoxElement.GO(
-    //         null,// bg画像
-    //         () =>
-    //         {
-    //             Debug.Log("ルートがタップされた");
-    //         },
-    //         TextElement.GO("hannidjkfajfaoooood"),// テキスト
-    //         ImageElement.GO(null),// 画像
-    //         ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
-    //         TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
-    //         ImageElement.GO(null),// 画像
-    //         ImageElement.GO(null),// 画像
-    //         TextElement.GO("hannidjkfajfaoooood2")
-    //     );
-
-    //     // レイアウトに使うクラスを生成する
-    //     var layouter = new MyLayouter();
-
-    //     // コンテンツのサイズをセットする
-    //     var size = new Vector2(600, 100);
-
-    //     // レイアウトを行う
-    //     var go = box.gameObject;
-    //     go = LayouTaro.Layout<BoxElement>(
-    //         canvas.transform,
-    //         size,
-    //         go,
-    //         layouter
-    //     );
-
-    //     var rectTrans = go.GetComponent<RectTransform>();
-    //     rectTrans.anchoredPosition3D = Vector3.zero;
-    //     rectTrans.localScale = Vector3.one;
+        yield return null;
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
 
 
-    //     ScreenCapture.CaptureScreenshot("./images/" + methodName);
-    //     yield break;
-    // }
+    [MTest]
+    public IEnumerator ComplexPattern2Async()
+    {
+        // 最後のgooooo..dが分離されて浮くように。
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("hannidjkfajfaoooood"),// テキスト
+            ImageElement.GO(null),// 画像
+            ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+            TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
+            ImageElement.GO(null),// 画像
+            ImageElement.GO(null),// 画像
+            TextElement.GO("hannidjkfajfaoooood2")
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new MyAsyncLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+        var go = box.gameObject;
+        yield return LayouTaro.LayoutAsync<BoxElement>(
+            canvas.transform,
+            size,
+            go,
+            layouter
+        );
+
+        var rectTrans = go.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
 
 
-    // [MTest]
-    // public IEnumerator WithEmoji()
-    // {
-    //     // 最後のgooooo..dが分離されて浮くように。
-    //     var box = BoxElement.GO(
-    //         null,// bg画像
-    //         () =>
-    //         {
-    //             Debug.Log("ルートがタップされた");
-    //         },
-    //         TextElement.GO("yasu \U0001F60A is public prob!")// テキスト
-    //     );
+    [MTest]
+    public IEnumerator WithEmojiAsync()
+    {
+        // 最後のgooooo..dが分離されて浮くように。
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("yasu \U0001F60A is public prob!")// テキスト
+        );
 
-    //     // レイアウトに使うクラスを生成する
-    //     var layouter = new MyLayouter();
+        // レイアウトに使うクラスを生成する
+        var layouter = new MyAsyncLayouter();
 
-    //     // コンテンツのサイズをセットする
-    //     var size = new Vector2(600, 100);
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
 
-    //     // レイアウトを行う
-    //     var go = box.gameObject;
-    //     go = LayouTaro.Layout<BoxElement>(
-    //         canvas.transform,
-    //         size,
-    //         go,
-    //         layouter
-    //     );
+        // レイアウトを行う
+        var go = box.gameObject;
+        yield return LayouTaro.LayoutAsync<BoxElement>(
+            canvas.transform,
+            size,
+            go,
+            layouter
+        );
 
-    //     var rectTrans = go.GetComponent<RectTransform>();
-    //     rectTrans.anchoredPosition3D = Vector3.zero;
-    //     rectTrans.localScale = Vector3.one;
+        var rectTrans = go.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
 
-    //     ScreenCapture.CaptureScreenshot("./images/" + methodName);
-    //     while (false)
-    //     {
-    //         yield return null;
-    //     }
+        yield return null;
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
 
-    //     yield break;
-    // }
+        yield break;
+    }
 
 
-    // [MTest]
-    // public IEnumerator WithEmojiComplex()
-    // {
-    //     // 最後のgooooo..dが分離されて浮くように。
-    //     var box = BoxElement.GO(
-    //         null,// bg画像
-    //         () =>
-    //         {
-    //             Debug.Log("ルートがタップされた");
-    //         },
-    //         TextElement.GO("hannidjkfajfaoooood"),// テキスト
-    //         ImageElement.GO(null),// 画像
-    //         ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
-    //         TextElement.GO("hannin is yasu!\U0001F60A\U0001F60B this is public problem! goooooooooooooad")// 59から絵文字を1文字削ると？2文字減る。文字数カウント的にはUTF8と同じ扱いなのか。うーん
+    [MTest]
+    public IEnumerator WithEmojiComplexAsync()
+    {
+        // 最後のgooooo..dが分離されて浮くように。
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("hannidjkfajfaoooood"),// テキスト
+            ImageElement.GO(null),// 画像
+            ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+            TextElement.GO("hannin is yasu!\U0001F60A\U0001F60B this is public problem! goooooooooooooad")// 59から絵文字を1文字削ると？2文字減る。文字数カウント的にはUTF8と同じ扱いなのか。うーん
 
-    //     // 事前にサイズを取得、インデックスポイントを送り込んで、取り除いて、という形にするか。
-    //     // どうすればできる？載せ替える四角を成立させればいいか。単純に文字列コンテンツを絵文字でぶった切るか！！これは手な気がする。
-    //     // 他になんかないかな。いけるな、
-    //     // 文字列を最初に渡すときに、N個の絵文字が出た場合、\Uで検索して文字を取り出す。そんで、その文字がどんな画像になるか、っていうのを別途やる。そんで、
-    //     // それぞれの文字を出力して、サイズを割り出し、文字列を再構成する。
-    //     // 再構成した上でレイアウトすればいい。で、それぞれのレイアウト終了時に絵文字の画像を割り当てるか。
-    //     // この方法であれば、まあ、そもそも画像を割り当てるような置換ができれば優勝できるな。
+        // 事前にサイズを取得、インデックスポイントを送り込んで、取り除いて、という形にするか。
+        // どうすればできる？載せ替える四角を成立させればいいか。単純に文字列コンテンツを絵文字でぶった切るか！！これは手な気がする。
+        // 他になんかないかな。いけるな、
+        // 文字列を最初に渡すときに、N個の絵文字が出た場合、\Uで検索して文字を取り出す。そんで、その文字がどんな画像になるか、っていうのを別途やる。そんで、
+        // それぞれの文字を出力して、サイズを割り出し、文字列を再構成する。
+        // 再構成した上でレイアウトすればいい。で、それぞれのレイアウト終了時に絵文字の画像を割り当てるか。
+        // この方法であれば、まあ、そもそも画像を割り当てるような置換ができれば優勝できるな。
 
-    //     // 割り出し方に問題が出るかな、例があると嬉しいな。ない。今はない。
-    //     );
+        // 割り出し方に問題が出るかな、例があると嬉しいな。ない。今はない。
+        );
 
-    //     // レイアウトに使うクラスを生成する
-    //     var layouter = new MyLayouter();
+        // レイアウトに使うクラスを生成する
+        var layouter = new MyAsyncLayouter();
 
-    //     // コンテンツのサイズをセットする
-    //     var size = new Vector2(600, 100);
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
 
-    //     // レイアウトを行う
-    //     var go = box.gameObject;
-    //     go = LayouTaro.Layout<BoxElement>(
-    //         canvas.transform,
-    //         size,
-    //         go,
-    //         layouter
-    //     );
+        // レイアウトを行う
+        var go = box.gameObject;
+        yield return LayouTaro.LayoutAsync<BoxElement>(
+            canvas.transform,
+            size,
+            go,
+            layouter
+        );
 
-    //     var rectTrans = go.GetComponent<RectTransform>();
-    //     rectTrans.anchoredPosition3D = Vector3.zero;
-    //     rectTrans.localScale = Vector3.one;
+        var rectTrans = go.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
 
-    //     ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield return null;
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
 
-    //     while (false)
-    //     {
-    //         yield return null;
-    //     }
+        yield break;
+    }
 
-    //     yield break;
-    // }
+    [MTest]
+    public IEnumerator WithEmojiComplex2Async()
+    {
+        // 最後のgooooo..dが分離されて浮くように。
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("hannidjkfajfaoooood"),// テキスト
+            ImageElement.GO(null),// 画像
+            ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+            TextElement.GO("hannin is yasu!\U0001F60A this is public problem! goooooooooooooad"),// テキスト
+            ImageElement.GO(null),// 画像
+            ImageElement.GO(null),// 画像
+            TextElement.GO("hannidjkfajfaoooood2")
+        );
 
-    // [MTest]
-    // public IEnumerator WithEmojiComplex2()
-    // {
-    //     // 最後のgooooo..dが分離されて浮くように。
-    //     var box = BoxElement.GO(
-    //         null,// bg画像
-    //         () =>
-    //         {
-    //             Debug.Log("ルートがタップされた");
-    //         },
-    //         TextElement.GO("hannidjkfajfaoooood"),// テキスト
-    //         ImageElement.GO(null),// 画像
-    //         ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
-    //         TextElement.GO("hannin is yasu!\U0001F60A this is public problem! goooooooooooooad"),// テキスト
-    //         ImageElement.GO(null),// 画像
-    //         ImageElement.GO(null),// 画像
-    //         TextElement.GO("hannidjkfajfaoooood2")
-    //     );
+        // レイアウトに使うクラスを生成する
+        var layouter = new MyAsyncLayouter();
 
-    //     // レイアウトに使うクラスを生成する
-    //     var layouter = new MyLayouter();
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
 
-    //     // コンテンツのサイズをセットする
-    //     var size = new Vector2(600, 100);
+        // レイアウトを行う
+        var go = box.gameObject;
+        yield return LayouTaro.LayoutAsync<BoxElement>(
+            canvas.transform,
+            size,
+            go,
+            layouter
+        );
 
-    //     // レイアウトを行う
-    //     var go = box.gameObject;
-    //     go = LayouTaro.Layout<BoxElement>(
-    //         canvas.transform,
-    //         size,
-    //         go,
-    //         layouter
-    //     );
+        var rectTrans = go.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
 
-    //     var rectTrans = go.GetComponent<RectTransform>();
-    //     rectTrans.anchoredPosition3D = Vector3.zero;
-    //     rectTrans.localScale = Vector3.one;
+        yield return null;
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
 
-    //     ScreenCapture.CaptureScreenshot("./images/" + methodName);
-
-    //     while (false)
-    //     {
-    //         yield return null;
-    //     }
-
-    //     yield break;
-    // }
+        yield break;
+    }
 
 
 
-    // [MTest]
-    // public IEnumerator DetectMissingEmoji()
-    // {
-    //     // generate your own data structure with parameters for UI.
-    //     var box = BoxElement.GO(
-    //         null,// UI bg with image
-    //         () =>
-    //         {
-    //             Debug.Log("root box element is tapped.");
-    //         },
-    //         TextElement.GO("\U0001F971\U0001F60A"),// text.
-    //         ImageElement.GO(null),// image.
-    //         ButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
-    //     );
+    [MTest]
+    public IEnumerator DetectMissingEmojiAsync()
+    {
+        // generate your own data structure with parameters for UI.
+        var box = BoxElement.GO(
+            null,// UI bg with image
+            () =>
+            {
+                Debug.Log("root box element is tapped.");
+            },
+            TextElement.GO("\U0001F971\U0001F60A"),// text.
+            ImageElement.GO(null),// image.
+            ButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
+        );
 
-    //     // generate the layouter which you want to use for layout.
-    //     var layouter = new MyLayouter();
+        // generate the layouter which you want to use for layout.
+        var layouter = new MyAsyncLayouter();
 
-    //     // set the default size of content.
-    //     var size = new Vector2(600, 100);
+        // set the default size of content.
+        var size = new Vector2(600, 100);
 
-    //     var done = false;
-    //     LayouTaro.SetOnMissingCharacterFound(chs =>
-    //     {
-    //         var bytes = Encoding.UTF8.GetBytes(chs);
-    //         foreach (var ch in bytes)
-    //         {
-    //             Debug.Log("missing ch byte:" + ch);
-    //         }
-    //         done = true;
-    //     });
-    //     // do layout with LayouTaro. the GameObject will be returned with layouted structure.
-    //     var go = box.gameObject;
-    //     go = LayouTaro.Layout<BoxElement>(
-    //         canvas.transform,
-    //         size,
-    //         go,
-    //         layouter
-    //     );
+        var done = false;
+        LayouTaro.SetOnMissingCharacterFound(chs =>
+        {
+            var bytes = Encoding.UTF8.GetBytes(chs);
+            foreach (var ch in bytes)
+            {
+                Debug.Log("missing ch byte:" + ch);
+            }
+            done = true;
+        });
 
-    //     var rectTrans = go.GetComponent<RectTransform>();
-    //     rectTrans.anchoredPosition3D = Vector3.zero;
-    //     rectTrans.localScale = Vector3.one;
+        // do layout with LayouTaro. the GameObject will be returned with layouted structure.
+        var go = box.gameObject;
+        yield return LayouTaro.LayoutAsync<BoxElement>(
+            canvas.transform,
+            size,
+            go,
+            layouter
+        );
 
-    //     ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        var rectTrans = go.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
 
-    //     Assert.True(done);
-    //     yield break;
-    // }
+        yield return null;
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
 
-    // [MTest]
-    // public IEnumerator Mark()
-    // {
-    //     // generate your own data structure with parameters for UI.
-    //     var box = BoxElement.GO(
-    //         null,// UI bg with image
-    //         () =>
-    //         {
-    //             Debug.Log("root box element is tapped.");
-    //         },
-    //         TextElement.GO("\u26A1"),// text.
-    //         ImageElement.GO(null),// image.
-    //         ButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
-    //     );
+        Assert.True(done);
+        yield break;
+    }
 
-    //     // generate the layouter which you want to use for layout.
-    //     var layouter = new MyLayouter();
+    [MTest]
+    public IEnumerator MarkAsync()
+    {
+        // generate your own data structure with parameters for UI.
+        var box = BoxElement.GO(
+            null,// UI bg with image
+            () =>
+            {
+                Debug.Log("root box element is tapped.");
+            },
+            TextElement.GO("\u26A1"),// text.
+            ImageElement.GO(null),// image.
+            ButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
+        );
 
-    //     // set the default size of content.
-    //     var size = new Vector2(600, 100);
+        // generate the layouter which you want to use for layout.
+        var layouter = new MyAsyncLayouter();
 
-    //     // do layout with LayouTaro. the GameObject will be returned with layouted structure.
-    //     var go = box.gameObject;
-    //     go = LayouTaro.Layout<BoxElement>(
-    //         canvas.transform,
-    //         size,
-    //         go,
-    //         layouter
-    //     );
+        // set the default size of content.
+        var size = new Vector2(600, 100);
 
-    //     var rectTrans = go.GetComponent<RectTransform>();
-    //     rectTrans.anchoredPosition3D = Vector3.zero;
-    //     rectTrans.localScale = Vector3.one;
+        // do layout with LayouTaro. the GameObject will be returned with layouted structure.
+        var go = box.gameObject;
+        yield return LayouTaro.LayoutAsync<BoxElement>(
+            canvas.transform,
+            size,
+            go,
+            layouter
+        );
 
-    //     ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        var rectTrans = go.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
 
-    //     yield break;
-    // }
+        yield return null;
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+
+        yield break;
+    }
 }

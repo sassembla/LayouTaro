@@ -21,7 +21,7 @@ public class MyAsyncLayouter : ILayouterAsync
 
         var viewWidth = viewSize.x - outsideSpacing * 2;// 左右の余白分を引く
 
-        // MyLayputはrootとしてboxがくる前提で作られている、という想定のサンプル
+        // MyLayoutはrootとしてboxがくる前提で作られている、という想定のサンプル
         var root = rootObject.GetComponent<BoxElement>();
         var rootTrans = root.GetComponent<RectTransform>();
 

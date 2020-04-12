@@ -10,34 +10,45 @@ namespace UILayouTaro
     public class AsyncLayoutOperation
     {
         public readonly RectTransform rectTrans;
-        public readonly Func<(bool, RefObject)> MoveNext;
-        public RefObject refs;
+        public readonly Func<(bool, ParameterReference)> MoveNext;
+        public ParameterReference refs;
 
-        public AsyncLayoutOperation(RectTransform rectTrans, RefObject refs, Func<(bool, RefObject)> moveNext)
+        public AsyncLayoutOperation(RectTransform rectTrans, ParameterReference refs, Func<(bool, ParameterReference)> moveNext)
         {
             this.rectTrans = rectTrans;
             this.refs = refs;
             this.MoveNext = moveNext;
         }
+
+        public void UpdateRef(ParameterReference baseRefs)
+        {
+            this.refs.id = baseRefs.id;
+
+            this.refs.originX = baseRefs.originX;
+            this.refs.originY = baseRefs.originY;
+            this.refs.restWidth = baseRefs.restWidth;
+            this.refs.currentLineMaxHeight = baseRefs.currentLineMaxHeight;
+            this.refs.lineContents = baseRefs.lineContents;
+        }
     }
 
 
-    public static class AsyncLayoutRunner
+    public static class AsyncLayoutExecutor
     {
         private class OpsGroup
         {
-            public readonly Action<RefObject> onDone;
+            public readonly Action<ParameterReference> onDone;
 
-            public readonly IEnumerator<(bool, RefObject)> cor;
+            public readonly IEnumerator<(bool, ParameterReference)> cor;
 
-            public OpsGroup(string opsId, List<AsyncLayoutOperation> ops, Action<RefObject> onDone)
+            public OpsGroup(string opsId, List<AsyncLayoutOperation> ops, Action<ParameterReference> onDone)
             {
                 this.onDone = onDone;// グループ全体のDone扱い、上位側で調整した後に実行される。
                 this.cor = RunLayout(opsId, ops);
             }
 
-            // このオブジェクトの中でopsを回して、RefObjectを引きまわす。
-            private IEnumerator<(bool, RefObject)> RunLayout(string opsId, List<AsyncLayoutOperation> ops)
+            // このオブジェクトの中でopsを回して、ParamRefを引きまわす。
+            private IEnumerator<(bool, ParameterReference)> RunLayout(string opsId, List<AsyncLayoutOperation> ops)
             {
                 // レイアウトの起点
                 var baseRefs = ops[0].refs;
@@ -67,7 +78,7 @@ namespace UILayouTaro
                         }
 
                         // refsを更新する
-                        ops[0].refs.Set(baseRefs);
+                        ops[0].UpdateRef(baseRefs);
 
                         // 開始位置に戻り、次のOpsのMoveNextを行う
                         continue;
@@ -85,7 +96,7 @@ namespace UILayouTaro
 
         private static List<OpsGroup> rootOps = new List<OpsGroup>();
 
-        public static void LaunchLayoutOps(string opsId, List<AsyncLayoutOperation> newOps, Action<RefObject> onDone)
+        public static void LaunchLayoutOps(string opsId, List<AsyncLayoutOperation> newOps, Action<ParameterReference> onDone)
         {
             // 最初の一つだったらRunnerを追加する
             if (rootOps.Count == 0)
