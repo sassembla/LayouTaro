@@ -62,11 +62,12 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         var layouter = new MyAsyncLayouter();
 
         // コンテンツのサイズをセットする
-        var size = new Vector2(600, 100);
+        var size = new Vector2(600, 50);
 
         // レイアウトを行う
         var go = box.gameObject;
 
+        Debug.Log("before:" + Time.frameCount);
         /*
             さて、どんな方法が取れるか。
             非同期を底の方まで連れて行きたい、という需要があるので、すべてをIEnumeratorで回すか、ああ、
@@ -83,7 +84,8 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
-        Debug.Log("レイアウト完了");
+        Debug.Log("after:" + Time.frameCount);
+        Debug.Log("レイアウト完了、同期版は1フレで終わって欲しい。流石にそれは無理か。");
 
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         while (true)

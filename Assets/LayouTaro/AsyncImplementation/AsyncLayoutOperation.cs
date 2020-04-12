@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.LowLevel;
@@ -8,10 +9,14 @@ namespace UILayouTaro
 
     public class AsyncLayoutOperation
     {
-        public readonly Func<bool> MoveNext;
+        public readonly RectTransform rectTrans;
+        public readonly Func<(bool, RefObject)> MoveNext;
+        public RefObject refs;
 
-        public AsyncLayoutOperation(Func<bool> moveNext)
+        public AsyncLayoutOperation(RectTransform rectTrans, RefObject refs, Func<(bool, RefObject)> moveNext)
         {
+            this.rectTrans = rectTrans;
+            this.refs = refs;
             this.MoveNext = moveNext;
         }
     }
@@ -21,24 +26,71 @@ namespace UILayouTaro
     {
         private class OpsGroup
         {
-            public readonly string opsId;
-            public readonly List<AsyncLayoutOperation> ops;
-            public readonly Action onDone;
-            public OpsGroup(string opsId, List<AsyncLayoutOperation> ops, Action onDone)
+            public readonly Action<RefObject> onDone;
+
+            public readonly IEnumerator<(bool, RefObject)> cor;
+
+            public OpsGroup(string opsId, List<AsyncLayoutOperation> ops, Action<RefObject> onDone)
             {
-                this.opsId = opsId;
-                this.ops = ops;
-                this.onDone = onDone;
+                this.onDone = onDone;// グループ全体のDone扱い、上位側で調整した後に実行される。
+                this.cor = RunLayout(opsId, ops);
+            }
+
+            // このオブジェクトの中でopsを回して、RefObjectを引きまわす。
+            private IEnumerator<(bool, RefObject)> RunLayout(string opsId, List<AsyncLayoutOperation> ops)
+            {
+                // レイアウトの起点
+                var baseRefs = ops[0].refs;
+                Debug.Log("first id:" + baseRefs.id + " now frameCount:" + Time.frameCount + " baseRefs:" + baseRefs.ToString());
+
+                while (true)
+                {
+                    // ここでRectTransformを取り出し、refsのlinedにセットする必要がある。これめちゃくちゃだなあ。
+                    baseRefs.lineContents.Add(ops[0].rectTrans);
+
+                    var (cont, refs) = ops[0].MoveNext();
+
+                    Debug.Log("cont:" + cont + " refs.id:" + refs.id + " baseRefs:" + baseRefs.ToString());
+
+                    baseRefs = refs;
+                    if (!cont)
+                    {
+                        Debug.Log("このOpsのCor終了！");
+
+                        // 処理が終了したOperationを取り除く。
+                        ops.RemoveAt(0);
+
+                        // このopsGroupが空になったら、trueを返す
+                        if (ops.Count == 0)
+                        {
+                            break;
+                        }
+
+                        // refsを更新する
+                        ops[0].refs.Set(baseRefs);
+
+                        // 開始位置に戻り、次のOpsのMoveNextを行う
+                        continue;
+                    }
+
+                    // まだ実行中のopsがある場合、yieldで抜ける。
+                    Debug.Log("継続中 opGroup.ops:" + ops.Count);// このログがブロック版でも出ちゃうのなんかあるな。まあはい。
+                    yield return (true, refs);
+                }
+
+                yield return (false, baseRefs);
             }
         }
+
+
         private static List<OpsGroup> rootOps = new List<OpsGroup>();
 
-        public static void Add(string opsId, List<AsyncLayoutOperation> newOps, Action onDone)
+        public static void LaunchLayoutOps(string opsId, List<AsyncLayoutOperation> newOps, Action<RefObject> onDone)
         {
             // 最初の一つだったらRunnerを追加する
             if (rootOps.Count == 0)
             {
-                var chUpdateSystem = new PlayerLoopSystem()
+                var layoutUpdateSystem = new PlayerLoopSystem()
                 {
                     type = typeof(AsyncLayoutOperation),
                     updateDelegate = LayoutRunner
@@ -51,10 +103,11 @@ namespace UILayouTaro
                 var subSystem = new List<PlayerLoopSystem>(updateSystem.subSystemList);
 
                 // updateブロックを追加する
-                subSystem.Insert(0, chUpdateSystem);
+                subSystem.Add(layoutUpdateSystem);
                 updateSystem.subSystemList = subSystem.ToArray();
                 playerLoop.subSystemList[4] = updateSystem;
 
+                // セット
                 PlayerLoop.SetPlayerLoop(playerLoop);
             }
 
@@ -68,7 +121,10 @@ namespace UILayouTaro
             {
                 var opsGroup = rootOps[i];
 
-                var cont = OpsGroupMoveNext(opsGroup);
+                // 実行
+                opsGroup.cor.MoveNext();
+
+                var (cont, pos) = opsGroup.cor.Current;
                 if (!cont)
                 {
                     // このグループが終了したので取り除く
@@ -76,7 +132,7 @@ namespace UILayouTaro
                     rootStartCount--;
 
                     // 終了実行
-                    opsGroup.onDone();
+                    opsGroup.onDone(pos);
 
                     // 全てのopsGroupが消えたら、Runner自体を削除する。
                     if (rootOps.Count == 0)
@@ -87,32 +143,6 @@ namespace UILayouTaro
             }
         }
 
-        private static bool OpsGroupMoveNext(OpsGroup opGroup)
-        {
-        next:
-            var done = opGroup.ops[0].MoveNext();
-            if (done)
-            {
-                // 処理が終了したOperationを取り除く。
-                opGroup.ops.RemoveAt(0);
-
-                // このopsGroupが空になったら、trueを返す
-                if (opGroup.ops.Count == 0)
-                {
-                    return true;
-                }
-
-                // 続いて次の要素のMoveNextを実行する。
-                // 終わればさらに次を。
-                // もし一回実行して終わらなかった場合、ブロックを抜けてfalseを返す。
-                goto next;
-            }
-
-            // まだ実行中のopsがある
-            Debug.Log("継続中 opGroup.ops:" + opGroup.ops.Count);
-            return false;
-        }
-
         private static void RemoveLayoutRunner()
         {
             var playerLoop = PlayerLoop.GetDefaultPlayerLoop();
@@ -121,8 +151,19 @@ namespace UILayouTaro
             var updateSystem = playerLoop.subSystemList[4];
             var subSystem = new List<PlayerLoopSystem>(updateSystem.subSystemList);
 
-            // updateブロックを削除する
-            subSystem.RemoveAt(0);
+            // remove AsyncLayoutOperation.
+            var count = subSystem.Count;
+            for (var i = 0; i < count; i++)
+            {
+                var item = subSystem[i];
+                if (item.type == typeof(AsyncLayoutOperation))
+                {
+                    subSystem.RemoveAt(i);
+                    break;
+                }
+            }
+
+            // セット
             updateSystem.subSystemList = subSystem.ToArray();
             playerLoop.subSystemList[4] = updateSystem;
 

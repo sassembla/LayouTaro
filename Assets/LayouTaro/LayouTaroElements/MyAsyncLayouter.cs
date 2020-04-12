@@ -13,6 +13,7 @@ public class MyAsyncLayouter : ILayouterAsync
     public List<AsyncLayoutOperation> LayoutAsync(Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
     {
         var outsideSpacing = 10f;
+
         originX = 0f;
         originY = 0f;
 
@@ -33,14 +34,13 @@ public class MyAsyncLayouter : ILayouterAsync
             var currentElementRectTrans = element.GetComponent<RectTransform>();
             var restWidth = viewWidth - originX;
 
-            lineContents.Add(currentElementRectTrans);
-
             var type = element.GetLTElementType();
             switch (type)
             {
                 case LTElementType.Image:
                     var imageElement = (ImageElement)element;
 
+                    // 概念的に、後でレイアウトする対象をレイアウト処理順にAddしている。
                     layoutOps.Add(
                         BasicAsyncLayoutFunctions.RectLayoutAsync(
                             imageElement,
@@ -105,7 +105,7 @@ public class MyAsyncLayouter : ILayouterAsync
     }
 
     /*
-        layout後、この関数がLayouTaroから呼ばれる
+        layout後、LayouTaroから呼ばれる
     */
     public void AfterLayout(Vector2 viewSize, float originX, float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
     {

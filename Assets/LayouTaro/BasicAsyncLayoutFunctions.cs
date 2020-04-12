@@ -7,52 +7,78 @@ using UnityEngine;
 
 namespace UILayouTaro
 {
-    public static class BasicAsyncLayoutFunctions
+    public class RefObject
     {
-        private class RefObject
-        {
-            public float originX;
-            public float originY;
-            public float restWidth;
-            public float currentLineMaxHeight;
-            public List<RectTransform> lineContents;
+        public string id;// 判別用
 
-            public RefObject(float originX, float originY, float restWidth, float currentLineMaxHeight, List<RectTransform> lineContents)
-            {
-                this.originX = originX;
-                this.originY = originY;
-                this.restWidth = restWidth;
-                this.currentLineMaxHeight = currentLineMaxHeight;
-                this.lineContents = lineContents;
-            }
+        public float originX;
+        public float originY;
+        public float restWidth;
+        public float currentLineMaxHeight;
+        public List<RectTransform> lineContents;
+
+        public RefObject(float originX, float originY, float restWidth, float currentLineMaxHeight, List<RectTransform> lineContents)
+        {
+            this.id = Guid.NewGuid().ToString();
+
+            this.originX = originX;
+            this.originY = originY;
+            this.restWidth = restWidth;
+            this.currentLineMaxHeight = currentLineMaxHeight;
+            this.lineContents = lineContents;
         }
 
+        public void Set(RefObject baseRefs)
+        {
+            this.id = baseRefs.id;
 
+            this.originX = baseRefs.originX;
+            this.originY = baseRefs.originY;
+            this.restWidth = baseRefs.restWidth;
+            this.currentLineMaxHeight = baseRefs.currentLineMaxHeight;
+            this.lineContents = baseRefs.lineContents;
+        }
+
+        public override string ToString()
+        {
+            return " originX:" + originX + " originY:" + originY + " restWidth:" + restWidth + " currentLineMaxHeight:" + currentLineMaxHeight;
+        }
+    }
+
+
+    public static class BasicAsyncLayoutFunctions
+    {
         public static AsyncLayoutOperation TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
         {
-            Debug.Assert(rectTrans.pivot.x == 0 && rectTrans.pivot.y == 1 && rectTrans.anchorMin.x == 0 && rectTrans.anchorMin.y == 1 && rectTrans.anchorMax.x == 0 && rectTrans.anchorMax.y == 1, "rectTransform for BasicLayoutFunctions.TextLayout should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
-            Debug.Assert(textElement.transform.childCount == 0, "BasicLayoutFunctions.TextLayout not allows text element which has child.");
+            Debug.Assert(rectTrans.pivot.x == 0 && rectTrans.pivot.y == 1 && rectTrans.anchorMin.x == 0 && rectTrans.anchorMin.y == 1 && rectTrans.anchorMax.x == 0 && rectTrans.anchorMax.y == 1, "rectTransform for BasicAsyncLayoutFunctions.TextLayoutAsync should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
+            Debug.Assert(textElement.transform.childCount == 0, "BasicAsyncLayoutFunctions.TextLayoutAsync not allows text element which has child.");
 
             var refs = new RefObject(originX, originY, restWidth, currentLineMaxHeight, lineContents);
 
             var cor = _TextLayoutAsync(textElement, contentText, rectTrans, viewWidth, refs);
             return new AsyncLayoutOperation(
+                rectTrans,
+                refs,
                 () =>
                 {
-                    return cor.MoveNext();
+                    var cont = cor.MoveNext();
+                    return (cont, refs);
                 }
             );
         }
 
-        public static AsyncLayoutOperation RectLayoutAsync(LTElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        public static AsyncLayoutOperation RectLayoutAsync(LTElement rectElement, RectTransform rectTrans, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
         {
             var refs = new RefObject(originX, originY, restWidth, currentLineMaxHeight, lineContents);
 
-            var cor = _RectLayoutAsync(rectElement, transform, rectSize, viewWidth, refs);
+            var cor = _RectLayoutAsync(rectElement, rectTrans, rectSize, viewWidth, refs);
             return new AsyncLayoutOperation(
+                rectTrans,
+                refs,
                 () =>
                 {
-                    return cor.MoveNext();
+                    var cont = cor.MoveNext();
+                    return (cont, refs);
                 }
             );
         }
@@ -61,7 +87,6 @@ namespace UILayouTaro
             内部的な実装部
             どこかから先をstaticではないように作ると良さそう。キャッシュが切れる。まあTextにセットしてあるフォント単位でキャッシュ作っちゃうけどね。
         */
-
         private static IEnumerator _TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, RefObject refs) where T : LTElement, ILayoutableText
         {
             var continueContent = false;

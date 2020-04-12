@@ -124,12 +124,17 @@ namespace UILayouTaro
             var layoutOps = layouter.LayoutAsync(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
 
             var layouted = false;
-            AsyncLayoutRunner.Add(
+            RefObject resultRefObject = null;
+
+            Debug.LogWarning("layoutOps[0]をここでいきなりいっぺん回す、というのができるといい気はしている。");
+
+            AsyncLayoutRunner.LaunchLayoutOps(
                 opId,
                 layoutOps,
-                () =>
+                pos =>
                 {
                     layouted = true;
+                    resultRefObject = pos;
                 }
             );
 
@@ -138,7 +143,7 @@ namespace UILayouTaro
                 yield return null;
             }
 
-            layouter.AfterLayout(size, originX, originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+            layouter.AfterLayout(size, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
 
             lineContents.Clear();
 
