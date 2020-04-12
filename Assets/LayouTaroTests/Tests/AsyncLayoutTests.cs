@@ -338,17 +338,6 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         // set the default size of content.
         var size = new Vector2(600, 100);
 
-        var done = false;
-        LayouTaro.SetOnMissingCharacterFound(chs =>
-        {
-            var bytes = Encoding.UTF8.GetBytes(chs);
-            foreach (var ch in bytes)
-            {
-                Debug.Log("missing ch byte:" + ch);
-            }
-            done = true;
-        });
-
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
         var go = box.gameObject;
         yield return LayouTaro.LayoutAsync<BoxElement>(
@@ -365,7 +354,6 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
 
-        Assert.True(done);
         yield break;
     }
 
