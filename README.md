@@ -241,6 +241,17 @@ public class YourLayouter : ILayouter
     }
 ```
 
+
+## Detecting missing Character/Emoji/Mark
+```csharp
+LayouTaro.SetOnMissingCharacterFound(
+    (char[] misisngChars) => {
+        // you can get the missing Character/Emoji/Mark as char[]
+    }
+);
+```
+
+
 ## About BasicLayoutFunction
 BasicLayoutFunction are implemented inside of the LayouTaro.
 

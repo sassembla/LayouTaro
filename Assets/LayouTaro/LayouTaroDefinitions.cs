@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,6 +18,14 @@ namespace UILayouTaro
     {
         void Layout(Vector2 size, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents);
         void UpdateValues(LTElement[] elements, Dictionary<LTElementType, object> updateValues);
+    }
+
+    public interface ILayouterAsync
+    {
+        List<AsyncLayoutOperation> LayoutAsync(Vector2 size, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents);
+        void AfterLayout(Vector2 viewSize, float originX, float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents);
+
+        // updateも必要。
     }
 
     public interface ILayoutableRect

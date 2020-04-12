@@ -12,13 +12,13 @@ public class MyLayouter : ILayouter
     */
     public void Layout(Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
     {
-        var OutsideSpacing = 10f;
+        var outsideSpacing = 10f;
         originX = 0f;
         originY = 0f;
 
         var originalViewWidth = viewSize.x;
 
-        var viewWidth = viewSize.x - OutsideSpacing * 2;// 左右の余白分を引く
+        var viewWidth = viewSize.x - outsideSpacing * 2;// 左右の余白分を引く
 
         // MyLayputはrootとしてboxがくる前提で作られている、という想定のサンプル
         var root = rootObject.GetComponent<BoxElement>();
@@ -96,13 +96,13 @@ public class MyLayouter : ILayouter
         BasicLayoutFunctions.LayoutLastLine(ref originY, currentLineMaxHeight, ref lineContents);
 
         // boxのサイズを調整する
-        rootTrans.sizeDelta = new Vector2(originalViewWidth, Mathf.Abs(originY) + OutsideSpacing * 2);// オリジナル幅で、高さに対して2倍分の余白を足す。
+        rootTrans.sizeDelta = new Vector2(originalViewWidth, Mathf.Abs(originY) + outsideSpacing * 2);// オリジナル幅で、高さに対して2倍分の余白を足す。
 
         // 子要素の余白分の移動
         foreach (var e in elements)
         {
             var rectTrans = e.GetComponent<RectTransform>();
-            rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x + OutsideSpacing, rectTrans.anchoredPosition.y - OutsideSpacing);// ルートの下のエレメントの要素をスペース分移動する。yは-なので-する。
+            rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x + outsideSpacing, rectTrans.anchoredPosition.y - outsideSpacing);// ルートの下のエレメントの要素をスペース分移動する。yは-なので-する。
         }
     }
 

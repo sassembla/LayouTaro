@@ -7,13 +7,63 @@ using UnityEngine;
 
 namespace UILayouTaro
 {
-    public static class BasicLayoutFunctions
+    public static class BasicAsyncLayoutFunctions
     {
+        private class RefObject
+        {
+            public float originX;
+            public float originY;
+            public float restWidth;
+            public float currentLineMaxHeight;
+            public List<RectTransform> lineContents;
 
-        public static void TextLayout<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
+            public RefObject(float originX, float originY, float restWidth, float currentLineMaxHeight, List<RectTransform> lineContents)
+            {
+                this.originX = originX;
+                this.originY = originY;
+                this.restWidth = restWidth;
+                this.currentLineMaxHeight = currentLineMaxHeight;
+                this.lineContents = lineContents;
+            }
+        }
+
+
+        public static AsyncLayoutOperation TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
         {
             Debug.Assert(rectTrans.pivot.x == 0 && rectTrans.pivot.y == 1 && rectTrans.anchorMin.x == 0 && rectTrans.anchorMin.y == 1 && rectTrans.anchorMax.x == 0 && rectTrans.anchorMax.y == 1, "rectTransform for BasicLayoutFunctions.TextLayout should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             Debug.Assert(textElement.transform.childCount == 0, "BasicLayoutFunctions.TextLayout not allows text element which has child.");
+
+            var refs = new RefObject(originX, originY, restWidth, currentLineMaxHeight, lineContents);
+
+            var cor = _TextLayoutAsync(textElement, contentText, rectTrans, viewWidth, refs);
+            return new AsyncLayoutOperation(
+                () =>
+                {
+                    return cor.MoveNext();
+                }
+            );
+        }
+
+        public static AsyncLayoutOperation RectLayoutAsync(LTElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        {
+            var refs = new RefObject(originX, originY, restWidth, currentLineMaxHeight, lineContents);
+
+            var cor = _RectLayoutAsync(rectElement, transform, rectSize, viewWidth, refs);
+            return new AsyncLayoutOperation(
+                () =>
+                {
+                    return cor.MoveNext();
+                }
+            );
+        }
+
+        /*
+            内部的な実装部
+            どこかから先をstaticではないように作ると良さそう。キャッシュが切れる。まあTextにセットしてあるフォント単位でキャッシュ作っちゃうけどね。
+        */
+
+        private static IEnumerator _TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, RefObject refs) where T : LTElement, ILayoutableText
+        {
             var continueContent = false;
 
         NextLine:
@@ -25,7 +75,7 @@ namespace UILayouTaro
                 textComponent.text = contentText;
 
                 // 文字が入る箱のサイズを縦に無限にして、どの程度入るかのレイアウト情報を取得する。
-                textComponent.rectTransform.sizeDelta = new Vector2(restWidth, float.PositiveInfinity);
+                textComponent.rectTransform.sizeDelta = new Vector2(refs.restWidth, float.PositiveInfinity);
                 textInfos = textComponent.GetTextInfo(contentText);
 
                 // 文字を中央揃えではなく適正な位置にセットするためにラッピングを解除する。
@@ -44,21 +94,22 @@ namespace UILayouTaro
                 // 絵文字が含まれている。
 
                 // 今後のレイアウトに自分自身を巻き込まないように、レイアウトから自分自身を取り外す
-                lineContents.RemoveAt(lineContents.Count - 1);
+                refs.lineContents.RemoveAt(refs.lineContents.Count - 1);
 
-                textComponent.rectTransform.sizeDelta = new Vector2(restWidth, 0);// 高さが0で問題ない。
+                textComponent.rectTransform.sizeDelta = new Vector2(refs.restWidth, 0);// 高さが0で問題ない。
 
                 // この内部で全てのレイアウトを終わらせる。
-                LayoutContentWithEmoji(textElement, contentText, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
-                return;
+                yield return LayoutContentWithEmojiAsync(textElement, contentText, viewWidth, refs);
+
+                yield break;
             }
 
             var fontAsset = textComponent.font;
             List<char> missingCharacters;
             if (!fontAsset.HasCharacters(contentText, out missingCharacters))
             {
-                // missingCharactersを送り出す
-                LayouTaro._OnMissingCharacter(missingCharacters.ToArray());
+                Debug.Log("missingが発生したので、対象を非同期に処理する。");
+                yield return LoadMissing(missingCharacters);
             }
 
             var tmGeneratorLines = textInfos.lineInfo;
@@ -68,9 +119,9 @@ namespace UILayouTaro
             var currentFirstLineWidth = tmGeneratorLines[0].length;
             var currentFirstLineHeight = tmGeneratorLines[0].lineHeight;
 
-            var isHeadOfLine = originX == 0;
+            var isHeadOfLine = refs.originX == 0;
             var isMultiLined = 1 < tmLineCount;
-            var isLayoutedOutOfView = viewWidth < originX + currentFirstLineWidth;
+            var isLayoutedOutOfView = viewWidth < refs.originX + currentFirstLineWidth;
 
             var status = TextLayoutDefinitions.GetTextLayoutStatus(isHeadOfLine, isMultiLined, isLayoutedOutOfView);
             switch (status)
@@ -83,17 +134,17 @@ namespace UILayouTaro
                         if (continueContent)
                         {
                             continueContent = false;
-                            restWidth = viewWidth - currentFirstLineWidth;
-                            currentLineMaxHeight = currentFirstLineHeight;
+                            refs.restWidth = viewWidth - currentFirstLineWidth;
+                            refs.currentLineMaxHeight = currentFirstLineHeight;
                         }
                         else
                         {
-                            textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
+                            textComponent.rectTransform.anchoredPosition = new Vector2(refs.originX, refs.originY);
                         }
 
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
-                        ElementLayoutFunctions.ContinueLine(ref originX, currentFirstLineWidth, currentFirstLineHeight, ref currentLineMaxHeight);
+                        ElementLayoutFunctions.ContinueLine(ref refs.originX, currentFirstLineWidth, currentFirstLineHeight, ref refs.currentLineMaxHeight);
                         break;
                     }
 
@@ -109,17 +160,17 @@ namespace UILayouTaro
 
                         // 現在の行のセット
                         textComponent.text = contentText.Substring(0, nextLineTextIndex);
-                        textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
+                        textComponent.rectTransform.anchoredPosition = new Vector2(refs.originX, refs.originY);
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
-                        var childOriginX = originX;
-                        var currentTotalLineHeight = ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
+                        var childOriginX = refs.originX;
+                        var currentTotalLineHeight = ElementLayoutFunctions.LineFeed(ref refs.originX, ref refs.originY, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);// 文字コンテンツの高さ分改行する
 
                         // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                         // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
                         {
                             // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
-                            restWidth = viewWidth;
+                            refs.restWidth = viewWidth;
 
                             // 次の行のコンテンツを入れる
                             var nextLineTextElement = textElement.GenerateGO(nextLineText).GetComponent<T>();
@@ -146,7 +197,7 @@ namespace UILayouTaro
                             continueContent = true;
 
                             // 生成したコンテンツを次の行の要素へと追加する
-                            lineContents.Add(newTailTextElementRectTrans);
+                            refs.lineContents.Add(newTailTextElementRectTrans);
 
                             // 上書きを行う
                             textElement = nextLineTextElement;
@@ -158,7 +209,7 @@ namespace UILayouTaro
                 case TextLayoutStatus.HeadAndMulti:
                     {
                         // このコンテンツは矩形で、行揃えの影響を受けないため、明示的に行から取り除く。
-                        lineContents.RemoveAt(lineContents.Count - 1);
+                        refs.lineContents.RemoveAt(refs.lineContents.Count - 1);
 
                         var lineCount = textInfos.lineCount;
                         var lineStrs = new string[lineCount];
@@ -189,16 +240,16 @@ namespace UILayouTaro
 
                         // 改行コードを入れ、複数行での表示をいい感じにする。
                         textComponent.text = string.Join("\n", rectTexts);
-                        textComponent.rectTransform.sizeDelta = new Vector2(restWidth, rectHeight);
+                        textComponent.rectTransform.sizeDelta = new Vector2(refs.restWidth, rectHeight);
 
                         // なんらかの続きの文字コンテンツである場合、そのコンテンツの子になっているので位置情報を調整しない。最終行を分割する。
                         if (continueContent)
                         {
                             // 別のコンテンツから継続している行はじめの処理なので、子をセットする前にここまでの分の改行を行う。
-                            ElementLayoutFunctions.LineFeed(ref originX, ref originY, rectHeight, ref currentLineMaxHeight, ref lineContents);
+                            ElementLayoutFunctions.LineFeed(ref refs.originX, ref refs.originY, rectHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
 
                             // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
-                            restWidth = viewWidth;
+                            refs.restWidth = viewWidth;
 
                             // 最終行のコンテンツを入れる
                             var nextLineTextElement = textElement.GenerateGO(lastLineText).GetComponent<T>();
@@ -217,7 +268,7 @@ namespace UILayouTaro
                             continueContent = true;
 
                             // 生成したコンテンツを次の行の要素へと追加する
-                            lineContents.Add(newBrotherTailTextElementRectTrans);
+                            refs.lineContents.Add(newBrotherTailTextElementRectTrans);
 
                             // 上書きを行う
                             textElement = nextLineTextElement;
@@ -226,29 +277,29 @@ namespace UILayouTaro
                         }
 
                         // 誰かの子ではないので、独自に自分の位置をセットする
-                        textComponent.rectTransform.anchoredPosition = new Vector2(originX, originY);
+                        textComponent.rectTransform.anchoredPosition = new Vector2(refs.originX, refs.originY);
 
                         // 最終行のコンテンツを入れる
                         var newTextElement = textElement.GenerateGO(lastLineText).GetComponent<T>();
                         newTextElement.transform.SetParent(rectTrans);// 消しやすくするため、この新規コンテンツを現在の要素の子にする
 
                         // 残りの行のサイズは最大化する
-                        restWidth = viewWidth;
+                        refs.restWidth = viewWidth;
 
                         // 次の行の行頭になる
-                        originX = 0;
+                        refs.originX = 0;
 
                         // yは親の分移動する
-                        originY -= rectHeight;
+                        refs.originY -= rectHeight;
 
                         var newTailTextElementRectTrans = newTextElement.GetComponent<RectTransform>();
-                        newTailTextElementRectTrans.anchoredPosition = new Vector2(originX, originY);
+                        newTailTextElementRectTrans.anchoredPosition = new Vector2(refs.originX, refs.originY);
 
                         // 残りのデータをテキスト特有の継続したコンテンツ扱いする。
                         continueContent = true;
 
                         // 生成したコンテンツを次の行の要素へと追加する
-                        lineContents.Add(newTailTextElementRectTrans);
+                        refs.lineContents.Add(newTailTextElementRectTrans);
 
                         textElement = newTextElement;
                         contentText = lastLineText;
@@ -259,21 +310,19 @@ namespace UILayouTaro
                         // 次の行にコンテンツを置き、継続する
 
                         // 現在最後の追加要素である自分自身を取り出し、ここまでの行の要素を整列させる。
-                        lineContents.RemoveAt(lineContents.Count - 1);
-                        ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
+                        refs.lineContents.RemoveAt(refs.lineContents.Count - 1);
+                        ElementLayoutFunctions.LineFeed(ref refs.originX, ref refs.originY, refs.currentLineMaxHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
 
                         // レイアウト対象のビューサイズを新しい行のものとして更新する
-                        restWidth = viewWidth;
-                        lineContents.Add(textComponent.rectTransform);
+                        refs.restWidth = viewWidth;
+                        refs.lineContents.Add(textComponent.rectTransform);
                         goto NextLine;
                     }
             }
+            yield break;
         }
 
-        /*
-            絵文字が入った文字列をintenalな矩形と文字としてレイアウトする。ここでやることで、TM Proによるレイアウトの破綻を避ける。
-        */
-        private static void LayoutContentWithEmoji<T>(T textElement, string contentText, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
+        private static IEnumerator LayoutContentWithEmojiAsync<T>(T textElement, string contentText, float viewWidth, RefObject refs) where T : LTElement, ILayoutableText
         {
             /*
                 絵文字が含まれている文字列を、絵文字と矩形に分解、再構成を行う。絵文字を単に画像が入る箱としてRectLayoutに放り込む。というのがいいのか、それとも独自にinternalを定義した方がいいのか。
@@ -282,20 +331,28 @@ namespace UILayouTaro
                 自分自身を書き換えて、一連のコマンドを実行するようにする。
                 文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
             */
-            var elementsWithEmoji = DetectEmojiAndText(textElement, contentText);
+            var elementsWithEmoji = new List<LTElement>();
+            yield return DetectEmojiAndTextAsync(
+                textElement,
+                contentText,
+                result =>
+                {
+                    elementsWithEmoji = result;
+                }
+            );
 
             for (var i = 0; i < elementsWithEmoji.Count; i++)
             {
                 var element = elementsWithEmoji[i];
                 var rectTrans = element.GetComponent<RectTransform>();
-                restWidth = viewWidth - originX;
-                lineContents.Add(rectTrans);
+                refs.restWidth = viewWidth - refs.originX;
+                refs.lineContents.Add(rectTrans);
 
                 if (element is InternalEmojiRect)
                 {
                     // emojiRectが入っている
                     var internalRectElement = (InternalEmojiRect)element;
-                    EmojiRectLayout(internalRectElement, rectTrans, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+                    yield return _EmojiRectLayoutAsync(internalRectElement, rectTrans, viewWidth, refs);
                     continue;
                 }
 
@@ -303,11 +360,12 @@ namespace UILayouTaro
                 var internalTextElement = (T)element;
                 var internalContentText = internalTextElement.Text();
 
-                TextLayout(internalTextElement, internalContentText, rectTrans, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+                yield return _TextLayoutAsync(internalTextElement, internalContentText, rectTrans, viewWidth, refs);
             }
+            yield break;
         }
 
-        private static List<LTElement> DetectEmojiAndText<T>(T textElement, string contentText) where T : LTElement, ILayoutableText
+        private static IEnumerator DetectEmojiAndTextAsync<T>(T textElement, string contentText, Action<List<LTElement>> onResult) where T : LTElement, ILayoutableText
         {
             var elementsWithEmoji = new List<LTElement>();
             var textStartIndex = 0;
@@ -395,83 +453,54 @@ namespace UILayouTaro
                 elementsWithEmoji.Add(lastTextElement);
             }
 
-            return elementsWithEmoji;
+            onResult(elementsWithEmoji);
+            yield break;
         }
 
-
-        private static void EmojiRectLayout(InternalEmojiRect rectElement, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        private static IEnumerator _EmojiRectLayoutAsync(InternalEmojiRect rectElement, RectTransform transform, float viewWidth, RefObject refs)
         {
             var rectSize = rectElement.RectSize();
-            RectLayout(rectElement, transform, rectSize, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+            yield return _RectLayoutAsync(rectElement, transform, rectSize, viewWidth, refs);
         }
 
-        public static void RectLayout(LTElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        private static IEnumerator _RectLayoutAsync(LTElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, RefObject refs)
         {
             Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
-            if (restWidth < rectSize.x)// 同じ列にレイアウトできないので次の列に行く。
+            if (refs.restWidth < rectSize.x)// 同じ列にレイアウトできないので次の列に行く。
             {
                 // 現在最後の追加要素である自分自身を取り出し、整列させる。
-                lineContents.RemoveAt(lineContents.Count - 1);
-                ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
-                lineContents.Add(transform);
+                refs.lineContents.RemoveAt(refs.lineContents.Count - 1);
+                ElementLayoutFunctions.LineFeed(ref refs.originX, ref refs.originY, refs.currentLineMaxHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
+                refs.lineContents.Add(transform);
 
                 // 位置をセット
-                transform.anchoredPosition = new Vector2(originX, originY);
+                transform.anchoredPosition = new Vector2(refs.originX, refs.originY);
             }
             else
             {
                 // 位置をセット
-                transform.anchoredPosition = new Vector2(originX, originY);
+                transform.anchoredPosition = new Vector2(refs.originX, refs.originY);
             }
 
             // ジャストで埋まったら、次の行を作成する。
-            if (restWidth == rectSize.x)
+            if (refs.restWidth == rectSize.x)
             {
-                ElementLayoutFunctions.LineFeed(ref originX, ref originY, transform.sizeDelta.y, ref currentLineMaxHeight, ref lineContents);
-                return;
+                ElementLayoutFunctions.LineFeed(ref refs.originX, ref refs.originY, transform.sizeDelta.y, ref refs.currentLineMaxHeight, ref refs.lineContents);
+                yield break;
             }
 
-            ElementLayoutFunctions.ContinueLine(ref originX, rectSize.x, transform.sizeDelta.y, ref currentLineMaxHeight);
+            ElementLayoutFunctions.ContinueLine(ref refs.originX, rectSize.x, transform.sizeDelta.y, ref refs.currentLineMaxHeight);
+            yield break;
         }
 
-        public static void LayoutLastLine(ref float originY, float currentLineMaxHeight, ref List<RectTransform> lineContents)
+
+        private static IEnumerator LoadMissing(List<char> missingCharacters)
         {
-            // レイアウト終了後、最後の列の要素を並べる。
-            foreach (var element in lineContents)
+            while (true)
             {
-                var rectTrans = element.GetComponent<RectTransform>();
-                var elementHeight = rectTrans.sizeDelta.y;
-                var parent = rectTrans.parent;
-                if (parent == null)
-                {
-                    continue;
-                }
-
-                var isParentRoot = parent.GetComponent<LTElement>() is LTRootElement;
-                if (isParentRoot)
-                {
-                    rectTrans.anchoredPosition = new Vector2(
-                        rectTrans.anchoredPosition.x,
-                        originY - (currentLineMaxHeight - elementHeight) / 2
-                    );
-                }
-                else
-                {
-                    // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
-                    rectTrans.anchoredPosition = new Vector2(
-                        rectTrans.anchoredPosition.x,
-                        rectTrans.anchoredPosition.y -// 子要素は親からの絶対的な距離を独自に保持しているので、それ + 行全体を整頓した際の高さの隙間、という計算を行う。
-                            (
-                                currentLineMaxHeight// この行全体の高さからこの要素の高さを引いて/2して、「要素の上の方の隙間高さ」を手に入れる
-                                - elementHeight
-                            )
-                            / 2
-                        );
-                }
+                Debug.Log("missing探しにきてる。");
+                yield return null;
             }
-
-            // 最終的にyを更新する。
-            originY -= currentLineMaxHeight;
         }
     }
 }

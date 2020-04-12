@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -89,5 +90,60 @@ namespace UILayouTaro
         {
             _OnMissingCharacter = OnMissingCharacterFound;
         }
+
+
+        public static IEnumerator LayoutAsync<T>(Transform parent, Vector2 size, GameObject rootObject, ILayouterAsync layouter) where T : LTRootElement
+        {
+            Debug.Assert(parent.GetComponent<Canvas>() != null, "should set parent transform which contains Canvas. this limitation is caused by spec of TextMesh Pro.");
+            var originX = 0f;
+            var originY = 0f;
+
+            var rootElement = rootObject.GetComponent<T>();
+            var elements = rootElement.GetLTElements();
+
+            var rootRect = rootObject.GetComponent<RectTransform>();
+
+            // 親の基礎サイズをセット
+            rootRect.sizeDelta = size;
+
+            // set parent.
+            foreach (var element in elements)
+            {
+                element.gameObject.transform.SetParent(rootObject.transform);
+            }
+
+            // ここでCanvas要素にセットしちゃう(でないとTMProのinfoが取れない。)
+            rootObject.transform.SetParent(parent);
+
+            var lineContents = new List<RectTransform>();// 同じ行に入っている要素を整列させるために使用するリスト
+            var currentLineMaxHeight = 0f;
+
+            var opId = Guid.NewGuid().ToString();
+
+            // この下のレイヤーで全ての非同期layout処理を集める。
+            var layoutOps = layouter.LayoutAsync(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+
+            var layouted = false;
+            AsyncLayoutRunner.Add(
+                opId,
+                layoutOps,
+                () =>
+                {
+                    layouted = true;
+                }
+            );
+
+            while (!layouted)
+            {
+                yield return null;
+            }
+
+            layouter.AfterLayout(size, originX, originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+
+            lineContents.Clear();
+
+            yield break;
+        }
+
     }
 }

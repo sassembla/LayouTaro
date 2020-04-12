@@ -4,6 +4,30 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Miyamasu;
+public class AsyncLayoutTests_Miyamasu {
+    [UnityTest] public IEnumerator BasicAsyncPattern() {
+        var instance = new AsyncLayoutTests();
+        instance.SetInfo("AsyncLayoutTests", "BasicAsyncPattern");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.BasicAsyncPattern();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+}
 public class BasicLayoutTests_Miyamasu {
     [UnityTest] public IEnumerator BasicPattern() {
         var instance = new BasicLayoutTests();
