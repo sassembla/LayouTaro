@@ -11,7 +11,6 @@ namespace UILayouTaro
 
         public static void TextLayout<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
         {
-
             Debug.Assert(rectTrans.pivot.x == 0 && rectTrans.pivot.y == 1 && rectTrans.anchorMin.x == 0 && rectTrans.anchorMin.y == 1 && rectTrans.anchorMax.x == 0 && rectTrans.anchorMax.y == 1, "rectTransform for BasicLayoutFunctions.TextLayout should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             Debug.Assert(textElement.transform.childCount == 0, "BasicLayoutFunctions.TextLayout not allows text element which has child.");
             var continueContent = false;
@@ -32,10 +31,13 @@ namespace UILayouTaro
                 textComponent.enableWordWrapping = false;
             }
 
-            // 絵文字が含まれていると、ここで子のオブジェクトを生成している。これらを全て消し、レイアウトの構成を見直す。(絵文字が発生していなければ何も起こらない)
-            if (0 < textComponent.transform.childCount)
+            // 絵文字や記号が含まれている場合、画像と文字に分けてレイアウトを行う。
+            if (IsDetectEmojiAndMarkAndTextExist(contentText))
             {
                 textComponent.text = string.Empty;
+
+                // TMProが子オブジェクトを作っている場合があり、それらがあれば消す必要がある。
+                // 同じフレーム内で同じ絵文字を作るようなことをする場合、作成されないケースがあるため、子供の有無を条件として絵文字の有無を判断することはできなかった。
                 for (var i = 0; i < textComponent.transform.childCount; i++)
                 {
                     GameObject.Destroy(textComponent.transform.GetChild(i).gameObject);
@@ -282,7 +284,7 @@ namespace UILayouTaro
                 自分自身を書き換えて、一連のコマンドを実行するようにする。
                 文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
             */
-            var elementsWithEmoji = DetectEmojiAndText(textElement, contentText);
+            var elementsWithEmoji = CollectEmojiAndMarkAndTextElement(textElement, contentText);
 
             for (var i = 0; i < elementsWithEmoji.Count; i++)
             {
@@ -307,9 +309,48 @@ namespace UILayouTaro
             }
         }
 
-        private static List<LTElement> DetectEmojiAndText<T>(T textElement, string contentText) where T : LTElement, ILayoutableText
+        private static bool IsDetectEmojiAndMarkAndTextExist(string contentText)
+        {
+            for (var i = 0; i < contentText.Length; i++)
+            {
+                var firstChar = contentText[i];
+
+                // \u26A1
+                var isSymbol = Char.IsSymbol(firstChar);
+                if (isSymbol)
+                {
+                    return true;
+                }
+
+                // \U0001F971
+                var isSurrogate = Char.IsSurrogate(firstChar);
+                if (isSurrogate)
+                {
+                    if (i == contentText.Length - 1)
+                    {
+                        continue;
+                    }
+
+                    var nextChar = contentText[i + 1];
+                    var isSurrogatePair = Char.IsSurrogatePair(firstChar, nextChar);
+
+                    if (isSurrogatePair)
+                    {
+                        return true;
+                    }
+
+                    // 後続の文字がsurrogateではなかった。
+                    continue;
+                }
+            }
+
+            return false;
+        }
+
+        private static List<LTElement> CollectEmojiAndMarkAndTextElement<T>(T textElement, string contentText) where T : LTElement, ILayoutableText
         {
             var elementsWithEmoji = new List<LTElement>();
+
             var textStartIndex = 0;
             var length = 0;
             for (var i = 0; i < contentText.Length; i++)
