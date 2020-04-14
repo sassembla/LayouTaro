@@ -28,7 +28,7 @@ namespace UILayouTaro
 
                 while (true)
                 {
-                    // ここでRectTransformを取り出し、refsのlinedにセットする必要がある。これめちゃくちゃだなあ。
+                    // ここでRectTransformを取り出し、refsのlinedにセットする必要がある。
                     baseRefs.lineContents.Add(ops[0].rectTrans);
 
                     var (cont, refs) = ops[0].MoveNext();

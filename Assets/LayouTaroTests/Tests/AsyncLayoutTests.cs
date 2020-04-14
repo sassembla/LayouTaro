@@ -56,7 +56,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
                 Debug.Log("ルートがタップされた");
             },
             AsyncTextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
-            AsyncTextElement.GO(null),// 画像
+            AsyncImageElement.GO(null),// 画像
             AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
         );
 

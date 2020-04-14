@@ -44,6 +44,19 @@ namespace UILayouTaro
 
             var refs = new ParameterReference(originX, originY, restWidth, currentLineMaxHeight, lineContents);
 
+            // 文字がnullか空の場合、空のAsyncOpを返す。
+            if (string.IsNullOrEmpty(contentText))
+            {
+                return new AsyncLayoutOperation(
+                    rectTrans,
+                    refs,
+                    () =>
+                    {
+                        return (false, refs);
+                    }
+                );
+            }
+
             var cor = _TextLayoutAsync(textElement, contentText, rectTrans, viewWidth, refs);
             return new AsyncLayoutOperation(
                 rectTrans,
@@ -96,10 +109,14 @@ namespace UILayouTaro
                 textComponent.enableWordWrapping = false;
             }
 
-            // 絵文字が含まれていると、ここで子のオブジェクトを生成している。これらを全て消し、レイアウトの構成を見直す。(絵文字が発生していなければ何も起こらない)
-            if (0 < textComponent.transform.childCount)
+            Debug.Log("contentText:" + contentText);
+            // 絵文字や記号が含まれている場合、画像と文字に分けてレイアウトを行う。
+            if (BasicLayoutFunctions.IsDetectEmojiAndMarkAndTextExist(contentText))
             {
                 textComponent.text = string.Empty;
+
+                // TMProが子オブジェクトを作っている場合があり、それらがあれば消す必要がある。
+                // 同じフレーム内で同じ絵文字を作るようなことをする場合、作成されないケースがあるため、子供の有無を条件として絵文字の有無を判断することはできなかった。
                 for (var i = 0; i < textComponent.transform.childCount; i++)
                 {
                     GameObject.Destroy(textComponent.transform.GetChild(i).gameObject);

@@ -12,6 +12,12 @@ namespace UILayouTaro
 
         public static void TextLayout<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
         {
+            // 文字列が空な場合、何もせずに返す。
+            if (string.IsNullOrEmpty(contentText))
+            {
+                return;
+            }
+
             Debug.Assert(rectTrans.pivot.x == 0 && rectTrans.pivot.y == 1 && rectTrans.anchorMin.x == 0 && rectTrans.anchorMin.y == 1 && rectTrans.anchorMax.x == 0 && rectTrans.anchorMax.y == 1, "rectTransform for BasicLayoutFunctions.TextLayout should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             Debug.Assert(textElement.transform.childCount == 0, "BasicLayoutFunctions.TextLayout not allows text element which has child.");
             var continueContent = false;
@@ -310,7 +316,7 @@ namespace UILayouTaro
             }
         }
 
-        private static bool IsDetectEmojiAndMarkAndTextExist(string contentText)
+        public static bool IsDetectEmojiAndMarkAndTextExist(string contentText)
         {
             for (var i = 0; i < contentText.Length; i++)
             {

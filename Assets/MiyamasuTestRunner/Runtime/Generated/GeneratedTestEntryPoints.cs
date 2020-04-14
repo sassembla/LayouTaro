@@ -360,6 +360,52 @@ public class BasicLayoutTests_Miyamasu {
         }
     }
 }
+public class ErrorTests_Miyamasu {
+    [UnityTest] public IEnumerator EmptyStringError() {
+        var instance = new ErrorTests();
+        instance.SetInfo("ErrorTests", "EmptyStringError");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.EmptyStringError();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator EmptyStringErrorAsync() {
+        var instance = new ErrorTests();
+        instance.SetInfo("ErrorTests", "EmptyStringErrorAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.EmptyStringErrorAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+}
 public class MissingCharTests_Miyamasu {
     [UnityTest] public IEnumerator GetMissingChar() {
         var instance = new MissingCharTests();
