@@ -49,15 +49,15 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     [MTest]
     public IEnumerator BasicPatternAsync()
     {
-        var box = BoxElement.GO(
+        var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
             {
                 Debug.Log("ルートがタップされた");
             },
-            TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
-            ImageElement.GO(null),// 画像
-            ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
+            AsyncTextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
+            AsyncTextElement.GO(null),// 画像
+            AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
         );
 
         // レイアウトに使うクラスを生成する
@@ -75,7 +75,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
             非同期を底の方まで連れて行きたい、という需要があるので、すべてをIEnumeratorで回すか、ああ、
             上の方で実行しても勝手に回ってくれる必要があるのか、うん。じゃあ独自Updateかな。
         */
-        yield return LayouTaro.LayoutAsync<BoxElement>(
+        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
             canvas.transform,
             size,
             go,
@@ -98,18 +98,18 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     public IEnumerator ComplexPatternAsync()
     {
         // 最後のgooooo..dが分離されて浮くように。
-        var box = BoxElement.GO(
+        var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
             {
                 Debug.Log("ルートがタップされた");
             },
-            TextElement.GO("hannidjkfajfaoooood"),// テキスト
-            ImageElement.GO(null),// 画像
-            ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
-            TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
-            ImageElement.GO(null)// 画像
-                                 // TextElement.GO("hannidjkfajfaoooood2")
+            AsyncTextElement.GO("hannidjkfajfaoooood"),// テキスト
+            AsyncImageElement.GO(null),// 画像
+            AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+            AsyncTextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
+            AsyncImageElement.GO(null)// 画像
+                                      // TextElement.GO("hannidjkfajfaoooood2")
         );
 
         // レイアウトに使うクラスを生成する
@@ -120,7 +120,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // レイアウトを行う
         var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<BoxElement>(
+        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
             canvas.transform,
             size,
             go,
@@ -141,19 +141,19 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     public IEnumerator ComplexPattern2Async()
     {
         // 最後のgooooo..dが分離されて浮くように。
-        var box = BoxElement.GO(
+        var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
             {
                 Debug.Log("ルートがタップされた");
             },
-            TextElement.GO("hannidjkfajfaoooood"),// テキスト
-            ImageElement.GO(null),// 画像
-            ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
-            TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
-            ImageElement.GO(null),// 画像
-            ImageElement.GO(null),// 画像
-            TextElement.GO("hannidjkfajfaoooood2")
+            AsyncTextElement.GO("hannidjkfajfaoooood"),// テキスト
+            AsyncImageElement.GO(null),// 画像
+            AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+            AsyncTextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
+            AsyncImageElement.GO(null),// 画像
+            AsyncImageElement.GO(null),// 画像
+            AsyncTextElement.GO("hannidjkfajfaoooood2")
         );
 
         // レイアウトに使うクラスを生成する
@@ -164,7 +164,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // レイアウトを行う
         var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<BoxElement>(
+        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
             canvas.transform,
             size,
             go,
@@ -185,13 +185,13 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     public IEnumerator WithEmojiAsync()
     {
         // 最後のgooooo..dが分離されて浮くように。
-        var box = BoxElement.GO(
+        var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
             {
                 Debug.Log("ルートがタップされた");
             },
-            TextElement.GO("yasu \U0001F60A is public prob!")// テキスト
+            AsyncTextElement.GO("yasu \U0001F60A is public prob!")// テキスト
         );
 
         // レイアウトに使うクラスを生成する
@@ -202,7 +202,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // レイアウトを行う
         var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<BoxElement>(
+        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
             canvas.transform,
             size,
             go,
@@ -224,16 +224,16 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     public IEnumerator WithEmojiComplexAsync()
     {
         // 最後のgooooo..dが分離されて浮くように。
-        var box = BoxElement.GO(
+        var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
             {
                 Debug.Log("ルートがタップされた");
             },
-            TextElement.GO("hannidjkfajfaoooood"),// テキスト
-            ImageElement.GO(null),// 画像
-            ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
-            TextElement.GO("hannin is yasu!\U0001F60A\U0001F60B this is public problem! goooooooooooooad")// 59から絵文字を1文字削ると？2文字減る。文字数カウント的にはUTF8と同じ扱いなのか。うーん
+            AsyncTextElement.GO("hannidjkfajfaoooood"),// テキスト
+            AsyncImageElement.GO(null),// 画像
+            AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+            AsyncTextElement.GO("hannin is yasu!\U0001F60A\U0001F60B this is public problem! goooooooooooooad")// 59から絵文字を1文字削ると？2文字減る。文字数カウント的にはUTF8と同じ扱いなのか。うーん
 
         // 事前にサイズを取得、インデックスポイントを送り込んで、取り除いて、という形にするか。
         // どうすればできる？載せ替える四角を成立させればいいか。単純に文字列コンテンツを絵文字でぶった切るか！！これは手な気がする。
@@ -254,7 +254,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // レイアウトを行う
         var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<BoxElement>(
+        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
             canvas.transform,
             size,
             go,
@@ -275,19 +275,19 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     public IEnumerator WithEmojiComplex2Async()
     {
         // 最後のgooooo..dが分離されて浮くように。
-        var box = BoxElement.GO(
+        var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
             {
                 Debug.Log("ルートがタップされた");
             },
-            TextElement.GO("hannidjkfajfaoooood"),// テキスト
-            ImageElement.GO(null),// 画像
-            ButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
-            TextElement.GO("hannin is yasu!\U0001F60A this is public problem! goooooooooooooad"),// テキスト
-            ImageElement.GO(null),// 画像
-            ImageElement.GO(null),// 画像
-            TextElement.GO("hannidjkfajfaoooood2")
+            AsyncTextElement.GO("hannidjkfajfaoooood"),// テキスト
+            AsyncImageElement.GO(null),// 画像
+            AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+            AsyncTextElement.GO("hannin is yasu!\U0001F60A this is public problem! goooooooooooooad"),// テキスト
+            AsyncImageElement.GO(null),// 画像
+            AsyncImageElement.GO(null),// 画像
+            AsyncTextElement.GO("hannidjkfajfaoooood2")
         );
 
         // レイアウトに使うクラスを生成する
@@ -298,7 +298,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // レイアウトを行う
         var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<BoxElement>(
+        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
             canvas.transform,
             size,
             go,
@@ -321,15 +321,15 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     public IEnumerator DetectMissingEmojiAsync()
     {
         // generate your own data structure with parameters for UI.
-        var box = BoxElement.GO(
+        var box = AsyncBoxElement.GO(
             null,// UI bg with image
             () =>
             {
                 Debug.Log("root box element is tapped.");
             },
-            TextElement.GO("\U0001F971\U0001F60A"),// text.
-            ImageElement.GO(null),// image.
-            ButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
+            AsyncTextElement.GO("\U0001F971\U0001F60A"),// text.
+            AsyncImageElement.GO(null),// image.
+            AsyncButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
         );
 
         // generate the layouter which you want to use for layout.
@@ -340,7 +340,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
         var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<BoxElement>(
+        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
             canvas.transform,
             size,
             go,
@@ -361,15 +361,15 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     public IEnumerator MarkAsync()
     {
         // generate your own data structure with parameters for UI.
-        var box = BoxElement.GO(
+        var box = AsyncBoxElement.GO(
             null,// UI bg with image
             () =>
             {
                 Debug.Log("root box element is tapped.");
             },
-            TextElement.GO("\u26A1"),// text.
-            ImageElement.GO(null),// image.
-            ButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
+            AsyncTextElement.GO("\u26A1"),// text.
+            AsyncImageElement.GO(null),// image.
+            AsyncButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
         );
 
         // generate the layouter which you want to use for layout.
@@ -380,7 +380,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
         var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<BoxElement>(
+        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
             canvas.transform,
             size,
             go,

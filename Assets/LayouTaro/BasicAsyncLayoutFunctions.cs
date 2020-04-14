@@ -37,7 +37,7 @@ namespace UILayouTaro
 
     public static class BasicAsyncLayoutFunctions
     {
-        public static AsyncLayoutOperation TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
+        public static AsyncLayoutOperation TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTAsyncElement, ILayoutableText
         {
             Debug.Assert(rectTrans.pivot.x == 0 && rectTrans.pivot.y == 1 && rectTrans.anchorMin.x == 0 && rectTrans.anchorMin.y == 1 && rectTrans.anchorMax.x == 0 && rectTrans.anchorMax.y == 1, "rectTransform for BasicAsyncLayoutFunctions.TextLayoutAsync should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             Debug.Assert(textElement.transform.childCount == 0, "BasicAsyncLayoutFunctions.TextLayoutAsync not allows text element which has child.");
@@ -56,7 +56,7 @@ namespace UILayouTaro
             );
         }
 
-        public static AsyncLayoutOperation RectLayoutAsync(LTElement rectElement, RectTransform rectTrans, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        public static AsyncLayoutOperation RectLayoutAsync(LTAsyncElement rectElement, RectTransform rectTrans, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
         {
             var refs = new ParameterReference(originX, originY, restWidth, currentLineMaxHeight, lineContents);
 
@@ -76,7 +76,7 @@ namespace UILayouTaro
             内部的な実装部
             どこかから先をstaticではないように作ると良さそう。キャッシュが切れる。まあTextにセットしてあるフォント単位でキャッシュ作っちゃうけどね。
         */
-        private static IEnumerator _TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ParameterReference refs) where T : LTElement, ILayoutableText
+        private static IEnumerator _TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ParameterReference refs) where T : LTAsyncElement, ILayoutableText
         {
             var continueContent = false;
 
@@ -336,7 +336,7 @@ namespace UILayouTaro
             yield break;
         }
 
-        private static IEnumerator LayoutContentWithEmojiAsync<T>(T textElement, string contentText, float viewWidth, ParameterReference refs) where T : LTElement, ILayoutableText
+        private static IEnumerator LayoutContentWithEmojiAsync<T>(T textElement, string contentText, float viewWidth, ParameterReference refs) where T : LTAsyncElement, ILayoutableText
         {
             /*
                 絵文字が含まれている文字列を、絵文字と矩形に分解、再構成を行う。絵文字を単に画像が入る箱としてRectLayoutに放り込む。というのがいいのか、それとも独自にinternalを定義した方がいいのか。
@@ -345,7 +345,7 @@ namespace UILayouTaro
                 自分自身を書き換えて、一連のコマンドを実行するようにする。
                 文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
             */
-            var elementsWithEmoji = new List<LTElement>();
+            var elementsWithEmoji = new List<LTAsyncElement>();
             yield return DetectEmojiAndTextAsync(
                 textElement,
                 contentText,
@@ -362,10 +362,10 @@ namespace UILayouTaro
                 refs.restWidth = viewWidth - refs.originX;
                 refs.lineContents.Add(rectTrans);
 
-                if (element is InternalEmojiRect)
+                if (element is InternalAsyncEmojiRect)
                 {
                     // emojiRectが入っている
-                    var internalRectElement = (InternalEmojiRect)element;
+                    var internalRectElement = (InternalAsyncEmojiRect)element;
                     yield return _EmojiRectLayoutAsync(internalRectElement, rectTrans, viewWidth, refs);
                     continue;
                 }
@@ -379,9 +379,9 @@ namespace UILayouTaro
             yield break;
         }
 
-        private static IEnumerator DetectEmojiAndTextAsync<T>(T textElement, string contentText, Action<List<LTElement>> onResult) where T : LTElement, ILayoutableText
+        private static IEnumerator DetectEmojiAndTextAsync<T>(T textElement, string contentText, Action<List<LTAsyncElement>> onResult) where T : LTAsyncElement, ILayoutableText
         {
-            var elementsWithEmoji = new List<LTElement>();
+            var elementsWithEmoji = new List<LTAsyncElement>();
             var textStartIndex = 0;
             var length = 0;
             for (var i = 0; i < contentText.Length; i++)
@@ -403,7 +403,7 @@ namespace UILayouTaro
                     length = 0;
 
                     // 記号確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
-                    var emojiElement = InternalEmojiRect.GO(textElement, new Char[] { firstChar }).GetComponent<InternalEmojiRect>();
+                    var emojiElement = InternalAsyncEmojiRect.GO(textElement, new Char[] { firstChar }).GetComponent<InternalAsyncEmojiRect>();
                     elementsWithEmoji.Add(emojiElement);
 
                     // 文字は次の次から始まる、、かもしれない。
@@ -440,7 +440,7 @@ namespace UILayouTaro
                     if (isSurrogatePair)
                     {
                         // サロゲートペア確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
-                        var emojiElement = InternalEmojiRect.GO(textElement, new Char[] { firstChar, nextChar }).GetComponent<InternalEmojiRect>();
+                        var emojiElement = InternalAsyncEmojiRect.GO(textElement, new Char[] { firstChar, nextChar }).GetComponent<InternalAsyncEmojiRect>();
                         elementsWithEmoji.Add(emojiElement);
 
                         // 文字は次の次から始まる、、かもしれない。
@@ -471,13 +471,13 @@ namespace UILayouTaro
             yield break;
         }
 
-        private static IEnumerator _EmojiRectLayoutAsync(InternalEmojiRect rectElement, RectTransform transform, float viewWidth, ParameterReference refs)
+        private static IEnumerator _EmojiRectLayoutAsync(InternalAsyncEmojiRect rectElement, RectTransform transform, float viewWidth, ParameterReference refs)
         {
             var rectSize = rectElement.RectSize();
             yield return _RectLayoutAsync(rectElement, transform, rectSize, viewWidth, refs);
         }
 
-        private static IEnumerator _RectLayoutAsync(LTElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ParameterReference refs)
+        private static IEnumerator _RectLayoutAsync(LTAsyncElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ParameterReference refs)
         {
             Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             Debug.Log("refs:" + refs + " rectSize:" + rectSize);

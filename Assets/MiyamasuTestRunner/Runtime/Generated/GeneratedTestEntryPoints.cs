@@ -429,4 +429,26 @@ public class RelayoutTests_Miyamasu {
             throw;
         }
     }
+    [UnityTest] public IEnumerator RelayoutWithLongEmoji() {
+        var instance = new RelayoutTests();
+        instance.SetInfo("RelayoutTests", "RelayoutWithLongEmoji");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.RelayoutWithLongEmoji();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
 }

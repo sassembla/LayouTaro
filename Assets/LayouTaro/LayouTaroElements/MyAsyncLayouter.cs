@@ -10,7 +10,7 @@ public class MyAsyncLayouter : ILayouterAsync
         子要素をレイアウトし、親要素が余白ありでそれを包む。
         outを使いたいから、非同期な計算を行う実行体をここから返すようにする。
     */
-    public List<AsyncLayoutOperation> LayoutAsync(Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+    public List<AsyncLayoutOperation> LayoutAsync(Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
     {
         var outsideSpacing = 10f;
 
@@ -22,7 +22,7 @@ public class MyAsyncLayouter : ILayouterAsync
         var viewWidth = viewSize.x - outsideSpacing * 2;// 左右の余白分を引く
 
         // MyLayoutはrootとしてboxがくる前提で作られている、という想定のサンプル
-        var root = rootObject.GetComponent<BoxElement>();
+        var root = rootObject.GetComponent<AsyncBoxElement>();
         var rootTrans = root.GetComponent<RectTransform>();
 
         var layoutOps = new List<AsyncLayoutOperation>();
@@ -37,8 +37,8 @@ public class MyAsyncLayouter : ILayouterAsync
             var type = element.GetLTElementType();
             switch (type)
             {
-                case LTElementType.Image:
-                    var imageElement = (ImageElement)element;
+                case LTElementType.AsyncImage:
+                    var imageElement = (AsyncImageElement)element;
 
                     // 概念的に、後でレイアウトする対象をレイアウト処理順にAddしている。
                     layoutOps.Add(
@@ -55,8 +55,8 @@ public class MyAsyncLayouter : ILayouterAsync
                         )
                     );
                     break;
-                case LTElementType.Text:
-                    var newTailTextElement = (TextElement)element;
+                case LTElementType.AsyncText:
+                    var newTailTextElement = (AsyncTextElement)element;
                     var contentText = newTailTextElement.Text();
 
                     layoutOps.Add(
@@ -73,8 +73,8 @@ public class MyAsyncLayouter : ILayouterAsync
                         )
                     );
                     break;
-                case LTElementType.Button:
-                    var buttonElement = (ButtonElement)element;
+                case LTElementType.AsyncButton:
+                    var buttonElement = (AsyncButtonElement)element;
 
                     layoutOps.Add(
                         BasicAsyncLayoutFunctions.RectLayoutAsync(
@@ -92,7 +92,7 @@ public class MyAsyncLayouter : ILayouterAsync
 
                     break;
 
-                case LTElementType.Box:
+                case LTElementType.AsyncBox:
                     throw new Exception("unsupported layout:" + type);// 子のレイヤーにBoxが来るのを許可しない。
 
                 default:
@@ -107,7 +107,7 @@ public class MyAsyncLayouter : ILayouterAsync
     /*
         layout後、LayouTaroから呼ばれる
     */
-    public void AfterLayout(Vector2 viewSize, float originX, float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+    public void AfterLayout(Vector2 viewSize, float originX, float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
     {
         // 最終行の整列を行う
         BasicLayoutFunctions.LayoutLastLine(ref originY, currentLineMaxHeight, ref lineContents);

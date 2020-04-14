@@ -92,7 +92,10 @@ namespace UILayouTaro
         }
 
 
-        public static IEnumerator LayoutAsync<T>(Transform parent, Vector2 size, GameObject rootObject, ILayouterAsync layouter) where T : LTRootElement
+        // async series.
+
+
+        public static IEnumerator LayoutAsync<T>(Transform parent, Vector2 size, GameObject rootObject, ILayouterAsync layouter) where T : LTAsyncRootElement
         {
             Debug.Assert(parent.GetComponent<Canvas>() != null, "should set parent transform which contains Canvas. this limitation is caused by spec of TextMesh Pro.");
             var originX = 0f;

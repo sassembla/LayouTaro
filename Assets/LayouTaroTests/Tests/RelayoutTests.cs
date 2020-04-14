@@ -158,4 +158,52 @@ public class RelayoutTests : MiyamasuTestRunner
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
     }
+
+    [MTest]
+    public IEnumerator RelayoutWithLongEmoji()
+    {
+        // generate your own data structure with parameters for UI.
+        var box = BoxElement.GO(
+            null,// UI bg with image
+            () =>
+            {
+                Debug.Log("root box element is tapped.");
+            },
+            TextElement.GO("\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00")
+        );
+
+        // generate the layouter which you want to use for layout.
+        var layouter = new MyLayouter();
+
+        // set the default size of content.
+        var size = new Vector2(600, 100);
+
+        // do layout with LayouTaro. the GameObject will be returned with layouted structure.
+        var go = box.gameObject;
+        go = LayouTaro.Layout<BoxElement>(
+            canvas.transform,
+            size,
+            go,
+            layouter
+        );
+
+        var rectTrans = go.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        // update element values and re-layout with same GameObject.
+        go = LayouTaro.RelayoutWithUpdate<BoxElement>(
+            size,
+            go,
+            new Dictionary<LTElementType, object> {
+                {LTElementType.Text, "\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00"}
+            },
+            layouter
+        );
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+
+        yield break;
+    }
+
 }

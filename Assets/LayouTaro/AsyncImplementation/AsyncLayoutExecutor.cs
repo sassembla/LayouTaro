@@ -33,7 +33,7 @@ namespace UILayouTaro
 
                     var (cont, refs) = ops[0].MoveNext();
 
-                    Debug.Log("cont:" + cont + " refs.id:" + refs.id + " baseRefs:" + baseRefs.ToString());
+                    Debug.Log("終了:" + !cont + " refs.id:" + refs.id + " baseRefs:" + baseRefs.ToString());
 
                     baseRefs = refs;
                     if (!cont)
