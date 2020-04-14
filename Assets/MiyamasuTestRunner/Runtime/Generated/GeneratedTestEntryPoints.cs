@@ -405,6 +405,50 @@ public class ErrorTests_Miyamasu {
             throw;
         }
     }
+    [UnityTest] public IEnumerator MarkContinues() {
+        var instance = new ErrorTests();
+        instance.SetInfo("ErrorTests", "MarkContinues");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.MarkContinues();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator MarkContinuesAsync() {
+        var instance = new ErrorTests();
+        instance.SetInfo("ErrorTests", "MarkContinuesAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.MarkContinuesAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
 }
 public class MissingCharTests_Miyamasu {
     [UnityTest] public IEnumerator GetMissingChar() {

@@ -67,7 +67,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 50);
 
         // レイアウトを行う
-        var go = box.gameObject;
+
 
         Debug.Log("before:" + Time.frameCount);
         /*
@@ -75,14 +75,14 @@ public class AsyncLayoutTests : MiyamasuTestRunner
             非同期を底の方まで連れて行きたい、という需要があるので、すべてをIEnumeratorで回すか、ああ、
             上の方で実行しても勝手に回ってくれる必要があるのか、うん。じゃあ独自Updateかな。
         */
-        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
+        yield return LayouTaro.LayoutAsync(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
@@ -119,15 +119,15 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
-        var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
+
+        yield return LayouTaro.LayoutAsync(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
@@ -163,15 +163,15 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
-        var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
+
+        yield return LayouTaro.LayoutAsync(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
@@ -201,15 +201,15 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
-        var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
+
+        yield return LayouTaro.LayoutAsync(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
@@ -253,15 +253,15 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
-        var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
+
+        yield return LayouTaro.LayoutAsync(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
@@ -297,15 +297,15 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
-        var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
+
+        yield return LayouTaro.LayoutAsync(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
@@ -339,15 +339,15 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
-        var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
+
+        yield return LayouTaro.LayoutAsync(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
@@ -379,15 +379,15 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
-        var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
+
+        yield return LayouTaro.LayoutAsync(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 

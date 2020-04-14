@@ -63,15 +63,15 @@ public class ErrorTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
-        var go = box.gameObject;
-        go = LayouTaro.Layout<BoxElement>(
+
+        box = LayouTaro.Layout(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
@@ -99,15 +99,88 @@ public class ErrorTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
-        var go = box.gameObject;
-        yield return LayouTaro.LayoutAsync<AsyncBoxElement>(
+
+        yield return LayouTaro.LayoutAsync(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
+
+
+    [MTest]
+    public IEnumerator MarkContinues()
+    {
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("\u26A1\u26A1")// 連続する記号
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new MyLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        box = LayouTaro.Layout(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator MarkContinuesAsync()
+    {
+        var box = AsyncBoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            AsyncTextElement.GO("\u26A1\u26A1")// 連続する記号
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new MyAsyncLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        yield return LayouTaro.LayoutAsync(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 

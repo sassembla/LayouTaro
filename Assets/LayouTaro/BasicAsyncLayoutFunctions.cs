@@ -423,9 +423,8 @@ namespace UILayouTaro
                     var emojiElement = InternalAsyncEmojiRect.GO(textElement, new Char[] { firstChar }).GetComponent<InternalAsyncEmojiRect>();
                     elementsWithEmoji.Add(emojiElement);
 
-                    // 文字は次の次から始まる、、かもしれない。
-                    textStartIndex = i + 2;
-                    i = i + 1;
+                    // 文字は次から始まる、、かもしれない。
+                    textStartIndex = i + 1;
                     continue;
                 }
 

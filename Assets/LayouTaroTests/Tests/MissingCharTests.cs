@@ -71,15 +71,15 @@ public class MissingCharTests : MiyamasuTestRunner
         );
 
         // レイアウトを行う
-        var go = box.gameObject;
-        go = LayouTaro.Layout<BoxElement>(
+
+        box = LayouTaro.Layout(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 

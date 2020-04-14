@@ -8,13 +8,13 @@ namespace UILayouTaro
     public class LayouTaro
     {
 
-        public static GameObject Layout<T>(Transform parent, Vector2 size, GameObject rootObject, ILayouter layouter) where T : LTRootElement
+        public static T Layout<T>(Transform parent, Vector2 size, T rootElement, ILayouter layouter) where T : LTRootElement
         {
             Debug.Assert(parent.GetComponent<Canvas>() != null, "should set parent transform which contains Canvas. this limitation is caused by spec of TextMesh Pro.");
             var originX = 0f;
             var originY = 0f;
 
-            var rootElement = rootObject.GetComponent<T>();
+            var rootObject = rootElement.gameObject;
             var elements = rootElement.GetLTElements();
 
             var rootRect = rootObject.GetComponent<RectTransform>();
@@ -40,15 +40,15 @@ namespace UILayouTaro
 
             // var lastHeight = originY + elements[elements.Length - 1].GetComponent<RectTransform>().sizeDelta.y;
 
-            return rootObject;
+            return rootElement;
         }
 
-        public static GameObject RelayoutWithUpdate<T>(Vector2 size, GameObject rootObject, Dictionary<LTElementType, object> updateValues, ILayouter layouter) where T : LTRootElement
+        public static T RelayoutWithUpdate<T>(Vector2 size, T rootElement, Dictionary<LTElementType, object> updateValues, ILayouter layouter) where T : LTRootElement
         {
             var originX = 0f;
             var originY = 0f;
 
-            var rootElement = rootObject.GetComponent<T>();
+            var rootObject = rootElement.gameObject;
             var elements = rootElement.GetLTElements();
             foreach (var element in elements)
             {
@@ -81,7 +81,7 @@ namespace UILayouTaro
 
             lineContents.Clear();
 
-            return rootObject;
+            return rootElement;
         }
 
         internal static Action<char[]> _OnMissingCharacter = chs => { };
@@ -95,13 +95,13 @@ namespace UILayouTaro
         // async series.
 
 
-        public static IEnumerator LayoutAsync<T>(Transform parent, Vector2 size, GameObject rootObject, ILayouterAsync layouter) where T : LTAsyncRootElement
+        public static IEnumerator LayoutAsync<T>(Transform parent, Vector2 size, T rootElement, ILayouterAsync layouter) where T : LTAsyncRootElement
         {
             Debug.Assert(parent.GetComponent<Canvas>() != null, "should set parent transform which contains Canvas. this limitation is caused by spec of TextMesh Pro.");
             var originX = 0f;
             var originY = 0f;
 
-            var rootElement = rootObject.GetComponent<T>();
+            var rootObject = rootElement.gameObject;
             var elements = rootElement.GetLTElements();
 
             var rootRect = rootObject.GetComponent<RectTransform>();
@@ -153,5 +153,7 @@ namespace UILayouTaro
             yield break;
         }
 
+
+        // このへんにRelayoutAsyncが入る
     }
 }

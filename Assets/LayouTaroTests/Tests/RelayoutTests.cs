@@ -66,22 +66,22 @@ public class RelayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
-        var go = box.gameObject;
-        go = LayouTaro.Layout<BoxElement>(
+
+        box = LayouTaro.Layout(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
         // update element values and re-layout with same GameObject.
-        go = LayouTaro.RelayoutWithUpdate<BoxElement>(
+        box = LayouTaro.RelayoutWithUpdate(
             size,
-            go,
+            box,
             new Dictionary<LTElementType, object> {
                 {LTElementType.Image, null},
                 {LTElementType.Text, "relayout\U0001F60A!"}
@@ -118,24 +118,24 @@ public class RelayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
-        var go = box.gameObject;
-        go = LayouTaro.Layout<BoxElement>(
+
+        box = LayouTaro.Layout(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
         yield return null;
 
         // update element values and re-layout with same GameObject.
-        go = LayouTaro.RelayoutWithUpdate<BoxElement>(
+        box = LayouTaro.RelayoutWithUpdate(
             size,
-            go,
+            box,
             new Dictionary<LTElementType, object> {
                 {LTElementType.Image, null},
                 {LTElementType.Text, "relayout\U0001F60A!"}
@@ -143,7 +143,7 @@ public class RelayoutTests : MiyamasuTestRunner
             layouter
         );
 
-        foreach (Transform childTrans in go.transform)
+        foreach (Transform childTrans in box.gameObject.transform)
         {
             foreach (Transform cousinTrans in childTrans)
             {
@@ -179,22 +179,22 @@ public class RelayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
-        var go = box.gameObject;
-        go = LayouTaro.Layout<BoxElement>(
+
+        box = LayouTaro.Layout(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        var rectTrans = go.GetComponent<RectTransform>();
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
         // update element values and re-layout with same GameObject.
-        go = LayouTaro.RelayoutWithUpdate<BoxElement>(
+        box = LayouTaro.RelayoutWithUpdate(
             size,
-            go,
+            box,
             new Dictionary<LTElementType, object> {
                 {LTElementType.Text, "\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00"}
             },

@@ -33,29 +33,28 @@ public class LayouTaroSample : MonoBehaviour
         var size = new Vector2(600, 100);
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
-        var go = box.gameObject;
-        go = LayouTaro.Layout<BoxElement>(
+        box = LayouTaro.Layout(
             canvas.transform,
             size,
-            go,
+            box,
             layouter
         );
 
-        go.transform.SetParent(canvas.transform);
-        go.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+        box.gameObject.transform.SetParent(canvas.transform);
+        box.gameObject.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
 
         yield return null;
 
-        // // update element values and re-layout with same GameObject.
-        // go = LayouTaro.RelayoutWithUpdate<BoxElement>(
-        //     size,
-        //     go,
-        //     new Dictionary<LTElementType, object> {
-        //         {LTElementType.Image, null},
-        //         {LTElementType.Text, "relayout\U0001F60A!"}
-        //     },
-        //     layouter
-        // );
+        // update element values and re-layout with same GameObject.
+        box = LayouTaro.RelayoutWithUpdate(
+            size,
+            box,
+            new Dictionary<LTElementType, object> {
+                {LTElementType.Image, null},
+                {LTElementType.Text, "relayout\U0001F60A!"}
+            },
+            layouter
+        );
 
         yield return null;
     }

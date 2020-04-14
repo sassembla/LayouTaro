@@ -38,7 +38,7 @@ var layouter = new MyLayouter();
 var size = new Vector2(600, 100);
 
 // do layout with LayouTaro. the GameObject will be returned with layouted structure.
-var go = box.gameObject;
+
 go = LayouTaro.Layout<BoxElement>(
     canvas.transform,
     size,
