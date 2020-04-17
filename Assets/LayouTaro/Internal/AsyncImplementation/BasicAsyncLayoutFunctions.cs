@@ -109,7 +109,6 @@ namespace UILayouTaro
                 textComponent.enableWordWrapping = false;
             }
 
-            Debug.Log("contentText:" + contentText);
             // 絵文字や記号が含まれている場合、画像と文字に分けてレイアウトを行う。
             if (BasicLayoutFunctions.IsDetectEmojiAndMarkAndTextExist(contentText))
             {
@@ -130,7 +129,11 @@ namespace UILayouTaro
                 textComponent.rectTransform.sizeDelta = new Vector2(refs.restWidth, 0);// 高さが0で問題ない。
 
                 // この内部で全てのレイアウトを終わらせる。
-                yield return LayoutContentWithEmojiAsync(textElement, contentText, viewWidth, refs);
+                var cor = LayoutContentWithEmojiAsync(textElement, contentText, viewWidth, refs);
+                while (cor.MoveNext())
+                {
+                    yield return null;
+                }
 
                 yield break;
             }
@@ -139,8 +142,8 @@ namespace UILayouTaro
             List<char> missingCharacters;
             if (!fontAsset.HasCharacters(contentText, out missingCharacters))
             {
-                Debug.Log("missingが発生したので、対象を非同期に処理する。");
-                yield return LoadMissing(missingCharacters);
+                Debug.LogWarning("missingが発生したので、対象を非同期に処理する。まだ何もしてない。");
+                var cor = LoadMissing(missingCharacters);
             }
 
             var tmGeneratorLines = textInfos.lineInfo;
@@ -361,16 +364,10 @@ namespace UILayouTaro
 
                 自分自身を書き換えて、一連のコマンドを実行するようにする。
                 文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
+
+                GOの生成系なので同期で問題ない。遅延させる理由がない。
             */
-            var elementsWithEmoji = new List<LTAsyncElement>();
-            yield return DetectEmojiAndTextAsync(
-                textElement,
-                contentText,
-                result =>
-                {
-                    elementsWithEmoji = result;
-                }
-            );
+            var elementsWithEmoji = CollectEmojiAndMarkAndTextElement(textElement, contentText);
 
             for (var i = 0; i < elementsWithEmoji.Count; i++)
             {
@@ -383,7 +380,13 @@ namespace UILayouTaro
                 {
                     // emojiRectが入っている
                     var internalRectElement = (InternalAsyncEmojiRect)element;
-                    yield return _EmojiRectLayoutAsync(internalRectElement, rectTrans, viewWidth, refs);
+                    var cor = _EmojiRectLayoutAsync(internalRectElement, rectTrans, viewWidth, refs);
+
+                    while (cor.MoveNext())
+                    {
+                        yield return null;
+                    }
+
                     continue;
                 }
 
@@ -391,14 +394,20 @@ namespace UILayouTaro
                 var internalTextElement = (T)element;
                 var internalContentText = internalTextElement.Text();
 
-                yield return _TextLayoutAsync(internalTextElement, internalContentText, rectTrans, viewWidth, refs);
+                var textCor = _TextLayoutAsync(internalTextElement, internalContentText, rectTrans, viewWidth, refs);
+                while (textCor.MoveNext())
+                {
+                    yield return null;
+                }
             }
+
             yield break;
         }
 
-        private static IEnumerator DetectEmojiAndTextAsync<T>(T textElement, string contentText, Action<List<LTAsyncElement>> onResult) where T : LTAsyncElement, ILayoutableText
+        private static List<LTAsyncElement> CollectEmojiAndMarkAndTextElement<T>(T textElement, string contentText) where T : LTAsyncElement, ILayoutableText
         {
             var elementsWithEmoji = new List<LTAsyncElement>();
+
             var textStartIndex = 0;
             var length = 0;
             for (var i = 0; i < contentText.Length; i++)
@@ -483,20 +492,30 @@ namespace UILayouTaro
                 elementsWithEmoji.Add(lastTextElement);
             }
 
-            onResult(elementsWithEmoji);
-            yield break;
+            return elementsWithEmoji;
         }
 
         private static IEnumerator _EmojiRectLayoutAsync(InternalAsyncEmojiRect rectElement, RectTransform transform, float viewWidth, ParameterReference refs)
         {
+            // ここでサイズを確定させている。レイアウト対象の画像が存在していれば、GOを作成したタイミングでサイズが確定されているが、
+            // もし対象が見つかっていない場合、このelementは既に通信を行っている。その場合、ここで完了を待つことができる。
+
+            while (rectElement.IsLoading)
+            {
+                yield return null;
+            }
+
             var rectSize = rectElement.RectSize();
-            yield return _RectLayoutAsync(rectElement, transform, rectSize, viewWidth, refs);
+            var cor = _RectLayoutAsync(rectElement, transform, rectSize, viewWidth, refs);
+            while (cor.MoveNext())
+            {
+                yield return null;
+            }
         }
 
         private static IEnumerator _RectLayoutAsync(LTAsyncElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ParameterReference refs)
         {
             Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
-            Debug.Log("refs:" + refs + " rectSize:" + rectSize);
 
             if (refs.restWidth < rectSize.x)// 同じ列にレイアウトできないので次の列に行く。
             {

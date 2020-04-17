@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UILayouTaro;
 using UnityEngine;
-using UnityEngine.UI;
 
 
 
@@ -27,7 +26,7 @@ public class LayouTaroSample : MonoBehaviour
         );
 
         // generate the layouter which you want to use for layout.
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // set the default size of content.
         var size = new Vector2(600, 100);

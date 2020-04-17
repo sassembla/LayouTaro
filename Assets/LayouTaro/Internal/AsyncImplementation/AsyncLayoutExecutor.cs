@@ -22,20 +22,24 @@ namespace UILayouTaro
             // このオブジェクトの中でopsを回して、ParamRefを引きまわす。
             private IEnumerator<(bool, ParameterReference)> RunLayout(string opsId, List<AsyncLayoutOperation> ops)
             {
-                // レイアウトの起点
-                var baseRefs = ops[0].refs;
-                Debug.Log("first id:" + baseRefs.id + " now frameCount:" + Time.frameCount + " baseRefs:" + baseRefs.ToString());
+                var targeOp = ops[0];
 
+                // レイアウトの起点
+                var baseRefs = targeOp.refs;
+
+                // ここでRectTransformを取り出し、refsのlinedにセットする必要がある。
+                baseRefs.lineContents.Add(targeOp.rectTrans);
+
+                // Debug.Log("first id:" + baseRefs.id + " now frameCount:" + Time.frameCount + " baseRefs:" + baseRefs.ToString());
                 while (true)
                 {
-                    // ここでRectTransformを取り出し、refsのlinedにセットする必要がある。
-                    baseRefs.lineContents.Add(ops[0].rectTrans);
+                    var (cont, refs) = targeOp.MoveNext();
 
-                    var (cont, refs) = ops[0].MoveNext();
-
-                    Debug.Log("終了:" + !cont + " refs.id:" + refs.id + " baseRefs:" + baseRefs.ToString());
+                    // Debug.Log("終了:" + !cont + " refs.id:" + refs.id + " baseRefs:" + baseRefs.ToString());
 
                     baseRefs = refs;
+
+                    // 終了検知
                     if (!cont)
                     {
                         Debug.Log("このOpsのCor終了！");
@@ -43,21 +47,24 @@ namespace UILayouTaro
                         // 処理が終了したOperationを取り除く。
                         ops.RemoveAt(0);
 
-                        // このopsGroupが空になったら、trueを返す
+                        // このopsGroupが空になったら、ループを抜けて最終的なレスポンスを返す。
                         if (ops.Count == 0)
                         {
                             break;
                         }
 
+                        targeOp = ops[0];
+                        baseRefs.lineContents.Add(targeOp.rectTrans);
+
                         // refsを更新する
-                        ops[0].UpdateRef(baseRefs);
+                        targeOp.UpdateRef(baseRefs);
 
                         // 開始位置に戻り、次のOpsのMoveNextを行う
                         continue;
                     }
 
                     // まだ実行中のopsがある場合、yieldで抜ける。
-                    Debug.Log("継続中 opGroup.ops:" + ops.Count);// このログがブロック版でも出ちゃうのなんかあるな。まあはい。
+                    Debug.LogWarning("継続中 opGroup.ops:" + ops.Count);// このログがブロック版でも出ちゃうのなんかあるな。まあはい。
                     yield return (true, refs);
                 }
 

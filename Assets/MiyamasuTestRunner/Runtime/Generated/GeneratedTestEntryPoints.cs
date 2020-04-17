@@ -71,6 +71,28 @@ public class AsyncLayoutTests_Miyamasu {
             throw;
         }
     }
+    [UnityTest] public IEnumerator SimpleEmojiAsync() {
+        var instance = new AsyncLayoutTests();
+        instance.SetInfo("AsyncLayoutTests", "SimpleEmojiAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.SimpleEmojiAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
     [UnityTest] public IEnumerator WithEmojiAsync() {
         var instance = new AsyncLayoutTests();
         instance.SetInfo("AsyncLayoutTests", "WithEmojiAsync");
@@ -159,6 +181,28 @@ public class AsyncLayoutTests_Miyamasu {
             throw;
         }
     }
+    [UnityTest] public IEnumerator DetectMissingEmojiWithExistEmojiAsync() {
+        var instance = new AsyncLayoutTests();
+        instance.SetInfo("AsyncLayoutTests", "DetectMissingEmojiWithExistEmojiAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.DetectMissingEmojiWithExistEmojiAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
     [UnityTest] public IEnumerator MarkAsync() {
         var instance = new AsyncLayoutTests();
         instance.SetInfo("AsyncLayoutTests", "MarkAsync");
@@ -171,6 +215,28 @@ public class AsyncLayoutTests_Miyamasu {
         }
         var startDate = DateTime.Now;
         yield return instance.MarkAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator ImageAndButtonAsync() {
+        var instance = new AsyncLayoutTests();
+        instance.SetInfo("AsyncLayoutTests", "ImageAndButtonAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.ImageAndButtonAsync();
         instance.MarkAsPassed((DateTime.Now - startDate).ToString());
 
         

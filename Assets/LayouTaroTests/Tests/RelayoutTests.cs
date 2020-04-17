@@ -60,7 +60,7 @@ public class RelayoutTests : MiyamasuTestRunner
         );
 
         // generate the layouter which you want to use for layout.
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // set the default size of content.
         var size = new Vector2(600, 100);
@@ -112,7 +112,7 @@ public class RelayoutTests : MiyamasuTestRunner
         );
 
         // generate the layouter which you want to use for layout.
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // set the default size of content.
         var size = new Vector2(600, 100);
@@ -173,7 +173,7 @@ public class RelayoutTests : MiyamasuTestRunner
         );
 
         // generate the layouter which you want to use for layout.
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // set the default size of content.
         var size = new Vector2(600, 100);

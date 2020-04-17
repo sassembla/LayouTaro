@@ -57,7 +57,7 @@ public class ErrorTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
@@ -93,7 +93,7 @@ public class ErrorTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
@@ -130,7 +130,7 @@ public class ErrorTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
@@ -166,7 +166,7 @@ public class ErrorTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);

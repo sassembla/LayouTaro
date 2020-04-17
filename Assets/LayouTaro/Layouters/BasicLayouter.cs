@@ -5,7 +5,7 @@ using UILayouTaro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MyLayouter : ILayouter
+public class BasicLayouter : ILayouter
 {
     /*
         子要素をレイアウトし、親要素が余白ありでそれを包む。

@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using UILayouTaro;
 using UnityEngine;
-using UnityEngine.Experimental.LowLevel;
 
-public class MyAsyncLayouter : ILayouterAsync
+public class BasicAsyncLayouter : ILayouterAsync
 {
     /*
         子要素をレイアウトし、親要素が余白ありでそれを包む。
@@ -110,6 +109,7 @@ public class MyAsyncLayouter : ILayouterAsync
     public void AfterLayout(Vector2 viewSize, float originX, float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
     {
         // 最終行の整列を行う
+        Debug.Log("originY:" + originY + " currentLineMaxHeight:" + currentLineMaxHeight + " lineContents:" + lineContents.Count);
         BasicLayoutFunctions.LayoutLastLine(ref originY, currentLineMaxHeight, ref lineContents);
 
         var outsideSpacing = 10f;

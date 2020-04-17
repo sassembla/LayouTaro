@@ -59,7 +59,7 @@ public class BasicLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
@@ -101,7 +101,7 @@ public class BasicLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
@@ -145,7 +145,7 @@ public class BasicLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
@@ -183,7 +183,7 @@ public class BasicLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
@@ -238,7 +238,7 @@ public class BasicLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
@@ -286,7 +286,7 @@ public class BasicLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
@@ -332,7 +332,7 @@ public class BasicLayoutTests : MiyamasuTestRunner
         );
 
         // generate the layouter which you want to use for layout.
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // set the default size of content.
         var size = new Vector2(600, 100);
@@ -382,7 +382,7 @@ public class BasicLayoutTests : MiyamasuTestRunner
         );
 
         // generate the layouter which you want to use for layout.
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // set the default size of content.
         var size = new Vector2(600, 100);

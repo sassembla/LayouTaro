@@ -487,6 +487,7 @@ namespace UILayouTaro
             foreach (var element in lineContents)
             {
                 var rectTrans = element.GetComponent<RectTransform>();
+
                 var elementHeight = rectTrans.sizeDelta.y;
                 var parent = rectTrans.parent;
                 if (parent == null)

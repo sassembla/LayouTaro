@@ -25,7 +25,13 @@ namespace UILayouTaro
     public abstract class LTAsyncElement : MonoBehaviour
     {
         public abstract LTElementType GetLTElementType();
-        public abstract void OnMissingCharFound<T>(string fontName, char[] chars, float x, float y, Action<T> onInput, Action onIgnore) where T : UnityEngine.Object;
+
+
+
+
+        public bool IsLoading;
+
+        public abstract void OnMissingCharFound<T>(string fontName, char[] chars, float width, float height, Action<T> onInput, Action onIgnore) where T : UnityEngine.Object;
     }
 
     public abstract class LTAsyncRootElement : LTAsyncElement
