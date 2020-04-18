@@ -375,7 +375,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
             {
                 Debug.Log("root box element is tapped.");
             },
-            AsyncTextElement.GO("\U0001F971\U0001F60A"),// text with emoji.
+            AsyncTextElement.GO("\U0001F971\U0001F60A"),// emoji and mark. mark is missing by default.
             AsyncImageElement.GO(null),// image.
             AsyncButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
         );
@@ -401,7 +401,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
-        while (true)
+        while (false)
         {
             yield return null;
         }

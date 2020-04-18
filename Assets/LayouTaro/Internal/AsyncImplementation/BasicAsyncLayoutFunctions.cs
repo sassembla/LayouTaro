@@ -130,6 +130,7 @@ namespace UILayouTaro
 
                 // この内部で全てのレイアウトを終わらせる。
                 var cor = LayoutContentWithEmojiAsync(textElement, contentText, viewWidth, refs);
+                Debug.LogWarning("たぶんここで1f食ってる");
                 while (cor.MoveNext())
                 {
                     yield return null;
@@ -139,11 +140,23 @@ namespace UILayouTaro
             }
 
             var fontAsset = textComponent.font;
-            List<char> missingCharacters;
-            if (!fontAsset.HasCharacters(contentText, out missingCharacters))
+            if (!fontAsset.HasCharacters(contentText))
             {
-                Debug.LogWarning("missingが発生したので、対象を非同期に処理する。まだ何もしてない。");
-                var cor = LoadMissing(missingCharacters);
+                textComponent.text = string.Empty;
+
+                // 今後のレイアウトに自分自身を巻き込まないように、レイアウトから自分自身を取り外す
+                refs.lineContents.RemoveAt(refs.lineContents.Count - 1);
+
+                textComponent.rectTransform.sizeDelta = new Vector2(refs.restWidth, 0);// 高さが0で問題ない。
+
+                // missingを含んでいるので、内部でテキストとmissingに分解、レイアウトする。
+                var cor = LayoutContentWithMissingTextAsync(textElement, contentText, viewWidth, refs);
+                while (cor.MoveNext())
+                {
+                    yield return null;
+                }
+
+                yield break;
             }
 
             var tmGeneratorLines = textInfos.lineInfo;
@@ -359,13 +372,10 @@ namespace UILayouTaro
         private static IEnumerator LayoutContentWithEmojiAsync<T>(T textElement, string contentText, float viewWidth, ParameterReference refs) where T : LTAsyncElement, ILayoutableText
         {
             /*
-                絵文字が含まれている文字列を、絵文字と矩形に分解、再構成を行う。絵文字を単に画像が入る箱としてRectLayoutに放り込む。というのがいいのか、それとも独自にinternalを定義した方がいいのか。
-                後者だなー、EmojiRectみたいなのを用意しよう。
+                絵文字が含まれている文字列を、絵文字と矩形に分解、再構成を行う。絵文字を単に画像が入る箱としてRectLayoutに放り込む。
 
                 自分自身を書き換えて、一連のコマンドを実行するようにする。
                 文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
-
-                GOの生成系なので同期で問題ない。遅延させる理由がない。
             */
             var elementsWithEmoji = CollectEmojiAndMarkAndTextElement(textElement, contentText);
 
@@ -495,7 +505,125 @@ namespace UILayouTaro
             return elementsWithEmoji;
         }
 
+
+
+
+        private static IEnumerator LayoutContentWithMissingTextAsync<T>(T textElement, string contentText, float viewWidth, ParameterReference refs) where T : LTAsyncElement, ILayoutableText
+        {
+            /*
+                missingな文字が含まれている文字列を、文字と矩形に分解、再構成を行う。missing文字を単に画像が入る箱としてRectLayoutに放り込む。
+                文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
+            */
+            var elementsWithMissing = CollectMissingAndTextElement(textElement, contentText);
+
+            for (var i = 0; i < elementsWithMissing.Count; i++)
+            {
+                var element = elementsWithMissing[i];
+                var rectTrans = element.GetComponent<RectTransform>();
+                refs.restWidth = viewWidth - refs.originX;
+                refs.lineContents.Add(rectTrans);
+
+                if (element is InternalAsyncMissingTextRect)
+                {
+                    // missingTextRectが入っている
+                    var internalRectElement = (InternalAsyncMissingTextRect)element;
+                    var cor = _MissingTextRectLayoutAsync(internalRectElement, rectTrans, viewWidth, refs);
+
+                    while (cor.MoveNext())
+                    {
+                        yield return null;
+                    }
+
+                    continue;
+                }
+
+                // ここに来るということは、T型が入っている。
+                var internalTextElement = (T)element;
+                var internalContentText = internalTextElement.Text();
+
+                var textCor = _TextLayoutAsync(internalTextElement, internalContentText, rectTrans, viewWidth, refs);
+                while (textCor.MoveNext())
+                {
+                    yield return null;
+                }
+            }
+
+            yield break;
+        }
+
+        private static List<LTAsyncElement> CollectMissingAndTextElement<T>(T textElement, string contentText) where T : LTAsyncElement, ILayoutableText
+        {
+            var elementsWithMissing = new List<LTAsyncElement>();
+            var font = textElement.GetComponent<TextMeshProUGUI>().font;
+
+            var textStartIndex = 0;
+            var length = 0;
+            for (var i = 0; i < contentText.Length; i++)
+            {
+                var firstChar = contentText[i];
+
+                var isExist = TextLayoutDefinitions.TMPro_ChechIfTextCharacterExist(font, firstChar);
+                if (!isExist)
+                {
+                    // missingにぶち当たった。ここまでに用意されているテキストを取り出す
+                    if (0 < length)
+                    {
+                        var currentText = contentText.Substring(textStartIndex, length);
+                        var newTextElement = textElement.GenerateGO(currentText).GetComponent<T>();
+                        newTextElement.transform.SetParent(textElement.transform, false);
+                        elementsWithMissing.Add(newTextElement);
+                    }
+
+                    length = 0;
+
+                    // missing文字確定。なので、箱的な要素として扱い、次の文字を飛ばす処理を行う。
+                    var missingTextElement = InternalAsyncMissingTextRect.GO(textElement, contentText.Substring(i, 1)).GetComponent<InternalAsyncMissingTextRect>();
+                    elementsWithMissing.Add(missingTextElement);
+
+                    // 文字は次から始まる、、かもしれない。
+                    textStartIndex = i + 1;
+                    continue;
+                }
+
+                // missingではないので文字として扱う
+                length++;
+            }
+
+            // 残りの文字を足す
+            if (0 < length)
+            {
+                var lastText = contentText.Substring(textStartIndex, length);
+                var lastTextElement = textElement.GenerateGO(lastText).GetComponent<T>();
+                lastTextElement.transform.SetParent(textElement.transform, false);
+                elementsWithMissing.Add(lastTextElement);
+            }
+
+            return elementsWithMissing;
+        }
+
+
+
+
+
         private static IEnumerator _EmojiRectLayoutAsync(InternalAsyncEmojiRect rectElement, RectTransform transform, float viewWidth, ParameterReference refs)
+        {
+            // ここでサイズを確定させている。レイアウト対象の画像が存在していれば、GOを作成したタイミングでサイズが確定されているが、
+            // もし対象が見つかっていない場合、このelementは既に通信を行っている。その場合、ここで完了を待つことができる。
+
+            while (rectElement.IsLoading)
+            {
+                yield return null;
+            }
+
+            var rectSize = rectElement.RectSize();
+            var cor = _RectLayoutAsync(rectElement, transform, rectSize, viewWidth, refs);
+            while (cor.MoveNext())
+            {
+                yield return null;
+            }
+        }
+
+        private static IEnumerator _MissingTextRectLayoutAsync(InternalAsyncMissingTextRect rectElement, RectTransform transform, float viewWidth, ParameterReference refs)
         {
             // ここでサイズを確定させている。レイアウト対象の画像が存在していれば、GOを作成したタイミングでサイズが確定されているが、
             // もし対象が見つかっていない場合、このelementは既に通信を行っている。その場合、ここで完了を待つことができる。
@@ -545,16 +673,6 @@ namespace UILayouTaro
             ElementLayoutFunctions.ContinueLine(ref refs.originX, rectSize.x, transform.sizeDelta.y, ref refs.currentLineMaxHeight);
             refs.restWidth = viewWidth - refs.originX;
             yield break;
-        }
-
-
-        private static IEnumerator LoadMissing(List<char> missingCharacters)
-        {
-            while (true)
-            {
-                Debug.Log("missing探しにきてる。");
-                yield return null;
-            }
         }
     }
 }

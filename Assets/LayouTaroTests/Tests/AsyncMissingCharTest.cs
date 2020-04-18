@@ -5,7 +5,7 @@ using Miyamasu;
 using System;
 using NUnit.Framework;
 
-public class MissingCharTests : MiyamasuTestRunner
+public class AsyncMissingCharTests : MiyamasuTestRunner
 {
     private Canvas canvas;
 
@@ -44,34 +44,26 @@ public class MissingCharTests : MiyamasuTestRunner
     }
 
     [MTest]
-    public IEnumerator GetMissingChar()
+    public IEnumerator GetMissingCharAsync()
     {
-        var box = BoxElement.GO(
+        var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
             {
                 Debug.Log("ルートがタップされた");
             },
-            TextElement.GO("あいうえお")// テキスト
+            AsyncTextElement.GO("あいうえお")// テキスト
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new BasicLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
-        var missingDetected = false;
-        LayouTaro.SetOnMissingCharacterFound(
-            missingChars =>
-            {
-                missingDetected = true;
-            }
-        );
-
         // レイアウトを行う
 
-        box = LayouTaro.Layout(
+        yield return LayouTaro.LayoutAsync(
             canvas.transform,
             size,
             box,
@@ -81,10 +73,10 @@ public class MissingCharTests : MiyamasuTestRunner
         var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
-
-        Assert.True(missingDetected);
+        yield return null;
 
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
+
         yield break;
     }
 }

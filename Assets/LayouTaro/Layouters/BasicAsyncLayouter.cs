@@ -109,7 +109,6 @@ public class BasicAsyncLayouter : ILayouterAsync
     public void AfterLayout(Vector2 viewSize, float originX, float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
     {
         // 最終行の整列を行う
-        Debug.Log("originY:" + originY + " currentLineMaxHeight:" + currentLineMaxHeight + " lineContents:" + lineContents.Count);
         BasicLayoutFunctions.LayoutLastLine(ref originY, currentLineMaxHeight, ref lineContents);
 
         var outsideSpacing = 10f;

@@ -226,6 +226,30 @@ public class AsyncLayoutTests_Miyamasu {
         }
     }
 }
+public class AsyncMissingCharTests_Miyamasu {
+    [UnityTest] public IEnumerator GetMissingCharAsync() {
+        var instance = new AsyncMissingCharTests();
+        instance.SetInfo("AsyncMissingCharTests", "GetMissingCharAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.GetMissingCharAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+}
 public class BasicLayoutTests_Miyamasu {
     [UnityTest] public IEnumerator BasicPattern() {
         var instance = new BasicLayoutTests();
