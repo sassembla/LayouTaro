@@ -409,47 +409,6 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         yield break;
     }
 
-
-    [MTest]
-    public IEnumerator DetectMissingEmojiWithExistEmojiAsync()
-    {
-        // generate your own data structure with parameters for UI.
-        var box = AsyncBoxElement.GO(
-            null,// UI bg with image
-            () =>
-            {
-                Debug.Log("root box element is tapped.");
-            },
-            AsyncTextElement.GO("\U0001F971\U0001F60A"),// text with emoji.
-            AsyncImageElement.GO(null),// image.
-            AsyncButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
-        );
-
-        // generate the layouter which you want to use for layout.
-        var layouter = new BasicAsyncLayouter();
-
-        // set the default size of content.
-        var size = new Vector2(600, 100);
-
-        // do layout with LayouTaro. the GameObject will be returned with layouted structure.
-
-        yield return LayouTaro.LayoutAsync(
-            canvas.transform,
-            size,
-            box,
-            layouter
-        );
-
-        var rectTrans = box.gameObject.GetComponent<RectTransform>();
-        rectTrans.anchoredPosition3D = Vector3.zero;
-        rectTrans.localScale = Vector3.one;
-
-        yield return null;
-        ScreenCapture.CaptureScreenshot("./images/" + methodName);
-
-        yield break;
-    }
-
     [MTest]
     public IEnumerator MarkAsync()
     {

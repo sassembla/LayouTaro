@@ -181,28 +181,6 @@ public class AsyncLayoutTests_Miyamasu {
             throw;
         }
     }
-    [UnityTest] public IEnumerator DetectMissingEmojiWithExistEmojiAsync() {
-        var instance = new AsyncLayoutTests();
-        instance.SetInfo("AsyncLayoutTests", "DetectMissingEmojiWithExistEmojiAsync");
-        
-        try {
-            instance.Setup();
-        } catch (Exception e) {
-            instance.SetupFailed(e);
-            throw;
-        }
-        var startDate = DateTime.Now;
-        yield return instance.DetectMissingEmojiWithExistEmojiAsync();
-        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
-
-        
-        try {
-            instance.Teardown();
-        } catch (Exception e) {
-            instance.TeardownFailed(e);
-            throw;
-        }
-    }
     [UnityTest] public IEnumerator MarkAsync() {
         var instance = new AsyncLayoutTests();
         instance.SetInfo("AsyncLayoutTests", "MarkAsync");

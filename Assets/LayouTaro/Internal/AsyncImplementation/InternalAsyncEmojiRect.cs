@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -10,7 +11,7 @@ namespace UILayouTaro
     public class InternalAsyncEmojiRect : LTAsyncElement, ILayoutableRect
     {
         private Vector2 Size;
-        public static GameObject GO<T>(T parentTextElement, Char[] chars) where T : LTAsyncElement, ILayoutableText
+        public static GameObject GO<T>(T parentTextElement, string rawText, Char[] chars) where T : LTAsyncElement, ILayoutableText
         {
             var emojiOrMarkStr = new string(chars);
 
@@ -71,8 +72,79 @@ namespace UILayouTaro
                 ここでリクエストが決定し、レスポンスが来た時に叩かれるメソッドの設定ができるのが良い。
                 インターフェースは何も返さなくていいな。終了がわかればいい。なので、ハンドラを放り込む機構が存在すればいいのか。
             */
-            if (!textComponent.font.HasCharacters(emojiOrMarkStr))
+
+            var has0 = textComponent.font.HasCharacters(emojiOrMarkStr);
+
+
+            // var has1 = textComponent.font.HasCharacter(res);
+
+            // Debug.Log("has0:" + has0 + " has1:" + has1 + " res:" + res);
+            var clist = new List<char>();
+            foreach (var a in chars)
             {
+                // // var ww = (int)Char.GetNumericValue(a);
+                // var s = textComponent.font.HasCharacters(emojiOrMarkStr, out clist);
+                // var table = textComponent.font.fallbackFontAssetTable;
+                // foreach (var t in table)
+                // {
+                //     var tableHas = t.HasCharacters(emojiOrMarkStr, out clist);
+                //     Debug.Log("tableHas:" + tableHas + " clist:" + clist.Count);
+                // }
+
+                string characters = TMP_FontAsset.GetCharacters(textComponent.font);
+                Debug.Log("characters:" + characters.Length);
+                if (characters.IndexOf(a) >= 0)
+                {
+                    Debug.Log("have!");
+                }
+                else
+                {
+                    var have = false;
+                    List<TMP_FontAsset> fallbackFontAssets = textComponent.font.fallbackFontAssetTable;
+                    for (int i = 0; i < fallbackFontAssets.Count; i++)
+                    {
+                        characters = TMP_FontAsset.GetCharacters(fallbackFontAssets[i]);
+                        if (characters.IndexOf(a) >= 0)
+                        {
+                            Debug.Log("have!");
+                            have = true;
+                        }
+                    }
+
+                    Debug.Log("isHave:" + have);
+                }
+
+            }
+
+
+
+
+            // var has2 = textComponent.font.HasCharacters(emojiOrMarkStr);
+            // var has3 = textComponent.font.HasCharacters(emojiOrMarkStr);
+            // emojiOrMarkStr
+            // List<char> list;
+            // if (!textComponent.font.HasCharacters(rawText, out list))
+            // この検査方法がおかしい。なるほど、通常の絵文字もヒットしてしまう。
+            // えー、おかしくない、、うーん、、
+            // if (list.Contains(chars[0]))
+            // {
+            //     Debug.Log("ヒット、これはmissing、、は？ list:" + list.Count);// これはかならず4を返してくる、手元に存在する絵文字すら、missingを返してくるっぽい。
+            // }
+
+            // この方法は採用したくないなー、
+            if (0 < rectTrans.childCount)
+            {
+                var emojiRectTrans = rectTrans.GetChild(0).GetComponent<RectTransform>();
+                emojiRectTrans.pivot = new Vector2(0, 1);
+                emojiRectTrans.anchorMin = new Vector2(0, 1);
+                emojiRectTrans.anchorMax = new Vector2(0, 1);
+                emojiRectTrans.anchoredPosition = Vector2.zero;
+            }
+            else
+            {
+                Debug.Log("何もつくり出せてない状態");
+                Debug.LogWarning("この辺にキャッシュヒットが欲しい");
+
                 IEnumerator load()
                 {
                     var url = "https://dummyimage.com/" + size.x + "x" + size.y + "/2cb6d1/000000";
