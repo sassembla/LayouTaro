@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -11,7 +12,7 @@ namespace UILayouTaro
     public class InternalAsyncEmojiRect : LTAsyncElement, ILayoutableRect
     {
         private Vector2 Size;
-        public static GameObject GO<T>(T parentTextElement, string rawText, Char[] chars) where T : LTAsyncElement, ILayoutableText
+        public static GameObject GO<T>(T parentTextElement, Char[] chars) where T : LTAsyncElement, ILayoutableText
         {
             var emojiOrMarkStr = new string(chars);
 
@@ -72,78 +73,26 @@ namespace UILayouTaro
                 ここでリクエストが決定し、レスポンスが来た時に叩かれるメソッドの設定ができるのが良い。
                 インターフェースは何も返さなくていいな。終了がわかればいい。なので、ハンドラを放り込む機構が存在すればいいのか。
             */
-
-            var has0 = textComponent.font.HasCharacters(emojiOrMarkStr);
-
-
-            // var has1 = textComponent.font.HasCharacter(res);
-
-            // Debug.Log("has0:" + has0 + " has1:" + has1 + " res:" + res);
-            var clist = new List<char>();
-            foreach (var a in chars)
+            var (isExist, codePoint) = ChechIfEmojiOrMarkExist(emojiOrMarkStr);
+            if (isExist)
             {
-                // // var ww = (int)Char.GetNumericValue(a);
-                // var s = textComponent.font.HasCharacters(emojiOrMarkStr, out clist);
-                // var table = textComponent.font.fallbackFontAssetTable;
-                // foreach (var t in table)
-                // {
-                //     var tableHas = t.HasCharacters(emojiOrMarkStr, out clist);
-                //     Debug.Log("tableHas:" + tableHas + " clist:" + clist.Count);
-                // }
-
-                string characters = TMP_FontAsset.GetCharacters(textComponent.font);
-                Debug.Log("characters:" + characters.Length);
-                if (characters.IndexOf(a) >= 0)
+                // 最低一つ要素が作られているはずなので、そのSptiteの位置情報を冷雨後に合致するように調整する。
+                if (rectTrans.childCount == 1)
                 {
-                    Debug.Log("have!");
+                    var emojiRectTrans = rectTrans.GetChild(0).GetComponent<RectTransform>();
+                    emojiRectTrans.pivot = new Vector2(0, 1);
+                    emojiRectTrans.anchorMin = new Vector2(0, 1);
+                    emojiRectTrans.anchorMax = new Vector2(0, 1);
+                    emojiRectTrans.anchoredPosition = Vector2.zero;
                 }
                 else
                 {
-                    var have = false;
-                    List<TMP_FontAsset> fallbackFontAssets = textComponent.font.fallbackFontAssetTable;
-                    for (int i = 0; i < fallbackFontAssets.Count; i++)
-                    {
-                        characters = TMP_FontAsset.GetCharacters(fallbackFontAssets[i]);
-                        if (characters.IndexOf(a) >= 0)
-                        {
-                            Debug.Log("have!");
-                            have = true;
-                        }
-                    }
-
-                    Debug.Log("isHave:" + have);
+                    Debug.LogError("絵文字かマークがある状態だが、このcodePointの文字を示すspriteがロードされない codePoint:" + codePoint);
                 }
-
-            }
-
-
-
-
-            // var has2 = textComponent.font.HasCharacters(emojiOrMarkStr);
-            // var has3 = textComponent.font.HasCharacters(emojiOrMarkStr);
-            // emojiOrMarkStr
-            // List<char> list;
-            // if (!textComponent.font.HasCharacters(rawText, out list))
-            // この検査方法がおかしい。なるほど、通常の絵文字もヒットしてしまう。
-            // えー、おかしくない、、うーん、、
-            // if (list.Contains(chars[0]))
-            // {
-            //     Debug.Log("ヒット、これはmissing、、は？ list:" + list.Count);// これはかならず4を返してくる、手元に存在する絵文字すら、missingを返してくるっぽい。
-            // }
-
-            // この方法は採用したくないなー、
-            if (0 < rectTrans.childCount)
-            {
-                var emojiRectTrans = rectTrans.GetChild(0).GetComponent<RectTransform>();
-                emojiRectTrans.pivot = new Vector2(0, 1);
-                emojiRectTrans.anchorMin = new Vector2(0, 1);
-                emojiRectTrans.anchorMax = new Vector2(0, 1);
-                emojiRectTrans.anchoredPosition = Vector2.zero;
             }
             else
             {
-                Debug.Log("何もつくり出せてない状態");
-                Debug.LogWarning("この辺にキャッシュヒットが欲しい");
+                Debug.LogWarning("この辺にキャッシュヒットが欲しい、codePointでいいので。");
 
                 IEnumerator load()
                 {
@@ -216,6 +165,42 @@ namespace UILayouTaro
             }
 
             return go;
+        }
+
+        private static (bool, uint) ChechIfEmojiOrMarkExist(string emojiOrMarkStr)
+        {
+            uint codePoint = 0;
+            for (var i = 0; i < emojiOrMarkStr.Length; i++)
+            {
+                codePoint = (uint)char.ConvertToUtf32(emojiOrMarkStr, i);
+
+                // indexで切り分けられるようであれば、この時点で判断を行う。
+                // 現状では2文字ずつしかsurrogateで追わないため、このブロックに処理がくることはない。
+                if (char.IsSurrogatePair(emojiOrMarkStr, i))
+                {
+                    i++;
+                }
+            }
+
+            var spriteAsset = TMPro.TMP_Settings.GetSpriteAsset();
+            var table = spriteAsset.spriteCharacterTable;
+            if (-1 < spriteAsset.GetSpriteIndexFromUnicode(codePoint))
+            {
+                // 絵文字か記号が既存のSpriteAssetに存在する
+                return (true, codePoint);
+            }
+
+            // fallbackに登録されているSpriteAssetsも見る
+            foreach (var sAsset in spriteAsset.fallbackSpriteAssets)
+            {
+                if (-1 < sAsset.GetSpriteIndexFromUnicode(codePoint))
+                {
+                    return (true, codePoint);
+                }
+            }
+
+            // 存在しないのでfalseを返す
+            return (false, 0);
         }
 
         public override LTElementType GetLTElementType()
