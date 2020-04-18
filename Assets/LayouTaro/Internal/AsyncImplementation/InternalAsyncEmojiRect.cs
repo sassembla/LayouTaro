@@ -65,14 +65,6 @@ namespace UILayouTaro
             // 後ほど取得できるサイズを決定する
             emojiRect.Size = size;
 
-            /*
-                ここでこの要素のサイズが決定される。
-                文字の有無をもってリクエストを行い、レイアウト時までに取得が終わっていればレイアウトができる。
-                失敗した場合でもfallbackを指定できる。まあ、そういうのはしょうがない。
-
-                ここでリクエストが決定し、レスポンスが来た時に叩かれるメソッドの設定ができるのが良い。
-                インターフェースは何も返さなくていいな。終了がわかればいい。なので、ハンドラを放り込む機構が存在すればいいのか。
-            */
             var (isExist, codePoint) = ChechIfEmojiOrMarkExist(emojiOrMarkStr);
             if (isExist)
             {
@@ -92,11 +84,23 @@ namespace UILayouTaro
             }
             else
             {
-                Debug.LogWarning("この辺にキャッシュヒットが欲しい、codePointでいいので。");
+                /*
+                    ポイント数
+                    フォント名
+                    表示幅
+                    表示高さ
+                    コードポイント
+                */
+                var fontSize = textComponent.fontSize;
+                var fontName = textComponent.font.name;
+                var requestWidth = size.x;
+                var requestHeight = size.y;
+                // これらの要素をもとに、インターフェースを切ろう。
 
                 IEnumerator load()
                 {
-                    var url = "https://dummyimage.com/" + size.x + "x" + size.y + "/2cb6d1/000000";
+                    // この部分に独自でURLを渡せればいいよね。
+                    var url = "https://dummyimage.com/" + size.x + "x" + size.y + "/" + codePoint + "/000000";
                     var req = UnityWebRequestTexture.GetTexture(
                         url
                     );
