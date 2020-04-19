@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -9,7 +7,7 @@ using UnityEngine.UI;
 
 namespace UILayouTaro
 {
-    public class InternalAsyncMissingTextRect : LTAsyncElement, ILayoutableRect
+    public class InternalAsyncMissingTextRect : LTAsyncLoadableElement, ILayoutableRect
     {
         private Vector2 Size;
         public static GameObject GO<T>(T parentTextElement, string text) where T : LTAsyncElement, ILayoutableText
@@ -49,7 +47,7 @@ namespace UILayouTaro
             rectTrans.anchoredPosition = Vector2.zero;
             rectTrans.sizeDelta = size;
 
-            // 後ほど取得できるサイズを決定する
+            // サイズを一旦TMProの情報をもとに決定する
             missingTextRect.Size = size;
 
 
@@ -67,11 +65,15 @@ namespace UILayouTaro
             var requestHeight = size.y;
 
             // これらの要素をもとに、インターフェースを切ろう。ここではtextがくる。
-            Debug.LogWarning("キャッシュヒットを作るならここ。");
+            Debug.LogWarning("ここでSpriteのキャッシュを当てる");
+
+            Debug.LogWarning("ここでSpriteの同じ文字のロードをとめる、完了したらここから引っ張る");
+
+
 
             // ここで条件があればキャッシュヒットが成立する。
             /*
-                Coroutineがあれば継続かどうか判断できる。
+                Coroutineがあれば回す側で継続中かどうか判断できる。IsLoadingの代わりにCorを渡すのはアリ
                 なので、終了条件は特に必要ない。
                 Corがnullなのはやめて欲しいけど、サイズと画像をセットできればそれでいいはずなんだよな。
                 要素の方に寄せるにはどうすればいい。要素にセットするComponentを返すか。いや、別に自分自身がスタートした方が速いな。
@@ -146,6 +148,7 @@ namespace UILayouTaro
 
             // ローディングフラグを立てる
             missingTextRect.IsLoading = true;
+
             return go;
         }
 
@@ -157,11 +160,6 @@ namespace UILayouTaro
         public Vector2 RectSize()
         {
             return Size;
-        }
-
-        public override void OnMissingCharFound<T>(string fontName, char[] chars, float width, float height, Action<T> onInput, Action onIgnore)
-        {
-            throw new NotImplementedException();
         }
     }
 }

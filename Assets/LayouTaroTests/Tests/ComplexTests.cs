@@ -4,7 +4,7 @@ using UILayouTaro;
 using Miyamasu;
 using System;
 
-public class AsyncMissingCharTests : MiyamasuTestRunner
+public class ComplexTests : MiyamasuTestRunner
 {
     private Canvas canvas;
 
@@ -43,7 +43,7 @@ public class AsyncMissingCharTests : MiyamasuTestRunner
     }
 
     [MTest]
-    public IEnumerator GetMissingCharAsync()
+    public IEnumerator ComplexMissingCharAsync()
     {
         var box = AsyncBoxElement.GO(
             null,// bg画像
@@ -51,7 +51,7 @@ public class AsyncMissingCharTests : MiyamasuTestRunner
             {
                 Debug.Log("ルートがタップされた");
             },
-            AsyncTextElement.GO("あいうえお")// テキスト
+            AsyncTextElement.GO("あいうえお\U0001F95D \U0001F95D \U0001F95D")// テキストに半角スペースが含まれることで、半角スペースのサイズが-になるケースがある。アルファベットが入った場合は問題なくサイズが出るので、分割が悪さをしているとみなすべき。
         );
 
         // レイアウトに使うクラスを生成する
@@ -75,7 +75,6 @@ public class AsyncMissingCharTests : MiyamasuTestRunner
         yield return null;
 
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
-
         yield break;
     }
 }

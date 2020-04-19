@@ -439,7 +439,7 @@ namespace UILayouTaro
                     length = 0;
 
                     // 記号確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
-                    var emojiElement = InternalAsyncEmojiRect.GO(textElement, new Char[] { firstChar }).GetComponent<InternalAsyncEmojiRect>();
+                    var emojiElement = InternalAsyncEmojiRect.New(textElement, new Char[] { firstChar });
                     elementsWithEmoji.Add(emojiElement);
 
                     // 文字は次から始まる、、かもしれない。
@@ -475,7 +475,7 @@ namespace UILayouTaro
                     if (isSurrogatePair)
                     {
                         // サロゲートペア確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
-                        var emojiElement = InternalAsyncEmojiRect.GO(textElement, new Char[] { firstChar, nextChar }).GetComponent<InternalAsyncEmojiRect>();
+                        var emojiElement = InternalAsyncEmojiRect.New(textElement, new Char[] { firstChar, nextChar });
                         elementsWithEmoji.Add(emojiElement);
 
                         // 文字は次の次から始まる、、かもしれない。

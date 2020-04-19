@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -9,10 +7,10 @@ using UnityEngine.UI;
 
 namespace UILayouTaro
 {
-    public class InternalAsyncEmojiRect : LTAsyncElement, ILayoutableRect
+    public class InternalAsyncEmojiRect : LTAsyncLoadableElement, ILayoutableRect
     {
         private Vector2 Size;
-        public static GameObject GO<T>(T parentTextElement, Char[] chars) where T : LTAsyncElement, ILayoutableText
+        public static InternalAsyncEmojiRect New<T>(T parentTextElement, Char[] chars) where T : LTAsyncElement, ILayoutableText
         {
             var emojiOrMarkStr = new string(chars);
 
@@ -62,10 +60,10 @@ namespace UILayouTaro
             rectTrans.anchoredPosition = Vector2.zero;
             rectTrans.sizeDelta = size;
 
-            // 後ほど取得できるサイズを決定する
+            // サイズを一旦TMProの情報をもとに決定する
             emojiRect.Size = size;
 
-            var (isExist, codePoint) = ChechIfEmojiOrMarkExist(emojiOrMarkStr);
+            var (isExist, codePoint) = TextLayoutDefinitions.TMPro_ChechIfEmojiOrMarkExist(emojiOrMarkStr);
             if (isExist)
             {
                 // 最低一つ要素が作られているはずなので、そのSptiteの位置情報を冷雨後に合致するように調整する。
@@ -95,7 +93,21 @@ namespace UILayouTaro
                 var fontName = textComponent.font.name;
                 var requestWidth = size.x;
                 var requestHeight = size.y;
-                // これらの要素をもとに、インターフェースを切ろう。
+
+                // これらの要素をもとに、インターフェースを切ろう。この部分を可換にする。
+                /*
+                    ・パラメータをもとにURLを返す
+
+                    ・キャッシュがあったらキャッシュを返す
+                    ・同じ文字が別のところでロード中であれば待たせる
+                        終わったら画像とサイズをセットする
+
+                    ロード方法は選択肢があるべきだが、まあURL取得からのキャッシュに全部寄せていいと思う
+                    かっこよく拡張可能にはしたい。Funcとして提供すればいい。
+
+                    キャッシュクリアをどうしよう。まあHitCacheとかを関数としてグローバルで用意するのがいいな。
+                */
+
 
                 IEnumerator load()
                 {
@@ -161,50 +173,14 @@ namespace UILayouTaro
 
                 var cor = load();
 
-                Debug.LogWarning("ここで開始しちゃって構わないんだけど、なんかいい方法ないかな、まあキャッシュヒットとかをどう盛り込むかで変わっちゃうのか");
+                Debug.LogWarning("ロード自体はここで開始しちゃって構わないんだけど、なんかいい方法ないかな、まあキャッシュヒットとかをどう盛り込むかで変わっちゃうのか。");
                 emojiRect.StartCoroutine(cor);
 
                 // ローディングフラグを立てる
                 emojiRect.IsLoading = true;
             }
 
-            return go;
-        }
-
-        private static (bool, uint) ChechIfEmojiOrMarkExist(string emojiOrMarkStr)
-        {
-            uint codePoint = 0;
-            for (var i = 0; i < emojiOrMarkStr.Length; i++)
-            {
-                codePoint = (uint)char.ConvertToUtf32(emojiOrMarkStr, i);
-
-                // indexで切り分けられるようであれば、この時点で判断を行う。
-                // 現状では2文字ずつしかsurrogateで追わないため、このブロックに処理がくることはない。
-                if (char.IsSurrogatePair(emojiOrMarkStr, i))
-                {
-                    i++;
-                }
-            }
-
-            var spriteAsset = TMPro.TMP_Settings.GetSpriteAsset();
-            var table = spriteAsset.spriteCharacterTable;
-            if (-1 < spriteAsset.GetSpriteIndexFromUnicode(codePoint))
-            {
-                // 絵文字か記号が既存のSpriteAssetに存在する
-                return (true, codePoint);
-            }
-
-            // fallbackに登録されているSpriteAssetsも見る
-            foreach (var sAsset in spriteAsset.fallbackSpriteAssets)
-            {
-                if (-1 < sAsset.GetSpriteIndexFromUnicode(codePoint))
-                {
-                    return (true, codePoint);
-                }
-            }
-
-            // 存在しないのでfalseを返す
-            return (false, 0);
+            return emojiRect;
         }
 
         public override LTElementType GetLTElementType()
@@ -215,11 +191,6 @@ namespace UILayouTaro
         public Vector2 RectSize()
         {
             return Size;
-        }
-
-        public override void OnMissingCharFound<T>(string fontName, char[] chars, float width, float height, Action<T> onInput, Action onIgnore)
-        {
-            throw new NotImplementedException();
         }
     }
 }

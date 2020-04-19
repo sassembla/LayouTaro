@@ -25,13 +25,11 @@ namespace UILayouTaro
     public abstract class LTAsyncElement : MonoBehaviour
     {
         public abstract LTElementType GetLTElementType();
+    }
 
-
-
-
+    public abstract class LTAsyncLoadableElement : LTAsyncElement
+    {
         public bool IsLoading;
-
-        public abstract void OnMissingCharFound<T>(string fontName, char[] chars, float width, float height, Action<T> onInput, Action onIgnore) where T : UnityEngine.Object;
     }
 
     public abstract class LTAsyncRootElement : LTAsyncElement
@@ -40,12 +38,11 @@ namespace UILayouTaro
     }
 
 
-    public interface ILayouterAsync
+    public interface IAsyncLayouter
     {
         List<AsyncLayoutOperation> LayoutAsync(Vector2 size, out float originX, out float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents);
         void AfterLayout(Vector2 viewSize, float originX, float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents);
-
-        // updateも必要。
+        void UpdateValuesAsync(LTAsyncElement[] elements, Dictionary<LTElementType, object> updateValues);
     }
 
     public interface ILayoutableRect
@@ -59,4 +56,6 @@ namespace UILayouTaro
 
         GameObject GenerateGO(string text);
     }
+
+
 }

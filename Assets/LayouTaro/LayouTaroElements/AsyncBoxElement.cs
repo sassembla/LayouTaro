@@ -51,9 +51,4 @@ public class AsyncBoxElement : LTAsyncRootElement
 
         return r;
     }
-
-    public override void OnMissingCharFound<T>(string fontName, char[] chars, float x, float y, Action<T> onInput, Action onIgnore)
-    {
-        throw new NotImplementedException();
-    }
 }

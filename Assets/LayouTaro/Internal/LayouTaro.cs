@@ -95,7 +95,7 @@ namespace UILayouTaro
         // async series.
 
 
-        public static IEnumerator LayoutAsync<T>(Transform parent, Vector2 size, T rootElement, ILayouterAsync layouter) where T : LTAsyncRootElement
+        public static IEnumerator LayoutAsync<T>(Transform parent, Vector2 size, T rootElement, IAsyncLayouter layouter) where T : LTAsyncRootElement
         {
             Debug.Assert(parent.GetComponent<Canvas>() != null, "should set parent transform which contains Canvas. this limitation is caused by spec of TextMesh Pro.");
             var originX = 0f;
@@ -154,6 +154,66 @@ namespace UILayouTaro
         }
 
 
-        // このへんにRelayoutAsyncが入る
+        public static IEnumerator RelayoutWithUpdateAsync<T>(Vector2 size, T rootElement, Dictionary<LTElementType, object> updateValues, IAsyncLayouter layouter) where T : LTAsyncRootElement
+        {
+            var originX = 0f;
+            var originY = 0f;
+
+            var rootObject = rootElement.gameObject;
+            var elements = rootElement.GetLTElements();
+            foreach (var element in elements)
+            {
+                if (element is ILayoutableText)
+                {
+                    if (0 < element.transform.childCount)
+                    {
+                        var count = element.transform.childCount;
+                        for (var i = 0; i < count; i++)
+                        {
+                            // get first child.
+                            var child = element.transform.GetChild(0);
+                            child.gameObject.SetActive(false);
+                            child.transform.SetParent(null);
+                            GameObject.Destroy(child.gameObject);
+                        }
+                    }
+                }
+
+                var rectTrans = element.GetComponent<RectTransform>();
+                rectTrans.anchoredPosition = Vector2.zero;
+            }
+
+            layouter.UpdateValuesAsync(elements, updateValues);
+
+            var lineContents = new List<RectTransform>();// 同じ行に入っている要素を整列させるために使用するリスト
+            var currentLineMaxHeight = 0f;
+
+            var opId = Guid.NewGuid().ToString();
+
+            // この下のレイヤーで全ての非同期layout処理を集める。
+            var layoutOps = layouter.LayoutAsync(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+
+            var layouted = false;
+            ParameterReference resultRefObject = null;
+
+            AsyncLayoutExecutor.LaunchLayoutOps(
+                opId,
+                layoutOps,
+                pos =>
+                {
+                    layouted = true;
+                    resultRefObject = pos;
+                }
+            );
+
+            while (!layouted)
+            {
+                yield return null;
+            }
+
+            layouter.AfterLayout(size, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
+
+            lineContents.Clear();
+        }
     }
 }

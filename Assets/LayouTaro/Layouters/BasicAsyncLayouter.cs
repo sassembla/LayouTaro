@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using UILayouTaro;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class BasicAsyncLayouter : ILayouterAsync
+public class BasicAsyncLayouter : IAsyncLayouter
 {
     /*
         子要素をレイアウトし、親要素が余白ありでそれを包む。
@@ -123,6 +124,33 @@ public class BasicAsyncLayouter : ILayouterAsync
         {
             var rectTrans = e.GetComponent<RectTransform>();
             rectTrans.anchoredPosition = new Vector2(rectTrans.anchoredPosition.x + outsideSpacing, rectTrans.anchoredPosition.y - outsideSpacing);// ルートの下のエレメントの要素をスペース分移動する。yは-なので-する。
+        }
+    }
+
+    public void UpdateValuesAsync(LTAsyncElement[] elements, Dictionary<LTElementType, object> updateValues)
+    {
+        foreach (var e in elements)
+        {
+            switch (e.GetLTElementType())
+            {
+                case LTElementType.AsyncImage:
+                    var i = (AsyncImageElement)e;
+
+                    // get value from updateValues and cast to the type what you set.
+                    var p = updateValues[LTElementType.AsyncImage] as Image;
+                    i.Image = p;
+                    break;
+                case LTElementType.AsyncText:
+                    var t = (AsyncTextElement)e;
+
+                    // get value from updateValues and cast to the type what you set.
+                    var tVal = updateValues[LTElementType.AsyncText] as string;
+                    t.TextContent = tVal;
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 }
