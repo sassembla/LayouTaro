@@ -10,7 +10,7 @@ namespace UILayouTaro
     public class InternalAsyncMissingTextRect : LTAsyncLoadableElement, ILayoutableRect
     {
         private Vector2 Size;
-        public static GameObject GO<T>(T parentTextElement, string text) where T : LTAsyncElement, ILayoutableText
+        public static InternalAsyncMissingTextRect New<T, U>(T parentTextElement, string text) where T : LTAsyncElement, ILayoutableText where U : IMissingSpriteCache, new()
         {
             var go = parentTextElement.GenerateGO(text);
 
@@ -50,68 +50,38 @@ namespace UILayouTaro
             // サイズを一旦TMProの情報をもとに決定する
             missingTextRect.Size = size;
 
-
-
             /*
-                ポイント数
                 フォント名
+                ポイント数
                 表示幅
                 表示高さ
                 コードポイント
             */
-            var fontSize = textComponent.fontSize;
             var fontName = textComponent.font.name;
+            var fontSize = textComponent.fontSize;
             var requestWidth = size.x;
             var requestHeight = size.y;
 
-            // これらの要素をもとに、インターフェースを切ろう。ここではtextがくる。
-            Debug.LogWarning("ここでSpriteのキャッシュを当てる");
+            var cacheInstance = InternalCachePool.Get<U>();
 
-            Debug.LogWarning("ここでSpriteの同じ文字のロードをとめる、完了したらここから引っ張る");
-
-
-
-            // ここで条件があればキャッシュヒットが成立する。
-            /*
-                Coroutineがあれば回す側で継続中かどうか判断できる。IsLoadingの代わりにCorを渡すのはアリ
-                なので、終了条件は特に必要ない。
-                Corがnullなのはやめて欲しいけど、サイズと画像をセットできればそれでいいはずなんだよな。
-                要素の方に寄せるにはどうすればいい。要素にセットするComponentを返すか。いや、別に自分自身がスタートした方が速いな。
-            */
-
-            IEnumerator load()
-            {
-                // この部分に独自でURLを渡せればいいよね。
-                var url = "https://dummyimage.com/" + size.x + "x" + size.y;
-                var req = UnityWebRequestTexture.GetTexture(
-                    url
-                );
-
-                var p = req.SendWebRequest();
-                while (!p.isDone)
+            cacheInstance.LoadMissingText(
+                fontName,
+                fontSize,
+                requestWidth,
+                requestHeight,
+                text,
+                cor =>
                 {
-                    yield return null;
-                }
-
-                // ローディングフラグを下げる
-                missingTextRect.IsLoading = false;
-
-                if (req.isNetworkError || req.isHttpError)
+                    missingTextRect.StartCoroutine(cor);
+                },
+                data =>
                 {
-                    Debug.Log("サイズを変更せずにロード処理が終わる");
-                    yield break;
-                }
+                    missingTextRect.IsLoading = false;
 
-                if (200 <= req.responseCode && req.responseCode < 299)
-                {
-                    // テクスチャ作成
-                    var tex = DownloadHandlerTexture.GetContent(req);
-
-                    // スプライトを取り出せるようになった、うーん、はい。どのレイヤーで切り出すのがいいんだろう。
-                    var spr = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.zero);
+                    var spr = Sprite.Create(data, new Rect(0, 0, data.width, data.height), Vector2.zero);
 
                     // サイズを更新
-                    rectTrans.sizeDelta = new Vector2(tex.width, tex.height);
+                    rectTrans.sizeDelta = new Vector2(data.width, data.height);
 
                     // tmProのコンポーネントを排除する(子供があるとそれを描画しようとしてエラーが出る)
                     GameObject.Destroy(textComponent);
@@ -138,18 +108,17 @@ namespace UILayouTaro
 
                     // 決定後のサイズを入力する
                     missingTextRect.Size = rectTrans.sizeDelta;
+                },
+                () =>
+                {
+                    missingTextRect.IsLoading = false;
                 }
-            }
-
-            var cor = load();
-
-            Debug.LogWarning("ここで開始しちゃって構わないんだけど、なんかいい方法ないかな、まあキャッシュヒットとかをどう盛り込むかで変わっちゃうのか");
-            missingTextRect.StartCoroutine(cor);
+            );
 
             // ローディングフラグを立てる
             missingTextRect.IsLoading = true;
 
-            return go;
+            return missingTextRect;
         }
 
         public override LTElementType GetLTElementType()

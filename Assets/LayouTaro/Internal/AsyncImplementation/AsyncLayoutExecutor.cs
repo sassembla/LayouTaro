@@ -42,7 +42,7 @@ namespace UILayouTaro
                     // 終了検知
                     if (!cont)
                     {
-                        Debug.Log("このOpsのCor終了！");
+                        Debug.LogWarning("このOpsのCor終了！");
 
                         // 処理が終了したOperationを取り除く。
                         ops.RemoveAt(0);

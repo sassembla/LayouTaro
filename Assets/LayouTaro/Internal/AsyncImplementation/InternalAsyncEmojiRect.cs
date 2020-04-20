@@ -10,7 +10,7 @@ namespace UILayouTaro
     public class InternalAsyncEmojiRect : LTAsyncLoadableElement, ILayoutableRect
     {
         private Vector2 Size;
-        public static InternalAsyncEmojiRect New<T>(T parentTextElement, Char[] chars) where T : LTAsyncElement, ILayoutableText
+        public static InternalAsyncEmojiRect New<T, U>(T parentTextElement, Char[] chars) where T : LTAsyncElement, ILayoutableText where U : IMissingSpriteCache, new()
         {
             var emojiOrMarkStr = new string(chars);
 
@@ -89,66 +89,38 @@ namespace UILayouTaro
                     表示高さ
                     コードポイント
                 */
-                var fontSize = textComponent.fontSize;
                 var fontName = textComponent.font.name;
+                var fontSize = textComponent.fontSize;
                 var requestWidth = size.x;
                 var requestHeight = size.y;
 
-                // これらの要素をもとに、インターフェースを切ろう。この部分を可換にする。
-                /*
-                    ・パラメータをもとにURLを返す
+                var cacheInstance = InternalCachePool.Get<U>();
 
-                    ・キャッシュがあったらキャッシュを返す
-                    ・同じ文字が別のところでロード中であれば待たせる
-                        終わったら画像とサイズをセットする
-
-                    ロード方法は選択肢があるべきだが、まあURL取得からのキャッシュに全部寄せていいと思う
-                    かっこよく拡張可能にはしたい。Funcとして提供すればいい。
-
-                    キャッシュクリアをどうしよう。まあHitCacheとかを関数としてグローバルで用意するのがいいな。
-                */
-
-
-                IEnumerator load()
-                {
-                    // この部分に独自でURLを渡せればいいよね。
-                    var url = "https://dummyimage.com/" + size.x + "x" + size.y + "/" + codePoint + "/000000";
-                    var req = UnityWebRequestTexture.GetTexture(
-                        url
-                    );
-
-                    var p = req.SendWebRequest();
-                    while (!p.isDone)
+                cacheInstance.LoadMissingEmojiOrMark(
+                    fontName,
+                    fontSize,
+                    requestWidth,
+                    requestHeight,
+                    codePoint,
+                    cor =>
                     {
-                        yield return null;
-                    }
-
-                    // ローディングフラグを下げる
-                    emojiRect.IsLoading = false;
-
-                    if (req.isNetworkError || req.isHttpError)
+                        emojiRect.StartCoroutine(cor);
+                    },
+                    data =>
                     {
-                        Debug.Log("サイズを変更せずにロード処理が終わる");
-                        yield break;
-                    }
+                        emojiRect.IsLoading = false;
 
-                    if (200 <= req.responseCode && req.responseCode < 299)
-                    {
-                        // テクスチャ作成
-                        var tex = DownloadHandlerTexture.GetContent(req);
-
-                        // スプライトを取り出せるようになった、うーん、はい。どのレイヤーで切り出すのがいいんだろう。
-                        var spr = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.zero);
+                        var spr = Sprite.Create(data, new Rect(0, 0, data.width, data.height), Vector2.zero);
 
                         // サイズを更新
-                        rectTrans.sizeDelta = new Vector2(tex.width, tex.height);
+                        rectTrans.sizeDelta = new Vector2(data.width, data.height);
 
                         // tmProのコンポーネントを排除する(子供があるとそれを描画しようとしてエラーが出る)
                         GameObject.Destroy(textComponent);
 
                         if (0 < rectTrans.childCount)
                         {
-                            // TMProの絵文字(カラ)が置いてあるコンポーネントを削除し、代わりにSpriteを置く
+                            // TMProの文字(カラ)が置いてあるコンポーネントを削除する
                             var emojiChild = rectTrans.GetChild(0);
                             GameObject.Destroy(emojiChild.gameObject);
                         }
@@ -168,13 +140,12 @@ namespace UILayouTaro
 
                         // 決定後のサイズを入力する
                         emojiRect.Size = rectTrans.sizeDelta;
+                    },
+                    () =>
+                    {
+                        emojiRect.IsLoading = false;
                     }
-                }
-
-                var cor = load();
-
-                Debug.LogWarning("ロード自体はここで開始しちゃって構わないんだけど、なんかいい方法ないかな、まあキャッシュヒットとかをどう盛り込むかで変わっちゃうのか。");
-                emojiRect.StartCoroutine(cor);
+                );
 
                 // ローディングフラグを立てる
                 emojiRect.IsLoading = true;

@@ -75,7 +75,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
             非同期を底の方まで連れて行きたい、という需要があるので、すべてをIEnumeratorで回すか、ああ、
             上の方で実行しても勝手に回ってくれる必要があるのか、うん。じゃあ独自Updateかな。
         */
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -120,7 +120,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -164,7 +164,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -205,7 +205,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -247,7 +247,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -302,7 +302,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -346,7 +346,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -388,7 +388,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -432,7 +432,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -471,7 +471,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,

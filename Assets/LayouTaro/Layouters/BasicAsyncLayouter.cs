@@ -10,7 +10,7 @@ public class BasicAsyncLayouter : IAsyncLayouter
         子要素をレイアウトし、親要素が余白ありでそれを包む。
         outを使いたいから、非同期な計算を行う実行体をここから返すようにする。
     */
-    public List<AsyncLayoutOperation> LayoutAsync(Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+    public List<AsyncLayoutOperation> LayoutAsync<T>(Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : IMissingSpriteCache, new()
     {
         var outsideSpacing = 10f;
 
@@ -42,7 +42,7 @@ public class BasicAsyncLayouter : IAsyncLayouter
 
                     // 概念的に、後でレイアウトする対象をレイアウト処理順にAddしている。
                     layoutOps.Add(
-                        BasicAsyncLayoutFunctions.RectLayoutAsync(
+                        BasicAsyncLayoutFunctions.RectLayoutAsync<T>(
                             imageElement,
                             currentElementRectTrans,
                             imageElement.RectSize(),
@@ -60,7 +60,7 @@ public class BasicAsyncLayouter : IAsyncLayouter
                     var contentText = newTailTextElement.Text();
 
                     layoutOps.Add(
-                        BasicAsyncLayoutFunctions.TextLayoutAsync(
+                        BasicAsyncLayoutFunctions.TextLayoutAsync<AsyncTextElement, T>(
                             newTailTextElement,
                             contentText,
                             currentElementRectTrans,
@@ -77,7 +77,7 @@ public class BasicAsyncLayouter : IAsyncLayouter
                     var buttonElement = (AsyncButtonElement)element;
 
                     layoutOps.Add(
-                        BasicAsyncLayoutFunctions.RectLayoutAsync(
+                        BasicAsyncLayoutFunctions.RectLayoutAsync<T>(
                             buttonElement,
                             currentElementRectTrans,
                             buttonElement.RectSize(),

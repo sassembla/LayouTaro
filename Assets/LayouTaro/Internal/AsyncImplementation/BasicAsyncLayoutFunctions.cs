@@ -37,7 +37,7 @@ namespace UILayouTaro
 
     public static class BasicAsyncLayoutFunctions
     {
-        public static AsyncLayoutOperation TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTAsyncElement, ILayoutableText
+        public static AsyncLayoutOperation TextLayoutAsync<T, U>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTAsyncElement, ILayoutableText where U : IMissingSpriteCache, new()
         {
             Debug.Assert(rectTrans.pivot.x == 0 && rectTrans.pivot.y == 1 && rectTrans.anchorMin.x == 0 && rectTrans.anchorMin.y == 1 && rectTrans.anchorMax.x == 0 && rectTrans.anchorMax.y == 1, "rectTransform for BasicAsyncLayoutFunctions.TextLayoutAsync should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             Debug.Assert(textElement.transform.childCount == 0, "BasicAsyncLayoutFunctions.TextLayoutAsync not allows text element which has child.");
@@ -57,7 +57,7 @@ namespace UILayouTaro
                 );
             }
 
-            var cor = _TextLayoutAsync(textElement, contentText, rectTrans, viewWidth, refs);
+            var cor = _TextLayoutAsync<T, U>(textElement, contentText, rectTrans, viewWidth, refs);
             return new AsyncLayoutOperation(
                 rectTrans,
                 refs,
@@ -69,11 +69,11 @@ namespace UILayouTaro
             );
         }
 
-        public static AsyncLayoutOperation RectLayoutAsync(LTAsyncElement rectElement, RectTransform rectTrans, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        public static AsyncLayoutOperation RectLayoutAsync<T>(LTAsyncElement rectElement, RectTransform rectTrans, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : IMissingSpriteCache, new()
         {
             var refs = new ParameterReference(originX, originY, restWidth, currentLineMaxHeight, lineContents);
 
-            var cor = _RectLayoutAsync(rectElement, rectTrans, rectSize, viewWidth, refs);
+            var cor = _RectLayoutAsync<T>(rectElement, rectTrans, rectSize, viewWidth, refs);
             return new AsyncLayoutOperation(
                 rectTrans,
                 refs,
@@ -89,7 +89,7 @@ namespace UILayouTaro
             内部的な実装部
             どこかから先をstaticではないように作ると良さそう。キャッシュが切れる。まあTextにセットしてあるフォント単位でキャッシュ作っちゃうけどね。
         */
-        private static IEnumerator _TextLayoutAsync<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ParameterReference refs) where T : LTAsyncElement, ILayoutableText
+        private static IEnumerator _TextLayoutAsync<T, U>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ParameterReference refs) where T : LTAsyncElement, ILayoutableText where U : IMissingSpriteCache, new()
         {
             var continueContent = false;
 
@@ -129,7 +129,7 @@ namespace UILayouTaro
                 textComponent.rectTransform.sizeDelta = new Vector2(refs.restWidth, 0);// 高さが0で問題ない。
 
                 // この内部で全てのレイアウトを終わらせる。
-                var cor = LayoutContentWithEmojiAsync(textElement, contentText, viewWidth, refs);
+                var cor = LayoutContentWithEmojiAsync<T, U>(textElement, contentText, viewWidth, refs);
                 Debug.LogWarning("たぶんここで1f食ってる");
                 while (cor.MoveNext())
                 {
@@ -150,7 +150,7 @@ namespace UILayouTaro
                 textComponent.rectTransform.sizeDelta = new Vector2(refs.restWidth, 0);// 高さが0で問題ない。
 
                 // missingを含んでいるので、内部でテキストとmissingに分解、レイアウトする。
-                var cor = LayoutContentWithMissingTextAsync(textElement, contentText, viewWidth, refs);
+                var cor = LayoutContentWithMissingTextAsync<T, U>(textElement, contentText, viewWidth, refs);
                 while (cor.MoveNext())
                 {
                     yield return null;
@@ -369,7 +369,7 @@ namespace UILayouTaro
             yield break;
         }
 
-        private static IEnumerator LayoutContentWithEmojiAsync<T>(T textElement, string contentText, float viewWidth, ParameterReference refs) where T : LTAsyncElement, ILayoutableText
+        private static IEnumerator LayoutContentWithEmojiAsync<T, U>(T textElement, string contentText, float viewWidth, ParameterReference refs) where T : LTAsyncElement, ILayoutableText where U : IMissingSpriteCache, new()
         {
             /*
                 絵文字が含まれている文字列を、絵文字と矩形に分解、再構成を行う。絵文字を単に画像が入る箱としてRectLayoutに放り込む。
@@ -377,7 +377,7 @@ namespace UILayouTaro
                 自分自身を書き換えて、一連のコマンドを実行するようにする。
                 文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
             */
-            var elementsWithEmoji = CollectEmojiAndMarkAndTextElement(textElement, contentText);
+            var elementsWithEmoji = CollectEmojiAndMarkAndTextElement<T, U>(textElement, contentText);
 
             for (var i = 0; i < elementsWithEmoji.Count; i++)
             {
@@ -390,7 +390,7 @@ namespace UILayouTaro
                 {
                     // emojiRectが入っている
                     var internalRectElement = (InternalAsyncEmojiRect)element;
-                    var cor = _EmojiRectLayoutAsync(internalRectElement, rectTrans, viewWidth, refs);
+                    var cor = _EmojiRectLayoutAsync<U>(internalRectElement, rectTrans, viewWidth, refs);
 
                     while (cor.MoveNext())
                     {
@@ -404,7 +404,7 @@ namespace UILayouTaro
                 var internalTextElement = (T)element;
                 var internalContentText = internalTextElement.Text();
 
-                var textCor = _TextLayoutAsync(internalTextElement, internalContentText, rectTrans, viewWidth, refs);
+                var textCor = _TextLayoutAsync<T, U>(internalTextElement, internalContentText, rectTrans, viewWidth, refs);
                 while (textCor.MoveNext())
                 {
                     yield return null;
@@ -414,7 +414,7 @@ namespace UILayouTaro
             yield break;
         }
 
-        private static List<LTAsyncElement> CollectEmojiAndMarkAndTextElement<T>(T textElement, string contentText) where T : LTAsyncElement, ILayoutableText
+        private static List<LTAsyncElement> CollectEmojiAndMarkAndTextElement<T, U>(T textElement, string contentText) where T : LTAsyncElement, ILayoutableText where U : IMissingSpriteCache, new()
         {
             var elementsWithEmoji = new List<LTAsyncElement>();
 
@@ -439,7 +439,7 @@ namespace UILayouTaro
                     length = 0;
 
                     // 記号確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
-                    var emojiElement = InternalAsyncEmojiRect.New(textElement, new Char[] { firstChar });
+                    var emojiElement = InternalAsyncEmojiRect.New<T, U>(textElement, new Char[] { firstChar });
                     elementsWithEmoji.Add(emojiElement);
 
                     // 文字は次から始まる、、かもしれない。
@@ -475,7 +475,7 @@ namespace UILayouTaro
                     if (isSurrogatePair)
                     {
                         // サロゲートペア確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
-                        var emojiElement = InternalAsyncEmojiRect.New(textElement, new Char[] { firstChar, nextChar });
+                        var emojiElement = InternalAsyncEmojiRect.New<T, U>(textElement, new Char[] { firstChar, nextChar });
                         elementsWithEmoji.Add(emojiElement);
 
                         // 文字は次の次から始まる、、かもしれない。
@@ -508,13 +508,13 @@ namespace UILayouTaro
 
 
 
-        private static IEnumerator LayoutContentWithMissingTextAsync<T>(T textElement, string contentText, float viewWidth, ParameterReference refs) where T : LTAsyncElement, ILayoutableText
+        private static IEnumerator LayoutContentWithMissingTextAsync<T, U>(T textElement, string contentText, float viewWidth, ParameterReference refs) where T : LTAsyncElement, ILayoutableText where U : IMissingSpriteCache, new()
         {
             /*
                 missingな文字が含まれている文字列を、文字と矩形に分解、再構成を行う。missing文字を単に画像が入る箱としてRectLayoutに放り込む。
                 文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
             */
-            var elementsWithMissing = CollectMissingAndTextElement(textElement, contentText);
+            var elementsWithMissing = CollectMissingAndTextElement<T, U>(textElement, contentText);
 
             for (var i = 0; i < elementsWithMissing.Count; i++)
             {
@@ -527,7 +527,7 @@ namespace UILayouTaro
                 {
                     // missingTextRectが入っている
                     var internalRectElement = (InternalAsyncMissingTextRect)element;
-                    var cor = _MissingTextRectLayoutAsync(internalRectElement, rectTrans, viewWidth, refs);
+                    var cor = _MissingTextRectLayoutAsync<U>(internalRectElement, rectTrans, viewWidth, refs);
 
                     while (cor.MoveNext())
                     {
@@ -541,7 +541,7 @@ namespace UILayouTaro
                 var internalTextElement = (T)element;
                 var internalContentText = internalTextElement.Text();
 
-                var textCor = _TextLayoutAsync(internalTextElement, internalContentText, rectTrans, viewWidth, refs);
+                var textCor = _TextLayoutAsync<T, U>(internalTextElement, internalContentText, rectTrans, viewWidth, refs);
                 while (textCor.MoveNext())
                 {
                     yield return null;
@@ -551,7 +551,7 @@ namespace UILayouTaro
             yield break;
         }
 
-        private static List<LTAsyncElement> CollectMissingAndTextElement<T>(T textElement, string contentText) where T : LTAsyncElement, ILayoutableText
+        private static List<LTAsyncElement> CollectMissingAndTextElement<T, U>(T textElement, string contentText) where T : LTAsyncElement, ILayoutableText where U : IMissingSpriteCache, new()
         {
             var elementsWithMissing = new List<LTAsyncElement>();
             var font = textElement.GetComponent<TextMeshProUGUI>().font;
@@ -577,7 +577,7 @@ namespace UILayouTaro
                     length = 0;
 
                     // missing文字確定。なので、箱的な要素として扱い、次の文字を飛ばす処理を行う。
-                    var missingTextElement = InternalAsyncMissingTextRect.GO(textElement, contentText.Substring(i, 1)).GetComponent<InternalAsyncMissingTextRect>();
+                    var missingTextElement = InternalAsyncMissingTextRect.New<T, U>(textElement, contentText.Substring(i, 1));
                     elementsWithMissing.Add(missingTextElement);
 
                     // 文字は次から始まる、、かもしれない。
@@ -605,7 +605,7 @@ namespace UILayouTaro
 
 
 
-        private static IEnumerator _EmojiRectLayoutAsync(InternalAsyncEmojiRect rectElement, RectTransform transform, float viewWidth, ParameterReference refs)
+        private static IEnumerator _EmojiRectLayoutAsync<T>(InternalAsyncEmojiRect rectElement, RectTransform transform, float viewWidth, ParameterReference refs) where T : IMissingSpriteCache, new()
         {
             // ここでサイズを確定させている。レイアウト対象の画像が存在していれば、GOを作成したタイミングでサイズが確定されているが、
             // もし対象が見つかっていない場合、このelementは既に通信を行っている。その場合、ここで完了を待つことができる。
@@ -616,14 +616,14 @@ namespace UILayouTaro
             }
 
             var rectSize = rectElement.RectSize();
-            var cor = _RectLayoutAsync(rectElement, transform, rectSize, viewWidth, refs);
+            var cor = _RectLayoutAsync<T>(rectElement, transform, rectSize, viewWidth, refs);
             while (cor.MoveNext())
             {
                 yield return null;
             }
         }
 
-        private static IEnumerator _MissingTextRectLayoutAsync(InternalAsyncMissingTextRect rectElement, RectTransform transform, float viewWidth, ParameterReference refs)
+        private static IEnumerator _MissingTextRectLayoutAsync<T>(InternalAsyncMissingTextRect rectElement, RectTransform transform, float viewWidth, ParameterReference refs) where T : IMissingSpriteCache, new()
         {
             // ここでサイズを確定させている。レイアウト対象の画像が存在していれば、GOを作成したタイミングでサイズが確定されているが、
             // もし対象が見つかっていない場合、このelementは既に通信を行っている。その場合、ここで完了を待つことができる。
@@ -634,14 +634,14 @@ namespace UILayouTaro
             }
 
             var rectSize = rectElement.RectSize();
-            var cor = _RectLayoutAsync(rectElement, transform, rectSize, viewWidth, refs);
+            var cor = _RectLayoutAsync<T>(rectElement, transform, rectSize, viewWidth, refs);
             while (cor.MoveNext())
             {
                 yield return null;
             }
         }
 
-        private static IEnumerator _RectLayoutAsync(LTAsyncElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ParameterReference refs)
+        private static IEnumerator _RectLayoutAsync<T>(LTAsyncElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ParameterReference refs) where T : IMissingSpriteCache, new()
         {
             Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
 

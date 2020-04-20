@@ -100,7 +100,7 @@ public class ErrorTests : MiyamasuTestRunner
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -173,7 +173,7 @@ public class ErrorTests : MiyamasuTestRunner
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,

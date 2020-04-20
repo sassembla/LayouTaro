@@ -95,7 +95,7 @@ namespace UILayouTaro
         // async series.
 
 
-        public static IEnumerator LayoutAsync<T>(Transform parent, Vector2 size, T rootElement, IAsyncLayouter layouter) where T : LTAsyncRootElement
+        public static IEnumerator LayoutAsync<T>(Transform parent, Vector2 size, LTAsyncRootElement rootElement, IAsyncLayouter layouter) where T : IMissingSpriteCache, new()
         {
             Debug.Assert(parent.GetComponent<Canvas>() != null, "should set parent transform which contains Canvas. this limitation is caused by spec of TextMesh Pro.");
             var originX = 0f;
@@ -124,7 +124,7 @@ namespace UILayouTaro
             var opId = Guid.NewGuid().ToString();
 
             // この下のレイヤーで全ての非同期layout処理を集める。
-            var layoutOps = layouter.LayoutAsync(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+            var layoutOps = layouter.LayoutAsync<T>(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
 
             var layouted = false;
             ParameterReference resultRefObject = null;
@@ -154,7 +154,7 @@ namespace UILayouTaro
         }
 
 
-        public static IEnumerator RelayoutWithUpdateAsync<T>(Vector2 size, T rootElement, Dictionary<LTElementType, object> updateValues, IAsyncLayouter layouter) where T : LTAsyncRootElement
+        public static IEnumerator RelayoutWithUpdateAsync<T>(Vector2 size, LTAsyncRootElement rootElement, Dictionary<LTElementType, object> updateValues, IAsyncLayouter layouter) where T : IMissingSpriteCache, new()
         {
             var originX = 0f;
             var originY = 0f;
@@ -191,7 +191,7 @@ namespace UILayouTaro
             var opId = Guid.NewGuid().ToString();
 
             // この下のレイヤーで全ての非同期layout処理を集める。
-            var layoutOps = layouter.LayoutAsync(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+            var layoutOps = layouter.LayoutAsync<T>(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
 
             var layouted = false;
             ParameterReference resultRefObject = null;

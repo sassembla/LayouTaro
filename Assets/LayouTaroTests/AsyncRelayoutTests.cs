@@ -67,7 +67,7 @@ public class AsyncRelayoutTests : MiyamasuTestRunner
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -79,7 +79,7 @@ public class AsyncRelayoutTests : MiyamasuTestRunner
         rectTrans.localScale = Vector3.one;
 
         // update element values and re-layout with same GameObject.
-        yield return LayouTaro.RelayoutWithUpdateAsync(
+        yield return LayouTaro.RelayoutWithUpdateAsync<BasicMissingSpriteCache>(
             size,
             box,
             new Dictionary<LTElementType, object> {
@@ -119,7 +119,7 @@ public class AsyncRelayoutTests : MiyamasuTestRunner
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -133,7 +133,7 @@ public class AsyncRelayoutTests : MiyamasuTestRunner
         yield return null;
 
         // update element values and re-layout with same GameObject.
-        yield return LayouTaro.RelayoutWithUpdateAsync(
+        yield return LayouTaro.RelayoutWithUpdateAsync<BasicMissingSpriteCache>(
             size,
             box,
             new Dictionary<LTElementType, object> {
@@ -180,7 +180,7 @@ public class AsyncRelayoutTests : MiyamasuTestRunner
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -192,7 +192,7 @@ public class AsyncRelayoutTests : MiyamasuTestRunner
         rectTrans.localScale = Vector3.one;
 
         // update element values and re-layout with same GameObject.
-        yield return LayouTaro.RelayoutWithUpdateAsync(
+        yield return LayouTaro.RelayoutWithUpdateAsync<BasicMissingSpriteCache>(
             size,
             box,
             new Dictionary<LTElementType, object> {

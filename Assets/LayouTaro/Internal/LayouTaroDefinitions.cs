@@ -40,7 +40,7 @@ namespace UILayouTaro
 
     public interface IAsyncLayouter
     {
-        List<AsyncLayoutOperation> LayoutAsync(Vector2 size, out float originX, out float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents);
+        List<AsyncLayoutOperation> LayoutAsync<T>(Vector2 size, out float originX, out float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : IMissingSpriteCache, new();
         void AfterLayout(Vector2 viewSize, float originX, float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents);
         void UpdateValuesAsync(LTAsyncElement[] elements, Dictionary<LTElementType, object> updateValues);
     }
@@ -57,5 +57,28 @@ namespace UILayouTaro
         GameObject GenerateGO(string text);
     }
 
+    public interface IMissingSpriteCache
+    {
+        void LoadMissingText(
+            string fontName,
+            float fontSize,
+            float requestWidth,
+            float requestHeight,
+            string text,
+            Action<IEnumerator> onRequest,
+            Action<Texture2D> onSucceeded,
+            Action onFailed
+        );
 
+        void LoadMissingEmojiOrMark(
+            string fontName,
+            float fontSize,
+             float requestWidth,
+             float requestHeight,
+             uint codePoint,
+            Action<IEnumerator> onRequest,
+            Action<Texture2D> onSucceeded,
+            Action onFailed
+        );
+    }
 }

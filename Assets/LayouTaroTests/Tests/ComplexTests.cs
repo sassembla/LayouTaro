@@ -62,7 +62,7 @@ public class ComplexTests : MiyamasuTestRunner
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
