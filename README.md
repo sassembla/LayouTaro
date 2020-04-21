@@ -313,7 +313,7 @@ This functions helps:
 * layouts rect with the rest of the width of view.
 * centerlize the elements by the highest element in the line of elements.
 
-and alsp async version do same things asynchronously.
+and also async version do same things asynchronously.
 
 ## Install
 
