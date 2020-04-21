@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
 
 namespace UILayouTaro
@@ -82,6 +80,9 @@ namespace UILayouTaro
             }
             else
             {
+                // ローディングフラグを立てる
+                emojiRect.IsLoading = true;
+
                 /*
                     ポイント数
                     フォント名
@@ -146,9 +147,6 @@ namespace UILayouTaro
                         emojiRect.IsLoading = false;
                     }
                 );
-
-                // ローディングフラグを立てる
-                emojiRect.IsLoading = true;
             }
 
             return emojiRect;

@@ -18,7 +18,7 @@ public class BasicMissingSpriteCache : IMissingSpriteCache
 
     public void LoadMissingText(string fontName, float fontSize, float requestWidth, float requestHeight, string text, Action<IEnumerator> onRequest, Action<Texture2D> onSucceeded, Action onFailed)
     {
-        var cacheKey = fontName + "_" + fontSize + "_" + text;
+        var cacheKey = "https://dummyimage.com/" + requestWidth + "x" + requestHeight + "/" + text;// fontName + "_" + fontSize + "_" + text;
         if (textureDict.ContainsKey(cacheKey))
         {
             var tex = textureDict[cacheKey];
@@ -53,8 +53,7 @@ public class BasicMissingSpriteCache : IMissingSpriteCache
 
         IEnumerator load()
         {
-            var url = "https://dummyimage.com/" + requestWidth + "x" + requestHeight;
-            var req = UnityWebRequestTexture.GetTexture(url);
+            var req = UnityWebRequestTexture.GetTexture(cacheKey);
 
             var p = req.SendWebRequest();
             while (!p.isDone)
@@ -73,6 +72,7 @@ public class BasicMissingSpriteCache : IMissingSpriteCache
             {
                 // テクスチャ作成
                 var tex = DownloadHandlerTexture.GetContent(req);
+                textureDict[cacheKey] = tex;
                 onSucceeded(tex);
                 loadingKeys.Remove(cacheKey);
                 yield break;
@@ -87,7 +87,7 @@ public class BasicMissingSpriteCache : IMissingSpriteCache
 
     public void LoadMissingEmojiOrMark(string fontName, float fontSize, float requestWidth, float requestHeight, uint codePoint, Action<IEnumerator> onRequest, Action<Texture2D> onSucceeded, Action onFailed)
     {
-        var cacheKey = fontName + "_" + fontSize + "_" + codePoint;
+        var cacheKey = "https://dummyimage.com/" + requestWidth + "x" + requestHeight + "/" + codePoint;//fontName + "_" + fontSize + "_" + codePoint;
         if (textureDict.ContainsKey(cacheKey))
         {
             var tex = textureDict[cacheKey];
@@ -122,8 +122,7 @@ public class BasicMissingSpriteCache : IMissingSpriteCache
 
         IEnumerator load()
         {
-            var url = "https://dummyimage.com/" + requestWidth + "x" + requestHeight;
-            var req = UnityWebRequestTexture.GetTexture(url);
+            var req = UnityWebRequestTexture.GetTexture(cacheKey);
 
             var p = req.SendWebRequest();
             while (!p.isDone)
@@ -142,6 +141,7 @@ public class BasicMissingSpriteCache : IMissingSpriteCache
             {
                 // テクスチャ作成
                 var tex = DownloadHandlerTexture.GetContent(req);
+                textureDict[cacheKey] = tex;
                 onSucceeded(tex);
                 loadingKeys.Remove(cacheKey);
                 yield break;

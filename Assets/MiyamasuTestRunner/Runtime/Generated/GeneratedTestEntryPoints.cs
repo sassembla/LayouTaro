@@ -294,6 +294,228 @@ public class AsyncLayoutTests_Miyamasu {
         }
     }
 }
+public class AsyncMethodTests_Miyamasu {
+    [UnityTest] public IEnumerator AsyncMethod() {
+        var instance = new AsyncMethodTests();
+        instance.SetInfo("AsyncMethodTests", "AsyncMethod");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethod();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator AsyncMethodComplexPattern() {
+        var instance = new AsyncMethodTests();
+        instance.SetInfo("AsyncMethodTests", "AsyncMethodComplexPattern");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethodComplexPattern();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator AsyncMethodComplexPattern2() {
+        var instance = new AsyncMethodTests();
+        instance.SetInfo("AsyncMethodTests", "AsyncMethodComplexPattern2");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethodComplexPattern2();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator AsyncMethodSimpleEmoji() {
+        var instance = new AsyncMethodTests();
+        instance.SetInfo("AsyncMethodTests", "AsyncMethodSimpleEmoji");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethodSimpleEmoji();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator AsyncMethodWithEmoji() {
+        var instance = new AsyncMethodTests();
+        instance.SetInfo("AsyncMethodTests", "AsyncMethodWithEmoji");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethodWithEmoji();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator AsyncMethodWithEmojiComplex() {
+        var instance = new AsyncMethodTests();
+        instance.SetInfo("AsyncMethodTests", "AsyncMethodWithEmojiComplex");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethodWithEmojiComplex();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator AsyncMethodWithEmojiComplex2() {
+        var instance = new AsyncMethodTests();
+        instance.SetInfo("AsyncMethodTests", "AsyncMethodWithEmojiComplex2");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethodWithEmojiComplex2();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator AsyncMethodDetectMissingEmoji() {
+        var instance = new AsyncMethodTests();
+        instance.SetInfo("AsyncMethodTests", "AsyncMethodDetectMissingEmoji");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethodDetectMissingEmoji();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator AsyncMethodMark() {
+        var instance = new AsyncMethodTests();
+        instance.SetInfo("AsyncMethodTests", "AsyncMethodMark");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethodMark();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator AsyncMethodImageAndButton() {
+        var instance = new AsyncMethodTests();
+        instance.SetInfo("AsyncMethodTests", "AsyncMethodImageAndButton");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethodImageAndButton();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+}
 public class AsyncMissingCharTests_Miyamasu {
     [UnityTest] public IEnumerator GetMissingCharAsync() {
         var instance = new AsyncMissingCharTests();
@@ -599,6 +821,250 @@ public class ErrorTests_Miyamasu {
         }
         var startDate = DateTime.Now;
         yield return instance.MarkContinuesAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+}
+public class FrameTests_Miyamasu {
+    [UnityTest] public IEnumerator BasicPatternFrames() {
+        var instance = new FrameTests();
+        instance.SetInfo("FrameTests", "BasicPatternFrames");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.BasicPatternFrames();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator ComplexPatternFrames() {
+        var instance = new FrameTests();
+        instance.SetInfo("FrameTests", "ComplexPatternFrames");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.ComplexPatternFrames();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator ComplexPattern2Frames() {
+        var instance = new FrameTests();
+        instance.SetInfo("FrameTests", "ComplexPattern2Frames");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.ComplexPattern2Frames();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator SimpleEmojiFrames() {
+        var instance = new FrameTests();
+        instance.SetInfo("FrameTests", "SimpleEmojiFrames");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.SimpleEmojiFrames();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator WithEmojiFrames() {
+        var instance = new FrameTests();
+        instance.SetInfo("FrameTests", "WithEmojiFrames");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.WithEmojiFrames();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator WithEmojiComplexFrames() {
+        var instance = new FrameTests();
+        instance.SetInfo("FrameTests", "WithEmojiComplexFrames");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.WithEmojiComplexFrames();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator WithEmojiComplex2Frames() {
+        var instance = new FrameTests();
+        instance.SetInfo("FrameTests", "WithEmojiComplex2Frames");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.WithEmojiComplex2Frames();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator DetectMissingEmojiFrames() {
+        var instance = new FrameTests();
+        instance.SetInfo("FrameTests", "DetectMissingEmojiFrames");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.DetectMissingEmojiFrames();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator MarkFrames() {
+        var instance = new FrameTests();
+        instance.SetInfo("FrameTests", "MarkFrames");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.MarkFrames();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator ImageAndButtonFrames() {
+        var instance = new FrameTests();
+        instance.SetInfo("FrameTests", "ImageAndButtonFrames");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.ImageAndButtonFrames();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator DetectMissingEmojiContinuesFrames() {
+        var instance = new FrameTests();
+        instance.SetInfo("FrameTests", "DetectMissingEmojiContinuesFrames");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.DetectMissingEmojiContinuesFrames();
         instance.MarkAsPassed((DateTime.Now - startDate).ToString());
 
         

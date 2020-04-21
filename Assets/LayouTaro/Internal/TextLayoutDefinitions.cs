@@ -71,7 +71,7 @@ namespace UILayouTaro
             }
 
             // 存在しないのでfalseを返す
-            return (false, 0);
+            return (false, codePoint);
         }
 
         public static bool TMPro_ChechIfTextCharacterExist(TMP_FontAsset font, char text)

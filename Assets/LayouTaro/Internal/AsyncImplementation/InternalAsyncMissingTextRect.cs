@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
 
 namespace UILayouTaro
@@ -50,12 +48,15 @@ namespace UILayouTaro
             // サイズを一旦TMProの情報をもとに決定する
             missingTextRect.Size = size;
 
+            // ローディングフラグを立てる
+            missingTextRect.IsLoading = true;
+
             /*
                 フォント名
                 ポイント数
                 表示幅
                 表示高さ
-                コードポイント
+                文字
             */
             var fontName = textComponent.font.name;
             var fontSize = textComponent.fontSize;
@@ -114,9 +115,6 @@ namespace UILayouTaro
                     missingTextRect.IsLoading = false;
                 }
             );
-
-            // ローディングフラグを立てる
-            missingTextRect.IsLoading = true;
 
             return missingTextRect;
         }

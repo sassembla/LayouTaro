@@ -6,7 +6,7 @@ using System;
 using System.Text;
 using NUnit.Framework;
 
-public class AsyncLayoutTests : MiyamasuTestRunner
+public class FrameTests : MiyamasuTestRunner
 {
     private Canvas canvas;
 
@@ -47,7 +47,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
 
     [MTest]
-    public IEnumerator BasicPatternAsync()
+    public IEnumerator BasicPatternFrames()
     {
         var box = AsyncBoxElement.GO(
             null,// bg画像
@@ -66,6 +66,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 50);
 
+        var before = Time.frameCount;
         // レイアウトを行う
 
         /*
@@ -84,13 +85,17 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        var after = Time.frameCount;
+
+        Assert.True(before + 1 == after, "not match. before:" + before + " after:" + after);
+
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
     }
 
     [MTest]
-    public IEnumerator ComplexPatternAsync()
+    public IEnumerator ComplexPatternFrames()
     {
 
         var box = AsyncBoxElement.GO(
@@ -114,6 +119,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
+        var before = Time.frameCount;
 
         yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
@@ -126,6 +132,9 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        var after = Time.frameCount;
+        Assert.True(before + 1 == after, "not match. before:" + before + " after:" + after);
+
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
@@ -133,7 +142,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
 
     [MTest]
-    public IEnumerator ComplexPattern2Async()
+    public IEnumerator ComplexPattern2Frames()
     {
 
         var box = AsyncBoxElement.GO(
@@ -157,6 +166,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
+        var before = Time.frameCount;
         // レイアウトを行う
 
         yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
@@ -170,6 +180,9 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        var after = Time.frameCount;
+        Assert.True(before + 1 == after, "not match. before:" + before + " after:" + after);
+
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
@@ -180,7 +193,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         そもそも横にずれてない。文字の後ろに行かない、何かある。
     */
     [MTest]
-    public IEnumerator SimpleEmojiAsync()
+    public IEnumerator SimpleEmojiFrames()
     {
 
         var box = AsyncBoxElement.GO(
@@ -198,6 +211,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
+        var before = Time.frameCount;
         // レイアウトを行う
 
         yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
@@ -211,18 +225,18 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        var after = Time.frameCount;
+        Assert.True(before + 1 == after, "not match. before:" + before + " after:" + after);
+
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
-        while (false)
-        {
-            yield return null;
-        }
+
         yield break;
     }
 
 
     [MTest]
-    public IEnumerator WithEmojiAsync()
+    public IEnumerator WithEmojiFrames()
     {
 
         var box = AsyncBoxElement.GO(
@@ -240,6 +254,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
+        var before = Time.frameCount;
         // レイアウトを行う
 
         yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
@@ -253,6 +268,9 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        var after = Time.frameCount;
+        Assert.True(before + 1 == after, "not match. before:" + before + " after:" + after);
+
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         while (false)
@@ -264,7 +282,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
 
     [MTest]
-    public IEnumerator WithEmojiComplexAsync()
+    public IEnumerator WithEmojiComplexFrames()
     {
 
         var box = AsyncBoxElement.GO(
@@ -295,6 +313,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
+        var before = Time.frameCount;
         // レイアウトを行う
 
         yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
@@ -308,6 +327,9 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        var after = Time.frameCount;
+        Assert.True(before + 1 == after, "not match. before:" + before + " after:" + after);
+
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
 
@@ -315,7 +337,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     }
 
     [MTest]
-    public IEnumerator WithEmojiComplex2Async()
+    public IEnumerator WithEmojiComplex2Frames()
     {
 
         var box = AsyncBoxElement.GO(
@@ -339,6 +361,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
+        var before = Time.frameCount;
         // レイアウトを行う
 
         yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
@@ -352,6 +375,9 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        var after = Time.frameCount;
+        Assert.True(before + 1 == after, "not match. before:" + before + " after:" + after);
+
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
 
@@ -361,7 +387,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
 
     [MTest]
-    public IEnumerator DetectMissingEmojiAsync()
+    public IEnumerator DetectMissingEmojiFrames()
     {
         // generate your own data structure with parameters for UI.
         var box = AsyncBoxElement.GO(
@@ -381,7 +407,38 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         // set the default size of content.
         var size = new Vector2(600, 100);
 
-        // do layout with LayouTaro. the GameObject will be returned with layouted structure.
+
+        var runner = new GameObject().AddComponent<DebugRunner>();
+
+        var cached = false;
+        var currentCache = InternalCachePool.Get<BasicMissingSpriteCache>();
+        // https://dummyimage.com/21.76744x41.39648/129393
+        currentCache.LoadMissingEmojiOrMark(
+            "",
+            0f,
+            21.76744f,
+            41.39648f,
+            129393,
+            iEnum =>
+            {
+                runner.StartCoroutine(iEnum);
+            },
+            tex =>
+            {
+                cached = true;
+            },
+            () =>
+            {
+                Debug.LogError("取得失敗！");
+            }
+        );
+
+        while (!cached)
+        {
+            yield return null;
+        }
+
+        var before = Time.frameCount;
 
         yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
@@ -394,6 +451,10 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        var after = Time.frameCount;
+        Assert.True(before + 1 == after, "not match. before:" + before + " after:" + after);
+
+
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         while (false)
@@ -405,7 +466,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     }
 
     [MTest]
-    public IEnumerator MarkAsync()
+    public IEnumerator MarkFrames()
     {
         // generate your own data structure with parameters for UI.
         var box = AsyncBoxElement.GO(
@@ -425,6 +486,39 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         // set the default size of content.
         var size = new Vector2(600, 100);
 
+        var runner = new GameObject().AddComponent<DebugRunner>();
+
+        var cached = false;
+        var currentCache = InternalCachePool.Get<BasicMissingSpriteCache>();
+        // https://dummyimage.com/21.76744x41.39648/9889
+        currentCache.LoadMissingEmojiOrMark(
+            "",
+            0f,
+            21.76744f,
+            41.39648f,
+            9889,
+            iEnum =>
+            {
+                runner.StartCoroutine(iEnum);
+            },
+            tex =>
+            {
+                cached = true;
+            },
+            () =>
+            {
+                Debug.LogError("取得失敗！");
+            }
+        );
+
+        while (!cached)
+        {
+            yield return null;
+        }
+
+
+        var before = Time.frameCount;
+
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
 
         yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
@@ -438,6 +532,10 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        var after = Time.frameCount;
+        Assert.True(before + 1 == after, "not match. before:" + before + " after:" + after);
+
+
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
 
@@ -445,7 +543,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     }
 
     [MTest]
-    public IEnumerator ImageAndButtonAsync()
+    public IEnumerator ImageAndButtonFrames()
     {
         // generate your own data structure with parameters for UI.
         var box = AsyncBoxElement.GO(
@@ -464,6 +562,8 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         // set the default size of content.
         var size = new Vector2(600, 100);
 
+
+        var before = Time.frameCount;
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
 
         yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
@@ -477,8 +577,91 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        var after = Time.frameCount;
+        Assert.True(before + 1 == after, "not match. before:" + before + " after:" + after);
+
+
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
+
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator DetectMissingEmojiContinuesFrames()
+    {
+        // generate your own data structure with parameters for UI.
+        var box = AsyncBoxElement.GO(
+            null,// UI bg with image
+            () =>
+            {
+                Debug.Log("root box element is tapped.");
+            },
+            AsyncTextElement.GO("\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A\U0001F60A"),// mark is missing by default.
+            AsyncImageElement.GO(null),// image.
+            AsyncButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
+        );
+
+        // generate the layouter which you want to use for layout.
+        var layouter = new BasicAsyncLayouter();
+
+        // set the default size of content.
+        var size = new Vector2(600, 100);
+
+
+        var runner = new GameObject().AddComponent<DebugRunner>();
+
+        var cached = false;
+        var currentCache = InternalCachePool.Get<BasicMissingSpriteCache>();
+        // https://dummyimage.com/21.76744x41.39648/129393
+        currentCache.LoadMissingEmojiOrMark(
+            "",
+            0f,
+            21.76744f,
+            41.39648f,
+            129393,
+            iEnum =>
+            {
+                runner.StartCoroutine(iEnum);
+            },
+            tex =>
+            {
+                cached = true;
+            },
+            () =>
+            {
+                Debug.LogError("取得失敗！");
+            }
+        );
+
+        while (!cached)
+        {
+            yield return null;
+        }
+
+        var before = Time.frameCount;
+
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        var after = Time.frameCount;
+        Assert.True(before + 1 == after, "not match. before:" + before + " after:" + after);
+
+
+        yield return null;
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        while (false)
+        {
+            yield return null;
+        }
 
         yield break;
     }

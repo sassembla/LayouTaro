@@ -30,20 +30,15 @@ namespace UILayouTaro
                 // ここでRectTransformを取り出し、refsのlinedにセットする必要がある。
                 baseRefs.lineContents.Add(targeOp.rectTrans);
 
-                // Debug.Log("first id:" + baseRefs.id + " now frameCount:" + Time.frameCount + " baseRefs:" + baseRefs.ToString());
                 while (true)
                 {
                     var (cont, refs) = targeOp.MoveNext();
-
-                    // Debug.Log("終了:" + !cont + " refs.id:" + refs.id + " baseRefs:" + baseRefs.ToString());
 
                     baseRefs = refs;
 
                     // 終了検知
                     if (!cont)
                     {
-                        Debug.LogWarning("このOpsのCor終了！");
-
                         // 処理が終了したOperationを取り除く。
                         ops.RemoveAt(0);
 
@@ -64,7 +59,6 @@ namespace UILayouTaro
                     }
 
                     // まだ実行中のopsがある場合、yieldで抜ける。
-                    Debug.LogWarning("継続中 opGroup.ops:" + ops.Count);// このログがブロック版でも出ちゃうのなんかあるな。まあはい。
                     yield return (true, refs);
                 }
 
@@ -77,12 +71,21 @@ namespace UILayouTaro
 
         public static void LaunchLayoutOps(string opsId, List<AsyncLayoutOperation> newOps, Action<ParameterReference> onDone)
         {
+            var opsGroup = new OpsGroup(opsId, newOps, onDone);
+            var opsCont = opsGroup.cor.MoveNext();
+            var (cont, pos) = opsGroup.cor.Current;
+            if (!cont)
+            {
+                opsGroup.onDone(pos);
+                return;
+            }
+
             // 最初の一つだったらRunnerを追加する
             if (rootOps.Count == 0)
             {
                 var layoutUpdateSystem = new PlayerLoopSystem()
                 {
-                    type = typeof(AsyncLayoutOperation),
+                    type = typeof(AsyncLayoutExecutor),
                     updateDelegate = LayoutRunner
                 };
 
@@ -101,7 +104,7 @@ namespace UILayouTaro
                 PlayerLoop.SetPlayerLoop(playerLoop);
             }
 
-            rootOps.Add(new OpsGroup(opsId, newOps, onDone));
+            rootOps.Add(opsGroup);
         }
 
         private static void LayoutRunner()
@@ -146,7 +149,7 @@ namespace UILayouTaro
             for (var i = 0; i < count; i++)
             {
                 var item = subSystem[i];
-                if (item.type == typeof(AsyncLayoutOperation))
+                if (item.type == typeof(AsyncLayoutExecutor))
                 {
                     subSystem.RemoveAt(i);
                     break;

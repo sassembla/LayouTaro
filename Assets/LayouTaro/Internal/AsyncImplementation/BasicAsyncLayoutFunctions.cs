@@ -130,7 +130,6 @@ namespace UILayouTaro
 
                 // この内部で全てのレイアウトを終わらせる。
                 var cor = LayoutContentWithEmojiAsync<T, U>(textElement, contentText, viewWidth, refs);
-                Debug.LogWarning("たぶんここで1f食ってる");
                 while (cor.MoveNext())
                 {
                     yield return null;

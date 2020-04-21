@@ -129,8 +129,6 @@ namespace UILayouTaro
             var layouted = false;
             ParameterReference resultRefObject = null;
 
-            Debug.LogWarning("layoutOps[0]をここでいきなりいっぺん回す、というのができるといい気はしている。");
-
             AsyncLayoutExecutor.LaunchLayoutOps(
                 opId,
                 layoutOps,
@@ -149,10 +147,8 @@ namespace UILayouTaro
             layouter.AfterLayout(size, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
 
             lineContents.Clear();
-
             yield break;
         }
-
 
         public static IEnumerator RelayoutWithUpdateAsync<T>(Vector2 size, LTAsyncRootElement rootElement, Dictionary<LTElementType, object> updateValues, IAsyncLayouter layouter) where T : IMissingSpriteCache, new()
         {
@@ -214,6 +210,55 @@ namespace UILayouTaro
             layouter.AfterLayout(size, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
 
             lineContents.Clear();
+        }
+
+
+        public static void LayoutAsync<T>(Transform parent, Vector2 size, LTAsyncRootElement rootElement, IAsyncLayouter layouter, Action onLayouted) where T : IMissingSpriteCache, new()
+        {
+            Debug.Assert(parent.GetComponent<Canvas>() != null, "should set parent transform which contains Canvas. this limitation is caused by spec of TextMesh Pro.");
+            var originX = 0f;
+            var originY = 0f;
+
+            var rootObject = rootElement.gameObject;
+            var elements = rootElement.GetLTElements();
+
+            var rootRect = rootObject.GetComponent<RectTransform>();
+
+            // 親の基礎サイズをセット
+            rootRect.sizeDelta = size;
+
+            // set parent.
+            foreach (var element in elements)
+            {
+                element.gameObject.transform.SetParent(rootObject.transform);
+            }
+
+            // ここでCanvas要素にセットしちゃう(でないとTMProのinfoが取れない。)
+            rootObject.transform.SetParent(parent);
+
+            var lineContents = new List<RectTransform>();// 同じ行に入っている要素を整列させるために使用するリスト
+            var currentLineMaxHeight = 0f;
+
+            var opId = Guid.NewGuid().ToString();
+
+            // この下のレイヤーで全ての非同期layout処理を集める。
+            var layoutOps = layouter.LayoutAsync<T>(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+
+            ParameterReference resultRefObject = null;
+
+            AsyncLayoutExecutor.LaunchLayoutOps(
+                opId,
+                layoutOps,
+                pos =>
+                {
+                    resultRefObject = pos;
+
+                    layouter.AfterLayout(size, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
+                    lineContents.Clear();
+
+                    onLayouted();
+                }
+            );
         }
     }
 }
