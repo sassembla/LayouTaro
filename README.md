@@ -63,6 +63,45 @@ go.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
 
 this code shows the layouted UI. looks simple!. 
 
+### Async version
+
+LayouTaro now supports async layout.
+
+```csharp
+// ready async elements.
+var box = AsyncBoxElement.GO(
+    null,// bg画像
+    () =>
+    {
+        Debug.Log("ルートがタップされた");
+    },
+    AsyncTextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
+    AsyncImageElement.GO(null),// 画像
+    AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
+);
+
+// generate async layouter.
+var layouter = new BasicAsyncLayouter();
+
+// set size of content.
+var size = new Vector2(600, 50);
+
+// do async layout with BasicMissingSpriteCache cache.
+var done = false;
+
+LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+    canvas.transform,
+    size,
+    box,
+    layouter,
+    () =>
+    {
+        done = true;
+    }
+);
+```
+
+that's all.
 
 ## Usage
 
@@ -123,6 +162,8 @@ public class TextElement : LTElement, ILayoutableText
     }
 }
 ```
+
+in async version, you should use LTAsyncElement and LTRootAsyncElement instead of LTElement and LTRootElement.
 
 3. Define your original Layouter or use already defined sample Layouter(MyLayouter.cs) with implementing ILayouter interface.
 
@@ -243,13 +284,25 @@ public class YourLayouter : ILayouter
 
 
 ## Detecting missing Character/Emoji/Mark
+use async version and set IMissingSpriteCache-implemented class to LayoutAsync method.
+
+BasicMissingSpriteCache is the example of implementation of IMissingSpriteCache.
+
 ```csharp
-LayouTaro.SetOnMissingCharacterFound(
-    (char[] misisngChars) => {
-        // you can get the missing Character/Emoji/Mark as char[]
+LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+    canvas.transform,
+    size,
+    box,
+    layouter,
+    () =>
+    {
+        done = true;
     }
 );
 ```
+
+you can control the behaviour when missing emoji/mark or text comming.
+
 
 
 ## About BasicLayoutFunction
@@ -260,6 +313,7 @@ This functions helps:
 * layouts rect with the rest of the width of view.
 * centerlize the elements by the highest element in the line of elements.
 
+and alsp async version do same things asynchronously.
 
 ## Install
 
