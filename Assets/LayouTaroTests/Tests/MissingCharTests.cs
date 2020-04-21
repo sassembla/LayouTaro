@@ -3,7 +3,6 @@ using UnityEngine;
 using UILayouTaro;
 using Miyamasu;
 using System;
-using System.Text;
 using NUnit.Framework;
 
 public class MissingCharTests : MiyamasuTestRunner
@@ -57,7 +56,7 @@ public class MissingCharTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);

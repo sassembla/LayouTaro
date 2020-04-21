@@ -32,9 +32,4 @@ public class AsyncTextElement : LTAsyncElement, ILayoutableText
         var element = GO(text);
         return element.gameObject;
     }
-
-    public override void OnMissingCharFound<T>(string fontName, char[] chars, float x, float y, Action<T> onInput, Action onIgnore)
-    {
-        throw new NotImplementedException();
-    }
 }

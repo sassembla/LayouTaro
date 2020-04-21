@@ -61,21 +61,19 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 50);
 
         // レイアウトを行う
 
-
-        Debug.Log("before:" + Time.frameCount);
         /*
             さて、どんな方法が取れるか。
             非同期を底の方まで連れて行きたい、という需要があるので、すべてをIEnumeratorで回すか、ああ、
             上の方で実行しても勝手に回ってくれる必要があるのか、うん。じゃあ独自Updateかな。
         */
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -86,9 +84,6 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
-        Debug.Log("after:" + Time.frameCount);
-        Debug.Log("レイアウト完了、同期版は1フレで終わって欲しい。流石にそれは無理か。");
-
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
@@ -97,7 +92,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     [MTest]
     public IEnumerator ComplexPatternAsync()
     {
-        // 最後のgooooo..dが分離されて浮くように。
+
         var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
@@ -113,14 +108,14 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -140,7 +135,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     [MTest]
     public IEnumerator ComplexPattern2Async()
     {
-        // 最後のgooooo..dが分離されて浮くように。
+
         var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
@@ -157,14 +152,14 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -180,11 +175,56 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         yield break;
     }
 
+    /*
+        文字を加えると高さ位置がずれる。なんでなんだ
+        そもそも横にずれてない。文字の後ろに行かない、何かある。
+    */
+    [MTest]
+    public IEnumerator SimpleEmojiAsync()
+    {
+
+        var box = AsyncBoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            AsyncTextElement.GO("a\U0001F60A")// 絵文字
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicAsyncLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        while (false)
+        {
+            yield return null;
+        }
+        yield break;
+    }
+
 
     [MTest]
     public IEnumerator WithEmojiAsync()
     {
-        // 最後のgooooo..dが分離されて浮くように。
+
         var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
@@ -195,14 +235,14 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -215,7 +255,10 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
-
+        while (false)
+        {
+            yield return null;
+        }
         yield break;
     }
 
@@ -223,7 +266,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     [MTest]
     public IEnumerator WithEmojiComplexAsync()
     {
-        // 最後のgooooo..dが分離されて浮くように。
+
         var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
@@ -247,14 +290,14 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -274,7 +317,7 @@ public class AsyncLayoutTests : MiyamasuTestRunner
     [MTest]
     public IEnumerator WithEmojiComplex2Async()
     {
-        // 最後のgooooo..dが分離されて浮くように。
+
         var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
@@ -291,14 +334,14 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -327,20 +370,20 @@ public class AsyncLayoutTests : MiyamasuTestRunner
             {
                 Debug.Log("root box element is tapped.");
             },
-            AsyncTextElement.GO("\U0001F971\U0001F60A"),// text.
+            AsyncTextElement.GO("\U0001F971\U0001F60A"),// emoji and mark. mark is missing by default.
             AsyncImageElement.GO(null),// image.
             AsyncButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
         );
 
         // generate the layouter which you want to use for layout.
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // set the default size of content.
         var size = new Vector2(600, 100);
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -353,6 +396,10 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         yield return null;
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        while (false)
+        {
+            yield return null;
+        }
 
         yield break;
     }
@@ -373,14 +420,53 @@ public class AsyncLayoutTests : MiyamasuTestRunner
         );
 
         // generate the layouter which you want to use for layout.
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // set the default size of content.
         var size = new Vector2(600, 100);
 
         // do layout with LayouTaro. the GameObject will be returned with layouted structure.
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator ImageAndButtonAsync()
+    {
+        // generate your own data structure with parameters for UI.
+        var box = AsyncBoxElement.GO(
+            null,// UI bg with image
+            () =>
+            {
+                Debug.Log("root box element is tapped.");
+            },
+            AsyncImageElement.GO(null),// image.
+            AsyncButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
+        );
+
+        // generate the layouter which you want to use for layout.
+        var layouter = new BasicAsyncLayouter();
+
+        // set the default size of content.
+        var size = new Vector2(600, 100);
+
+        // do layout with LayouTaro. the GameObject will be returned with layouted structure.
+
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,

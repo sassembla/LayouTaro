@@ -57,7 +57,7 @@ public class ErrorTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
@@ -93,14 +93,14 @@ public class ErrorTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -130,7 +130,7 @@ public class ErrorTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyLayouter();
+        var layouter = new BasicLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
@@ -166,14 +166,14 @@ public class ErrorTests : MiyamasuTestRunner
         );
 
         // レイアウトに使うクラスを生成する
-        var layouter = new MyAsyncLayouter();
+        var layouter = new BasicAsyncLayouter();
 
         // コンテンツのサイズをセットする
         var size = new Vector2(600, 100);
 
         // レイアウトを行う
 
-        yield return LayouTaro.LayoutAsync(
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
             canvas.transform,
             size,
             box,
@@ -184,6 +184,7 @@ public class ErrorTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        yield return null;
 
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;

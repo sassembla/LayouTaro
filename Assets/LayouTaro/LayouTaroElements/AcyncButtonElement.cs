@@ -37,9 +37,4 @@ public class AsyncButtonElement : LTAsyncElement, ILayoutableRect
         var imageRect = this.GetComponent<RectTransform>().sizeDelta;
         return imageRect;
     }
-
-    public override void OnMissingCharFound<T>(string fontName, char[] chars, float x, float y, Action<T> onInput, Action onIgnore)
-    {
-        throw new NotImplementedException();
-    }
 }
