@@ -39,10 +39,10 @@ var size = new Vector2(600, 100);
 
 // do layout with LayouTaro. the GameObject will be returned with layouted structure.
 
-go = LayouTaro.Layout<BoxElement>(
+box = LayouTaro.Layout(
     canvas.transform,
     size,
-    go,
+    box,
     layouter
 );
 
@@ -50,9 +50,9 @@ go.transform.SetParent(canvas.transform);
 go.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
 
 // update element values and re-layout with same GameObject.
-// go = LayouTaro.RelayoutWithUpdate<BoxElement>(
+// box = LayouTaro.RelayoutWithUpdate(
 //     size,
-//     go,
+//     box,
 //     new Dictionary<LTElementType, object> {
 //         {LTElementType.Image, null},
 //         {LTElementType.Text, "relayout!"}
