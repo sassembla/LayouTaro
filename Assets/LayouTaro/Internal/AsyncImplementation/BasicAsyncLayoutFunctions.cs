@@ -100,6 +100,17 @@ namespace UILayouTaro
                 // wordWrappingを可能にすると、表示はともかく実際にこの行にどれだけの文字が入っているか判断できる。
                 textComponent.enableWordWrapping = true;
                 textComponent.text = contentText;
+                if (0 < textComponent.transform.childCount)
+                {
+                    for (var i = 0; i < textComponent.transform.childCount; i++)
+                    {
+                        var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                        childRectTrans.pivot = new Vector2(0, 1);
+                        childRectTrans.anchorMin = new Vector2(0, 1);
+                        childRectTrans.anchorMax = new Vector2(0, 1);
+                        childRectTrans.anchoredPosition = Vector2.zero;
+                    }
+                }
 
                 // 文字が入る箱のサイズを縦に無限にして、どの程度入るかのレイアウト情報を取得する。
                 textComponent.rectTransform.sizeDelta = new Vector2(refs.restWidth, float.PositiveInfinity);
@@ -177,6 +188,18 @@ namespace UILayouTaro
                     {
                         // 全文を表示して終了
                         textComponent.text = contentText;
+                        if (0 < textComponent.transform.childCount)
+                        {
+                            for (var i = 0; i < textComponent.transform.childCount; i++)
+                            {
+                                var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                                childRectTrans.pivot = new Vector2(0, 1);
+                                childRectTrans.anchorMin = new Vector2(0, 1);
+                                childRectTrans.anchorMax = new Vector2(0, 1);
+                                childRectTrans.anchoredPosition = Vector2.zero;
+                            }
+                        }
+
                         if (continueContent)
                         {
                             continueContent = false;
@@ -206,6 +229,18 @@ namespace UILayouTaro
 
                         // 現在の行のセット
                         textComponent.text = contentText.Substring(0, nextLineTextIndex);
+                        if (0 < textComponent.transform.childCount)
+                        {
+                            for (var i = 0; i < textComponent.transform.childCount; i++)
+                            {
+                                var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                                childRectTrans.pivot = new Vector2(0, 1);
+                                childRectTrans.anchorMin = new Vector2(0, 1);
+                                childRectTrans.anchorMax = new Vector2(0, 1);
+                                childRectTrans.anchoredPosition = Vector2.zero;
+                            }
+                        }
+
                         textComponent.rectTransform.anchoredPosition = new Vector2(refs.originX, refs.originY);
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
@@ -286,6 +321,18 @@ namespace UILayouTaro
 
                         // 改行コードを入れ、複数行での表示をいい感じにする。
                         textComponent.text = string.Join("\n", rectTexts);
+                        if (0 < textComponent.transform.childCount)
+                        {
+                            for (var i = 0; i < textComponent.transform.childCount; i++)
+                            {
+                                var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                                childRectTrans.pivot = new Vector2(0, 1);
+                                childRectTrans.anchorMin = new Vector2(0, 1);
+                                childRectTrans.anchorMax = new Vector2(0, 1);
+                                childRectTrans.anchoredPosition = Vector2.zero;
+                            }
+                        }
+
                         textComponent.rectTransform.sizeDelta = new Vector2(refs.restWidth, rectHeight);
 
                         // なんらかの続きの文字コンテンツである場合、そのコンテンツの子になっているので位置情報を調整しない。最終行を分割する。

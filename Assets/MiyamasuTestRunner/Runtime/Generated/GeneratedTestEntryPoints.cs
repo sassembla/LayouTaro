@@ -1099,6 +1099,28 @@ public class MissingCharTests_Miyamasu {
             throw;
         }
     }
+    [UnityTest] public IEnumerator GetMissingChar2() {
+        var instance = new MissingCharTests();
+        instance.SetInfo("MissingCharTests", "GetMissingChar2");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.GetMissingChar2();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
 }
 public class RelayoutTests_Miyamasu {
     [UnityTest] public IEnumerator RelayoutWithEmoji() {

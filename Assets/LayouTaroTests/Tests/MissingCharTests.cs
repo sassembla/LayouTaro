@@ -87,4 +87,50 @@ public class MissingCharTests : MiyamasuTestRunner
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
     }
+
+
+    [MTest]
+    public IEnumerator GetMissingChar2()
+    {
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("a\u029Aa")// テキスト
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        var missingDetected = false;
+        LayouTaro.SetOnMissingCharacterFound(
+            missingChars =>
+            {
+                missingDetected = true;
+            }
+        );
+
+        // レイアウトを行う
+
+        box = LayouTaro.Layout(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        Assert.True(missingDetected);
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
 }
