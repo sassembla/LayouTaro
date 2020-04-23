@@ -14,3 +14,5 @@ UnityEngine.TestRunner.csproj
 .DS_Store
 Assembly-CSharp-Editor.csproj
 .vscode/launch.json
+sample.csv
+sample2.csv

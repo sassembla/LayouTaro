@@ -540,6 +540,52 @@ public class AsyncRelayoutTests_Miyamasu {
         }
     }
 }
+public class AsyncSameTimeTests_Miyamasu {
+    [UnityTest] public IEnumerator AsyncMethod() {
+        var instance = new AsyncSameTimeTests();
+        instance.SetInfo("AsyncSameTimeTests", "AsyncMethod");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethod();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator AsyncMethodWithEmoji() {
+        var instance = new AsyncSameTimeTests();
+        instance.SetInfo("AsyncSameTimeTests", "AsyncMethodWithEmoji");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.AsyncMethodWithEmoji();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+}
 public class BasicLayoutTests_Miyamasu {
     [UnityTest] public IEnumerator BasicPattern() {
         var instance = new BasicLayoutTests();
