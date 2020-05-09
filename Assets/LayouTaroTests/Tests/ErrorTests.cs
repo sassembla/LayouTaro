@@ -189,4 +189,88 @@ public class ErrorTests : MiyamasuTestRunner
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
     }
+
+    [MTest]
+    public IEnumerator SpacesAndLayout()
+    {
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("a  ab  bc   cd   d\naxxabxxbcxxxcdxxxd日本語")// 連続するスペースと文字
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        yield return LayouTaro.Layout(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator SpacesAndLayoutAsync()
+    {
+        var box = AsyncBoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            AsyncTextElement.GO("a  ab  bc   cd   d\naxxabxxbcxxxcdxxxd日本語")// 連続するスペースと文字
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicAsyncLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
 }

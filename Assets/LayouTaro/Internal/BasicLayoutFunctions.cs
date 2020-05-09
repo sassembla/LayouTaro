@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -72,14 +73,6 @@ namespace UILayouTaro
                 // この内部で全てのレイアウトを終わらせる。
                 LayoutContentWithEmoji(textElement, contentText, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
                 return;
-            }
-
-            var fontAsset = textComponent.font;
-            List<char> missingCharacters;
-            if (!fontAsset.HasCharacters(contentText, out missingCharacters))
-            {
-                // missingCharactersを送り出す
-                LayouTaro._OnMissingCharacter(missingCharacters.ToArray());
             }
 
             var tmGeneratorLines = textInfos.lineInfo;
@@ -167,7 +160,7 @@ namespace UILayouTaro
 
                             // 次の行のコンテンツを入れる
                             var nextLineTextElement = textElement.GenerateGO(nextLineText).GetComponent<T>();
-                            nextLineTextElement.transform.SetParent(textElement.transform);// 消しやすくするため、この新規コンテンツを子にする
+                            nextLineTextElement.transform.SetParent(textElement.transform, false);// 消しやすくするため、この新規コンテンツを子にする
 
                             // xは-に、yは親の直下に置く。yは特に、「親が親の行上でどのように配置されたのか」を加味する必要がある。
                             // 例えば親行の中で親が最大の背の高さのコンテンツでない場合、改行すべき値は 親の背 + (行の背 - 親の背)/2 になる。
@@ -258,7 +251,7 @@ namespace UILayouTaro
 
                             // 最終行のコンテンツを入れる
                             var nextLineTextElement = textElement.GenerateGO(lastLineText).GetComponent<T>();
-                            nextLineTextElement.transform.SetParent(textElement.transform.parent);// 消しやすくするため、この新規コンテンツを現在の要素の親の子にする
+                            nextLineTextElement.transform.SetParent(textElement.transform.parent, false);// 消しやすくするため、この新規コンテンツを現在の要素の親の子にする
 
                             // 次の行の行頭になる = 続いている要素と同じxを持つ
                             var childX = textComponent.rectTransform.anchoredPosition.x;
@@ -286,7 +279,7 @@ namespace UILayouTaro
 
                         // 最終行のコンテンツを入れる
                         var newTextElement = textElement.GenerateGO(lastLineText).GetComponent<T>();
-                        newTextElement.transform.SetParent(rectTrans);// 消しやすくするため、この新規コンテンツを現在の要素の子にする
+                        newTextElement.transform.SetParent(rectTrans, false);// 消しやすくするため、この新規コンテンツを現在の要素の子にする
 
                         // 残りの行のサイズは最大化する
                         restWidth = viewWidth;

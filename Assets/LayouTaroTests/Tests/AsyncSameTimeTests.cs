@@ -47,7 +47,7 @@ public class AsyncSameTimeTests : MiyamasuTestRunner
 
 
     [MTest]
-    public IEnumerator AsyncMethod()
+    public IEnumerator AsyncMethodSameTime()
     {
         var done0 = false;
         var done1 = false;
@@ -61,7 +61,8 @@ public class AsyncSameTimeTests : MiyamasuTestRunner
                 },
                 AsyncTextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
                 AsyncImageElement.GO(null),// 画像
-                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
+                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+                AsyncTextElement.GO("h")
             );
 
             // レイアウトに使うクラスを生成する
@@ -97,7 +98,8 @@ public class AsyncSameTimeTests : MiyamasuTestRunner
                 },
                 AsyncTextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
                 AsyncImageElement.GO(null),// 画像
-                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
+                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+                AsyncTextElement.GO("h")
             );
 
             // レイアウトに使うクラスを生成する
@@ -133,7 +135,8 @@ public class AsyncSameTimeTests : MiyamasuTestRunner
                 },
                 AsyncTextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
                 AsyncImageElement.GO(null),// 画像
-                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
+                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+                AsyncTextElement.GO("h")
             );
 
             // レイアウトに使うクラスを生成する
@@ -175,7 +178,7 @@ public class AsyncSameTimeTests : MiyamasuTestRunner
     }
 
     [MTest]
-    public IEnumerator AsyncMethodWithEmoji()
+    public IEnumerator AsyncMethodWithEmojiSameTime()
     {
         var done0 = false;
         var done1 = false;
@@ -190,7 +193,8 @@ public class AsyncSameTimeTests : MiyamasuTestRunner
                 AsyncTextElement.GO("hannin is yasu!\U0001F60A this is public problem! goooooooooooooad"),
                 AsyncTextElement.GO("\U0001F971\U0001F60A"),// emoji and mark. mark is missing by default.
                 AsyncImageElement.GO(null),// 画像
-                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
+                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+                AsyncTextElement.GO("h")
             );
 
             // レイアウトに使うクラスを生成する
@@ -227,7 +231,8 @@ public class AsyncSameTimeTests : MiyamasuTestRunner
                 AsyncTextElement.GO("hannin is yasu!\U0001F60A this is public problem! goooooooooooooad"),
                 AsyncTextElement.GO("\U0001F971\U0001F60A"),// emoji and mark. mark is missing by default.
                 AsyncImageElement.GO(null),// 画像
-                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
+                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+                AsyncTextElement.GO("h")
             );
 
             // レイアウトに使うクラスを生成する
@@ -264,7 +269,8 @@ public class AsyncSameTimeTests : MiyamasuTestRunner
                 AsyncTextElement.GO("hannin is yasu!\U0001F60A this is public problem! goooooooooooooad"),
                 AsyncTextElement.GO("\U0001F971\U0001F60A"),// emoji and mark. mark is missing by default.
                 AsyncImageElement.GO(null),// 画像
-                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); })
+                AsyncButtonElement.GO(null, () => { Debug.Log("ボタンがタップされた"); }),
+                AsyncTextElement.GO("h")
             );
 
             // レイアウトに使うクラスを生成する
@@ -292,11 +298,6 @@ public class AsyncSameTimeTests : MiyamasuTestRunner
         }
 
         while (!(done0 && done1 && done2))
-        {
-            yield return null;
-        }
-
-        while (true)
         {
             yield return null;
         }

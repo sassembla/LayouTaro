@@ -1,5 +1,7 @@
 
+using System.Linq;
 using TMPro;
+using UnityEngine;
 
 namespace UILayouTaro
 {
@@ -74,7 +76,7 @@ namespace UILayouTaro
             return (false, codePoint);
         }
 
-        public static bool TMPro_ChechIfTextCharacterExist(TMP_FontAsset font, char text)
+        public static bool TMPro_CheckIfTextCharacterExist(TMP_FontAsset font, char text)
         {
             if (font.HasCharacter(text))
             {
@@ -93,6 +95,20 @@ namespace UILayouTaro
 
             // 存在しないのでfalseを返す
             return false;
+        }
+
+        public static bool TMPro_CheckIfTextCharactersExist(TMP_FontAsset font, string text)
+        {
+            var chars = text.ToCharArray().Distinct();
+            foreach (var ch in chars)
+            {
+                var result = TMPro_CheckIfTextCharacterExist(font, ch);
+                if (!result)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
