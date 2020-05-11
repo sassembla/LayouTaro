@@ -201,6 +201,8 @@ public class BasicLayoutTests : MiyamasuTestRunner
         rectTrans.anchoredPosition3D = Vector3.zero;
         rectTrans.localScale = Vector3.one;
 
+        yield return null;
+
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         while (false)
         {

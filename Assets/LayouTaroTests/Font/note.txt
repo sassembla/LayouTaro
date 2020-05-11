@@ -1,1 +1,2 @@
 from https://www.google.com/get/noto/#sans-jpan
+SIL Open Font License, Version 1.1

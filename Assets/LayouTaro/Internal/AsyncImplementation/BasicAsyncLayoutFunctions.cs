@@ -213,7 +213,7 @@ namespace UILayouTaro
 
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
-                        ElementLayoutFunctions.ContinueLine(ref refs.originX, currentFirstLineWidth, currentFirstLineHeight, ref refs.currentLineMaxHeight);
+                        ContinueLine(ref refs.originX, currentFirstLineWidth, currentFirstLineHeight, ref refs.currentLineMaxHeight);
                         break;
                     }
 
@@ -245,7 +245,7 @@ namespace UILayouTaro
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
                         var childOriginX = refs.originX;
-                        var currentTotalLineHeight = ElementLayoutFunctions.LineFeed(ref refs.originX, ref refs.originY, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);// 文字コンテンツの高さ分改行する
+                        var currentTotalLineHeight = LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);// 文字コンテンツの高さ分改行する
 
                         // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                         // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
@@ -270,7 +270,7 @@ namespace UILayouTaro
                                     / 2
                                 );
 
-                            // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeedで変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
+                            // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeed<LTAsyncRootElement>で変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
                             var newTailTextElementRectTrans = nextLineTextElement.GetComponent<RectTransform>();
                             newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);
 
@@ -339,7 +339,7 @@ namespace UILayouTaro
                         if (continueContent)
                         {
                             // 別のコンテンツから継続している行はじめの処理なので、子をセットする前にここまでの分の改行を行う。
-                            ElementLayoutFunctions.LineFeed(ref refs.originX, ref refs.originY, rectHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
+                            LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, rectHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
 
                             // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
                             refs.restWidth = viewWidth;
@@ -404,7 +404,7 @@ namespace UILayouTaro
 
                         // 現在最後の追加要素である自分自身を取り出し、ここまでの行の要素を整列させる。
                         refs.lineContents.RemoveAt(refs.lineContents.Count - 1);
-                        ElementLayoutFunctions.LineFeed(ref refs.originX, ref refs.originY, refs.currentLineMaxHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
+                        LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, refs.currentLineMaxHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
 
                         // レイアウト対象のビューサイズを新しい行のものとして更新する
                         refs.restWidth = viewWidth;
@@ -694,7 +694,7 @@ namespace UILayouTaro
             {
                 // 現在最後の追加要素である自分自身を取り出し、整列させる。
                 refs.lineContents.RemoveAt(refs.lineContents.Count - 1);
-                ElementLayoutFunctions.LineFeed(ref refs.originX, ref refs.originY, refs.currentLineMaxHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
+                LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, refs.currentLineMaxHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
                 refs.lineContents.Add(transform);
 
                 // 位置をセット
@@ -709,15 +709,100 @@ namespace UILayouTaro
             // ジャストで埋まったら、次の行を作成する。
             if (refs.restWidth == rectSize.x)
             {
-                ElementLayoutFunctions.LineFeed(ref refs.originX, ref refs.originY, transform.sizeDelta.y, ref refs.currentLineMaxHeight, ref refs.lineContents);
+                LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, transform.sizeDelta.y, ref refs.currentLineMaxHeight, ref refs.lineContents);
 
                 refs.restWidth = viewWidth;
                 yield break;
             }
 
-            ElementLayoutFunctions.ContinueLine(ref refs.originX, rectSize.x, transform.sizeDelta.y, ref refs.currentLineMaxHeight);
+            ContinueLine(ref refs.originX, rectSize.x, transform.sizeDelta.y, ref refs.currentLineMaxHeight);
             refs.restWidth = viewWidth - refs.originX;
             yield break;
+        }
+
+        /*
+            改行、行継続に関するレイアウトコントロール系
+        */
+        private static float LineFeed<T>(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedElements) where T : LTAsyncRootElement
+        {
+            // 列の概念の中で最大の高さを持つ要素を中心に、それより小さい要素をy軸に対して整列させる
+            var lineHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
+            foreach (var rectTrans in linedElements)
+            {
+                var elementHeight = rectTrans.sizeDelta.y;
+                var isParentRoot = rectTrans.parent.GetComponent<T>() is T;
+                if (isParentRoot)
+                {
+                    rectTrans.anchoredPosition = new Vector2(
+                        rectTrans.anchoredPosition.x,// xは維持
+                        y - (lineHeight - elementHeight) / 2// yは行の高さから要素の高さを引いて/2したものをセット(縦の中央揃え)
+                    );
+                }
+                else
+                {
+                    // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
+                    rectTrans.anchoredPosition = new Vector2(
+                        rectTrans.anchoredPosition.x,// xは維持
+                        rectTrans.anchoredPosition.y - (currentLineMaxHeight - elementHeight) / 2
+                    );
+                }
+            }
+            linedElements.Clear();
+
+            x = 0;
+            y -= lineHeight;
+            currentLineMaxHeight = 0f;
+
+            // 純粋にその行の中でどの要素が最も背が高かったのかを判別するために、計算結果による変数の初期化に関係なくこの値が必要な箇所がある。
+            return lineHeight;
+        }
+
+        private static void ContinueLine(ref float x, float newX, float currentElementHeight, ref float currentLineMaxHeight)
+        {
+            x += newX;
+            currentLineMaxHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
+        }
+
+
+        public static void LayoutLastLine<T>(ref float originY, float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTAsyncRootElement
+        {
+            // レイアウト終了後、最後の列の要素を並べる。
+            foreach (var rectTrans in lineContents)
+            {
+                // Debug.Log("rectTrans.gameObject:" + rectTrans.gameObject.com);
+                var elementHeight = rectTrans.sizeDelta.y;
+                var parent = rectTrans.parent;
+                if (parent == null)
+                {
+                    continue;
+                }
+
+                // これ計測方法に問題があるんだよな、親のtransとかで判定できるような感じだといいんだよな
+                var isParentRoot = parent.GetComponent<T>() is T;
+                if (isParentRoot)
+                {
+                    rectTrans.anchoredPosition = new Vector2(
+                        rectTrans.anchoredPosition.x,
+                        originY - (currentLineMaxHeight - elementHeight) / 2
+                    );
+                }
+                else
+                {
+                    // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
+                    rectTrans.anchoredPosition = new Vector2(
+                        rectTrans.anchoredPosition.x,
+                        rectTrans.anchoredPosition.y -// 子要素は親からの絶対的な距離を独自に保持しているので、それ + 行全体を整頓した際の高さの隙間、という計算を行う。
+                            (
+                                currentLineMaxHeight// この行全体の高さからこの要素の高さを引いて/2して、「要素の上の方の隙間高さ」を手に入れる
+                                - elementHeight
+                            )
+                            / 2
+                        );
+                }
+            }
+
+            // 最終的にyを更新する。
+            originY -= currentLineMaxHeight;
         }
     }
 }

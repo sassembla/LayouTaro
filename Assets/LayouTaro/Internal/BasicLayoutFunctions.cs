@@ -118,7 +118,7 @@ namespace UILayouTaro
 
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
-                        ElementLayoutFunctions.ContinueLine(ref originX, currentFirstLineWidth, currentFirstLineHeight, ref currentLineMaxHeight);
+                        ContinueLine(ref originX, currentFirstLineWidth, currentFirstLineHeight, ref currentLineMaxHeight);
                         break;
                     }
 
@@ -150,7 +150,7 @@ namespace UILayouTaro
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
                         var childOriginX = originX;
-                        var currentTotalLineHeight = ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
+                        var currentTotalLineHeight = LineFeed<LTRootElement>(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
 
                         // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                         // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
@@ -244,7 +244,7 @@ namespace UILayouTaro
                         if (continueContent)
                         {
                             // 別のコンテンツから継続している行はじめの処理なので、子をセットする前にここまでの分の改行を行う。
-                            ElementLayoutFunctions.LineFeed(ref originX, ref originY, rectHeight, ref currentLineMaxHeight, ref lineContents);
+                            LineFeed<LTRootElement>(ref originX, ref originY, rectHeight, ref currentLineMaxHeight, ref lineContents);
 
                             // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
                             restWidth = viewWidth;
@@ -309,7 +309,7 @@ namespace UILayouTaro
 
                         // 現在最後の追加要素である自分自身を取り出し、ここまでの行の要素を整列させる。
                         lineContents.RemoveAt(lineContents.Count - 1);
-                        ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
+                        LineFeed<LTRootElement>(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
 
                         // レイアウト対象のビューサイズを新しい行のものとして更新する
                         restWidth = viewWidth;
@@ -499,7 +499,7 @@ namespace UILayouTaro
             {
                 // 現在最後の追加要素である自分自身を取り出し、整列させる。
                 lineContents.RemoveAt(lineContents.Count - 1);
-                ElementLayoutFunctions.LineFeed(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
+                LineFeed<LTRootElement>(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
                 lineContents.Add(transform);
 
                 // 位置をセット
@@ -514,20 +514,64 @@ namespace UILayouTaro
             // ジャストで埋まったら、次の行を作成する。
             if (restWidth == rectSize.x)
             {
-                ElementLayoutFunctions.LineFeed(ref originX, ref originY, transform.sizeDelta.y, ref currentLineMaxHeight, ref lineContents);
+                LineFeed<LTRootElement>(ref originX, ref originY, transform.sizeDelta.y, ref currentLineMaxHeight, ref lineContents);
                 return;
             }
 
-            ElementLayoutFunctions.ContinueLine(ref originX, rectSize.x, transform.sizeDelta.y, ref currentLineMaxHeight);
+            ContinueLine(ref originX, rectSize.x, transform.sizeDelta.y, ref currentLineMaxHeight);
         }
 
-        public static void LayoutLastLine(ref float originY, float currentLineMaxHeight, ref List<RectTransform> lineContents)
+
+        /*
+            改行、行継続に関するレイアウトコントロール系
+        */
+        private static float LineFeed<T>(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedElements) where T : LTRootElement
+        {
+            // 列の概念の中で最大の高さを持つ要素を中心に、それより小さい要素をy軸に対して整列させる
+            var lineHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
+            foreach (var rectTrans in linedElements)
+            {
+                var elementHeight = rectTrans.sizeDelta.y;
+                var isParentRoot = rectTrans.parent.GetComponent<T>() is T;
+                if (isParentRoot)
+                {
+                    rectTrans.anchoredPosition = new Vector2(
+                        rectTrans.anchoredPosition.x,// xは維持
+                        y - (lineHeight - elementHeight) / 2// yは行の高さから要素の高さを引いて/2したものをセット(縦の中央揃え)
+                    );
+                }
+                else
+                {
+                    // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
+                    rectTrans.anchoredPosition = new Vector2(
+                        rectTrans.anchoredPosition.x,// xは維持
+                        rectTrans.anchoredPosition.y - (currentLineMaxHeight - elementHeight) / 2
+                    );
+                }
+            }
+            linedElements.Clear();
+
+            x = 0;
+            y -= lineHeight;
+            currentLineMaxHeight = 0f;
+
+            // 純粋にその行の中でどの要素が最も背が高かったのかを判別するために、計算結果による変数の初期化に関係なくこの値が必要な箇所がある。
+            return lineHeight;
+        }
+
+        private static void ContinueLine(ref float x, float newX, float currentElementHeight, ref float currentLineMaxHeight)
+        {
+            x += newX;
+            currentLineMaxHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
+        }
+
+
+        public static void LayoutLastLine<T>(ref float originY, float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTRootElement
         {
             // レイアウト終了後、最後の列の要素を並べる。
-            foreach (var element in lineContents)
+            foreach (var rectTrans in lineContents)
             {
-                var rectTrans = element.GetComponent<RectTransform>();
-
+                // Debug.Log("rectTrans.gameObject:" + rectTrans.gameObject.com);
                 var elementHeight = rectTrans.sizeDelta.y;
                 var parent = rectTrans.parent;
                 if (parent == null)
@@ -535,7 +579,7 @@ namespace UILayouTaro
                     continue;
                 }
 
-                var isParentRoot = parent.GetComponent<LTElement>() is LTRootElement;
+                var isParentRoot = parent.GetComponent<T>() is T;
                 if (isParentRoot)
                 {
                     rectTrans.anchoredPosition = new Vector2(

@@ -89,6 +89,11 @@ public class AsyncRelayoutTests : MiyamasuTestRunner
             layouter
         );
 
+        while (false)
+        {
+            yield return null;
+        }
+
         yield return null;
 
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
