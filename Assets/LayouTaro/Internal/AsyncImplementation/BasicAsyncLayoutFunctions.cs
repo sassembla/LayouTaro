@@ -104,7 +104,7 @@ namespace UILayouTaro
                 {
                     for (var i = 0; i < textComponent.transform.childCount; i++)
                     {
-                        var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                        var childRectTrans = textComponent.transform.GetChild(i).GetComponent<RectTransform>();
                         childRectTrans.pivot = new Vector2(0, 1);
                         childRectTrans.anchorMin = new Vector2(0, 1);
                         childRectTrans.anchorMax = new Vector2(0, 1);
@@ -173,13 +173,20 @@ namespace UILayouTaro
             var lineSpacing = textComponent.lineSpacing;
             var tmLineCount = textInfos.lineCount;
 
-            var currentFirstLineWidth = tmGeneratorLines[0].length;
-            var currentFirstLineHeight = tmGeneratorLines[0].lineHeight;
+            var firstLine = tmGeneratorLines[0];
+            var currentFirstLineWidth = firstLine.length;
+            var currentFirstLineHeight = firstLine.lineHeight;
 
             var isHeadOfLine = refs.originX == 0;
             var isMultiLined = 1 < tmLineCount;
-            var isLayoutedOutOfView = viewWidth < refs.originX + currentFirstLineWidth;
+            var isLayoutedOutOfView = (firstLine.visibleCharacterCount == 1) && (viewWidth < refs.originX + currentFirstLineWidth);// 最初の行の1文字だけが入って、なおかつ幅的にTMProの計算がガバガバな結果文字表示が指定範囲を溢れる場合、改行する。
 
+            // 文字位置を見ずに幅だけで換算すると、TMProはレイアウトできるというがそのままレイアウトすると文字列の末尾が溢れるケースがある。コメントアウトしてあるブロックでそれを確認できる。
+            // if (viewWidth < refs.originX + currentFirstLineWidth)
+            // {
+            //     Debug.Log("async viewWidth:" + viewWidth + " originX:" + refs.originX + " currentFirstLineWidth:" + currentFirstLineWidth + " firstLine.visibleCharacterCount:" + firstLine.visibleCharacterCount);
+            //     // Debug.Break();
+            // }
             var status = TextLayoutDefinitions.GetTextLayoutStatus(isHeadOfLine, isMultiLined, isLayoutedOutOfView);
             switch (status)
             {
@@ -385,18 +392,21 @@ namespace UILayouTaro
                         // yは親の分移動する
                         refs.originY -= rectHeight;
 
-                        var newTailTextElementRectTrans = newTextElement.GetComponent<RectTransform>();
-                        newTailTextElementRectTrans.anchoredPosition = new Vector2(refs.originX, refs.originY);
+                        {
+                            // 新規オブジェクトはそのy位置を親コンテンツの高さを加えた値にセットする。
+                            var newTailTextElementRectTrans = newTextElement.GetComponent<RectTransform>();
+                            newTailTextElementRectTrans.anchoredPosition = new Vector2(refs.originX, -rectHeight);
 
-                        // 残りのデータをテキスト特有の継続したコンテンツ扱いする。
-                        continueContent = true;
+                            // 残りのデータをテキスト特有の継続したコンテンツ扱いする。
+                            continueContent = true;
 
-                        // 生成したコンテンツを次の行の要素へと追加する
-                        refs.lineContents.Add(newTailTextElementRectTrans);
+                            // 生成したコンテンツを次の行の要素へと追加する
+                            refs.lineContents.Add(newTailTextElementRectTrans);
 
-                        textElement = newTextElement;
-                        contentText = lastLineText;
-                        goto NextLine;
+                            textElement = newTextElement;
+                            contentText = lastLineText;
+                            goto NextLine;
+                        }
                     }
                 case TextLayoutStatus.NotHeadAndOutOfView:
                     {

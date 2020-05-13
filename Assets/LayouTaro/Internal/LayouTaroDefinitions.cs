@@ -40,7 +40,7 @@ namespace UILayouTaro
 
     public interface IAsyncLayouter
     {
-        List<AsyncLayoutOperation> LayoutAsync<T>(Vector2 size, out float originX, out float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : IMissingSpriteCache, new();
+        List<AsyncLayoutOperation> LayoutAsync<T>(ref Vector2 size, out float originX, out float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : IMissingSpriteCache, new();
         void AfterLayout(Vector2 viewSize, float originX, float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents);
         void UpdateValuesAsync(LTAsyncElement[] elements, Dictionary<LTElementType, object> updateValues);
     }

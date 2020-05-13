@@ -10,7 +10,7 @@ public class BasicAsyncLayouter : IAsyncLayouter
         子要素をレイアウトし、親要素が余白ありでそれを包む。
         outを使いたいから、非同期な計算を行う実行体をここから返すようにする。
     */
-    public List<AsyncLayoutOperation> LayoutAsync<T>(Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : IMissingSpriteCache, new()
+    public List<AsyncLayoutOperation> LayoutAsync<T>(ref Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : IMissingSpriteCache, new()
     {
         var outsideSpacing = 10f;
 
@@ -19,7 +19,8 @@ public class BasicAsyncLayouter : IAsyncLayouter
 
         var originalViewWidth = viewSize.x;
 
-        var viewWidth = viewSize.x - outsideSpacing * 2;// 左右の余白分を引く
+        viewSize.x = viewSize.x - outsideSpacing * 2;// 左右の余白分を引く
+        var viewWidth = viewSize.x;
 
         // MyLayoutはrootとしてboxがくる前提で作られている、という想定のサンプル
         var root = rootObject.GetComponent<AsyncBoxElement>();
@@ -32,7 +33,7 @@ public class BasicAsyncLayouter : IAsyncLayouter
             var element = elements[i];
 
             var currentElementRectTrans = element.GetComponent<RectTransform>();
-            var restWidth = viewWidth - originX;
+            var restWidth = viewSize.x - originX;
 
             var type = element.GetLTElementType();
             switch (type)
@@ -63,6 +64,42 @@ public class BasicAsyncLayouter : IAsyncLayouter
                         BasicAsyncLayoutFunctions.TextLayoutAsync<AsyncTextElement, T>(
                             newTailTextElement,
                             contentText,
+                            currentElementRectTrans,
+                            viewWidth,
+                            ref originX,
+                            ref originY,
+                            ref restWidth,
+                            ref currentLineMaxHeight,
+                            ref lineContents
+                        )
+                    );
+                    break;
+                case LTElementType.AsyncText2:
+                    var newTailTextElement2 = (AsyncTextElement2)element;
+                    var contentText2 = newTailTextElement2.Text();
+
+                    layoutOps.Add(
+                        BasicAsyncLayoutFunctions.TextLayoutAsync<AsyncTextElement2, T>(
+                            newTailTextElement2,
+                            contentText2,
+                            currentElementRectTrans,
+                            viewWidth,
+                            ref originX,
+                            ref originY,
+                            ref restWidth,
+                            ref currentLineMaxHeight,
+                            ref lineContents
+                        )
+                    );
+                    break;
+                case LTElementType.AsyncText3:
+                    var newTailTextElement3 = (AsyncTextElement3)element;
+                    var contentText3 = newTailTextElement3.Text();
+
+                    layoutOps.Add(
+                        BasicAsyncLayoutFunctions.TextLayoutAsync<AsyncTextElement3, T>(
+                            newTailTextElement3,
+                            contentText3,
                             currentElementRectTrans,
                             viewWidth,
                             ref originX,
@@ -131,7 +168,13 @@ public class BasicAsyncLayouter : IAsyncLayouter
     {
         foreach (var e in elements)
         {
-            switch (e.GetLTElementType())
+            var key = e.GetLTElementType();
+            if (!updateValues.ContainsKey(key))
+            {
+                continue;
+            }
+
+            switch (key)
             {
                 case LTElementType.AsyncImage:
                     var i = (AsyncImageElement)e;
@@ -139,6 +182,7 @@ public class BasicAsyncLayouter : IAsyncLayouter
                     // get value from updateValues and cast to the type what you set.
                     var p = updateValues[LTElementType.AsyncImage] as Image;
                     i.Image = p;
+
                     break;
                 case LTElementType.AsyncText:
                     var t = (AsyncTextElement)e;
@@ -146,6 +190,20 @@ public class BasicAsyncLayouter : IAsyncLayouter
                     // get value from updateValues and cast to the type what you set.
                     var tVal = updateValues[LTElementType.AsyncText] as string;
                     t.TextContent = tVal;
+                    break;
+                case LTElementType.AsyncText2:
+                    var t2 = (AsyncTextElement2)e;
+
+                    // get value from updateValues and cast to the type what you set.
+                    var tVal2 = updateValues[LTElementType.AsyncText2] as string;
+                    t2.TextContent = tVal2;
+                    break;
+                case LTElementType.AsyncText3:
+                    var t3 = (AsyncTextElement3)e;
+
+                    // get value from updateValues and cast to the type what you set.
+                    var tVal3 = updateValues[LTElementType.AsyncText3] as string;
+                    t3.TextContent = tVal3;
                     break;
 
                 default:

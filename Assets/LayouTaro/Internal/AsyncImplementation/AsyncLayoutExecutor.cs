@@ -13,14 +13,14 @@ namespace UILayouTaro
 
             public readonly IEnumerator<(bool, ParameterReference)> cor;
 
-            public OpsGroup(string opsId, List<AsyncLayoutOperation> ops, Action<ParameterReference> onDone)
+            public OpsGroup(string opsId, float viewWidth, List<AsyncLayoutOperation> ops, Action<ParameterReference> onDone)
             {
                 this.onDone = onDone;// グループ全体のDone扱い、上位側で調整した後に実行される。
-                this.cor = RunLayout(opsId, ops);
+                this.cor = RunLayout(opsId, viewWidth, ops);
             }
 
             // このオブジェクトの中でopsを回して、ParamRefを引きまわす。
-            private IEnumerator<(bool, ParameterReference)> RunLayout(string opsId, List<AsyncLayoutOperation> ops)
+            private IEnumerator<(bool, ParameterReference)> RunLayout(string opsId, float viewWidth, List<AsyncLayoutOperation> ops)
             {
                 var targeOp = ops[0];
 
@@ -48,7 +48,11 @@ namespace UILayouTaro
                             break;
                         }
 
+                        var endOpsOriginX = baseRefs.originX;
+
                         targeOp = ops[0];
+
+                        baseRefs.restWidth = viewWidth - endOpsOriginX;
                         baseRefs.lineContents.Add(targeOp.rectTrans);
 
                         // refsを更新する
@@ -69,9 +73,9 @@ namespace UILayouTaro
 
         private static List<OpsGroup> rootOps = new List<OpsGroup>();
 
-        public static void LaunchLayoutOps(string opsId, List<AsyncLayoutOperation> newOps, Action<ParameterReference> onDone)
+        public static void LaunchLayoutOps(string opsId, float viewWidth, List<AsyncLayoutOperation> newOps, Action<ParameterReference> onDone)
         {
-            var opsGroup = new OpsGroup(opsId, newOps, onDone);
+            var opsGroup = new OpsGroup(opsId, viewWidth, newOps, onDone);
             var opsCont = opsGroup.cor.MoveNext();
             var (cont, pos) = opsGroup.cor.Current;
             if (!cont)

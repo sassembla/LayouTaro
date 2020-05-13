@@ -482,4 +482,183 @@ public class AsyncLayoutTests : MiyamasuTestRunner
 
         yield break;
     }
+
+
+
+    [MTest]
+    public IEnumerator LayoutOneLineTextDoesNotContainInTheEndOfLineAsync()
+    {
+        var box = AsyncBoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            AsyncTextElement.GO("hannin is yasu! this is public problem! gooooooood"),// テキスト
+            AsyncImageElement.GO(null),// 画像
+            AsyncTextElement.GO("llllllllllllllli"),
+            AsyncTextElement.GO("dijklmnoああああああああああああいえああああ")
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicAsyncLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator LayoutHeadOfTextAsync()
+    {
+        var box = AsyncBoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            AsyncTextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
+            AsyncImageElement.GO(null),// 画像
+            AsyncTextElement.GO("dijklmnoああああああああああああいえああああ")
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicAsyncLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator MultilineAfterFilledOneLineAsync()
+    {
+        // 行頭からの改行を行う要素がY位置ゼロよりも下方で発生する場合にレイアウトが狂うバグ
+        var box = AsyncBoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            AsyncTextElement.GO("dijklmnoああああああああああああ"),
+            AsyncTextElement.GO("dijklmnoああああああああああああいえああああ")
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicAsyncLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator MultilineAfterFilledOneLineLongAsync()
+    {
+        // 行頭からの改行を行う要素がY位置ゼロよりも下方で発生する場合にレイアウトが狂うバグ
+        var box = AsyncBoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            AsyncTextElement.GO("dijklmnoああああああああああああ"),
+            AsyncTextElement.GO("dijklmnoああああああああああああいえあああああああああああああああああああああああああああああああああああああああ")
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicAsyncLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
 }

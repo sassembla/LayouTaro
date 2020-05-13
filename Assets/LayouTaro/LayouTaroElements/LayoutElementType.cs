@@ -7,12 +7,13 @@ namespace UILayouTaro
         Box,
         Image,
         Text,
+        Text2,
         Button,
 
         // example async series.
         AsyncBox,
         AsyncImage,
-        AsyncText,
+        AsyncText, AsyncText2, AsyncText3,
         AsyncButton,
     }
 }

@@ -406,4 +406,221 @@ public class BasicLayoutTests : MiyamasuTestRunner
 
         yield break;
     }
+
+
+    [MTest]
+    public IEnumerator ImageAndButton()
+    {
+        // generate your own data structure with parameters for UI.
+        var box = BoxElement.GO(
+            null,// UI bg with image
+            () =>
+            {
+                Debug.Log("root box element is tapped.");
+            },
+            ImageElement.GO(null),// image.
+            ButtonElement.GO(null, () => { Debug.Log("button is tapped."); })
+        );
+
+        // generate the layouter which you want to use for layout.
+        var layouter = new BasicLayouter();
+
+        // set the default size of content.
+        var size = new Vector2(600, 100);
+
+        // do layout with LayouTaro. the GameObject will be returned with layouted structure.
+
+        box = LayouTaro.Layout(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator LayoutOneLineTextDoesNotContainInTheEndOfLine()
+    {
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("hannin is yasu! this is public problem! gooooooood"),// テキスト
+            ImageElement.GO(null),// 画像
+            TextElement.GO("llllllllllllllli"),
+            TextElement.GO("dijklmnoああああああああああああいえああああ")
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        box = LayouTaro.Layout(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator LayoutHeadOfText()
+    {
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("hannin is yasu! this is public problem! gooooooooooooood"),// テキスト
+            ImageElement.GO(null),// 画像
+            TextElement.GO("dijklmnoああああああああああああいえああああ")
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        box = LayouTaro.Layout(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator MultilineAfterFilledOneLine()
+    {
+        // 行頭からの改行を行う要素がY位置ゼロよりも下方で発生する場合にレイアウトが狂うバグ
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("dijklmnoああああああああああああ"),
+            TextElement.GO("dijklmnoああああああああああああいえああああ")
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        box = LayouTaro.Layout(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator MultilineAfterFilledOneLineLong()
+    {
+        // 行頭からの改行を行う要素がY位置ゼロよりも下方で発生する場合にレイアウトが狂うバグ
+        var box = BoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            TextElement.GO("dijklmnoああああああああああああ"),
+            TextElement.GO("dijklmnoああああああああああああいえあああああああああああああああああああああああああああああああああああああああ")
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        box = LayouTaro.Layout(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
 }

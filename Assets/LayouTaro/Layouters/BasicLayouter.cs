@@ -67,6 +67,22 @@ public class BasicLayouter : ILayouter
                         ref lineContents
                     );
                     break;
+                case LTElementType.Text2:
+                    var newTailTextElement2 = (TextElement2)element;
+                    var contentText2 = newTailTextElement2.Text();
+
+                    BasicLayoutFunctions.TextLayout(
+                        newTailTextElement2,
+                        contentText2,
+                        currentElementRectTrans,
+                        viewWidth,
+                        ref originX,
+                        ref originY,
+                        ref restWidth,
+                        ref currentLineMaxHeight,
+                        ref lineContents
+                    );
+                    break;
                 case LTElementType.Button:
                     var buttonElement = (ButtonElement)element;
 

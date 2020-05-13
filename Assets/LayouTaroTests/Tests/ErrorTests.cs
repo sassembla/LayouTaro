@@ -516,5 +516,4 @@ public class ErrorTests : MiyamasuTestRunner
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
     }
-
 }

@@ -24,6 +24,7 @@ namespace UILayouTaro
             var continueContent = false;
 
         NextLine:
+
             var textComponent = textElement.GetComponent<TextMeshProUGUI>();
             TMPro.TMP_TextInfo textInfos = null;
             {
@@ -34,7 +35,7 @@ namespace UILayouTaro
                 {
                     for (var i = 0; i < textComponent.transform.childCount; i++)
                     {
-                        var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                        var childRectTrans = textComponent.transform.GetChild(i).GetComponent<RectTransform>();
                         childRectTrans.pivot = new Vector2(0, 1);
                         childRectTrans.anchorMin = new Vector2(0, 1);
                         childRectTrans.anchorMax = new Vector2(0, 1);
@@ -79,13 +80,20 @@ namespace UILayouTaro
             var lineSpacing = textComponent.lineSpacing;
             var tmLineCount = textInfos.lineCount;
 
-            var currentFirstLineWidth = tmGeneratorLines[0].length;
-            var currentFirstLineHeight = tmGeneratorLines[0].lineHeight;
+            var firstLine = tmGeneratorLines[0];
+            var currentFirstLineWidth = firstLine.length;
+            var currentFirstLineHeight = firstLine.lineHeight;
 
             var isHeadOfLine = originX == 0;
             var isMultiLined = 1 < tmLineCount;
-            var isLayoutedOutOfView = viewWidth < originX + currentFirstLineWidth;
+            var isLayoutedOutOfView = (firstLine.visibleCharacterCount == 1) && (viewWidth < originX + currentFirstLineWidth);// 最初の行の1文字だけが入って、なおかつ幅的にTMProの計算がガバガバな結果文字表示が指定範囲を溢れる場合、改行する。
 
+            // 文字位置を見ずに幅だけで換算すると、TMProはレイアウトできるというがそのままレイアウトすると文字列の末尾が溢れるケースがある。コメントアウトしてあるブロックでそれを確認できる。
+            // if (viewWidth < originX + currentFirstLineWidth)
+            // {
+            //     Debug.Log("viewWidth:" + viewWidth + " originX:" + originX + " currentFirstLineWidth:" + currentFirstLineWidth + " firstLine.visibleCharacterCount:" + firstLine.visibleCharacterCount);
+            //     // Debug.Break();
+            // }
             var status = TextLayoutDefinitions.GetTextLayoutStatus(isHeadOfLine, isMultiLined, isLayoutedOutOfView);
             switch (status)
             {
@@ -290,18 +298,21 @@ namespace UILayouTaro
                         // yは親の分移動する
                         originY -= rectHeight;
 
-                        var newTailTextElementRectTrans = newTextElement.GetComponent<RectTransform>();
-                        newTailTextElementRectTrans.anchoredPosition = new Vector2(originX, originY);
+                        {
+                            // 新規オブジェクトはそのy位置を親コンテンツの高さを加えた値にセットする。
+                            var newTailTextElementRectTrans = newTextElement.GetComponent<RectTransform>();
+                            newTailTextElementRectTrans.anchoredPosition = new Vector2(originX, -rectHeight);
 
-                        // 残りのデータをテキスト特有の継続したコンテンツ扱いする。
-                        continueContent = true;
+                            // 残りのデータをテキスト特有の継続したコンテンツ扱いする。
+                            continueContent = true;
 
-                        // 生成したコンテンツを次の行の要素へと追加する
-                        lineContents.Add(newTailTextElementRectTrans);
+                            // 生成したコンテンツを次の行の要素へと追加する
+                            lineContents.Add(newTailTextElementRectTrans);
 
-                        textElement = newTextElement;
-                        contentText = lastLineText;
-                        goto NextLine;
+                            textElement = newTextElement;
+                            contentText = lastLineText;
+                            goto NextLine;
+                        }
                     }
                 case TextLayoutStatus.NotHeadAndOutOfView:
                     {
@@ -525,11 +536,11 @@ namespace UILayouTaro
         /*
             改行、行継続に関するレイアウトコントロール系
         */
-        private static float LineFeed<T>(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedElements) where T : LTRootElement
+        private static float LineFeed<T>(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedRectTransforms) where T : LTRootElement
         {
             // 列の概念の中で最大の高さを持つ要素を中心に、それより小さい要素をy軸に対して整列させる
             var lineHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
-            foreach (var rectTrans in linedElements)
+            foreach (var rectTrans in linedRectTransforms)
             {
                 var elementHeight = rectTrans.sizeDelta.y;
                 var isParentRoot = rectTrans.parent.GetComponent<T>() is T;
@@ -549,7 +560,7 @@ namespace UILayouTaro
                     );
                 }
             }
-            linedElements.Clear();
+            linedRectTransforms.Clear();
 
             x = 0;
             y -= lineHeight;
@@ -565,45 +576,10 @@ namespace UILayouTaro
             currentLineMaxHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
         }
 
-
-        public static void LayoutLastLine<T>(ref float originY, float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTRootElement
+        public static void LayoutLastLine<T>(ref float y, float currentLineMaxHeight, ref List<RectTransform> linedRectTransforms) where T : LTRootElement
         {
-            // レイアウト終了後、最後の列の要素を並べる。
-            foreach (var rectTrans in lineContents)
-            {
-                // Debug.Log("rectTrans.gameObject:" + rectTrans.gameObject.com);
-                var elementHeight = rectTrans.sizeDelta.y;
-                var parent = rectTrans.parent;
-                if (parent == null)
-                {
-                    continue;
-                }
-
-                var isParentRoot = parent.GetComponent<T>() is T;
-                if (isParentRoot)
-                {
-                    rectTrans.anchoredPosition = new Vector2(
-                        rectTrans.anchoredPosition.x,
-                        originY - (currentLineMaxHeight - elementHeight) / 2
-                    );
-                }
-                else
-                {
-                    // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
-                    rectTrans.anchoredPosition = new Vector2(
-                        rectTrans.anchoredPosition.x,
-                        rectTrans.anchoredPosition.y -// 子要素は親からの絶対的な距離を独自に保持しているので、それ + 行全体を整頓した際の高さの隙間、という計算を行う。
-                            (
-                                currentLineMaxHeight// この行全体の高さからこの要素の高さを引いて/2して、「要素の上の方の隙間高さ」を手に入れる
-                                - elementHeight
-                            )
-                            / 2
-                        );
-                }
-            }
-
-            // 最終的にyを更新する。
-            originY -= currentLineMaxHeight;
+            var x = 0f;
+            LineFeed<T>(ref x, ref y, currentLineMaxHeight, ref currentLineMaxHeight, ref linedRectTransforms);
         }
     }
 }

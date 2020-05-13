@@ -123,14 +123,17 @@ namespace UILayouTaro
 
             var opId = Guid.NewGuid().ToString();
 
+            var currentSize = size;
+
             // この下のレイヤーで全ての非同期layout処理を集める。
-            var layoutOps = layouter.LayoutAsync<T>(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+            var layoutOps = layouter.LayoutAsync<T>(ref currentSize, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
 
             var layouted = false;
             ParameterReference resultRefObject = null;
 
             AsyncLayoutExecutor.LaunchLayoutOps(
                 opId,
+                currentSize.x,
                 layoutOps,
                 pos =>
                 {
@@ -186,14 +189,17 @@ namespace UILayouTaro
 
             var opId = Guid.NewGuid().ToString();
 
+            var currentSize = size;
+
             // この下のレイヤーで全ての非同期layout処理を集める。
-            var layoutOps = layouter.LayoutAsync<T>(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+            var layoutOps = layouter.LayoutAsync<T>(ref currentSize, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
 
             var layouted = false;
             ParameterReference resultRefObject = null;
 
             AsyncLayoutExecutor.LaunchLayoutOps(
                 opId,
+                currentSize.x,
                 layoutOps,
                 pos =>
                 {
@@ -241,13 +247,16 @@ namespace UILayouTaro
 
             var opId = Guid.NewGuid().ToString();
 
+            var currentSize = size;
+
             // この下のレイヤーで全ての非同期layout処理を集める。
-            var layoutOps = layouter.LayoutAsync<T>(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+            var layoutOps = layouter.LayoutAsync<T>(ref currentSize, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
 
             ParameterReference resultRefObject = null;
 
             AsyncLayoutExecutor.LaunchLayoutOps(
                 opId,
+                currentSize.x,
                 layoutOps,
                 pos =>
                 {
@@ -257,6 +266,65 @@ namespace UILayouTaro
                     lineContents.Clear();
 
                     onLayouted();
+                }
+            );
+        }
+
+        public static void RelayoutWithUpdateAsync<T>(Vector2 size, LTAsyncRootElement rootElement, Dictionary<LTElementType, object> updateValues, IAsyncLayouter layouter, Action onRelayouted) where T : IMissingSpriteCache, new()
+        {
+            var originX = 0f;
+            var originY = 0f;
+
+            var rootObject = rootElement.gameObject;
+            var elements = rootElement.GetLTElements();
+            foreach (var element in elements)
+            {
+                if (element is ILayoutableText)
+                {
+                    if (0 < element.transform.childCount)
+                    {
+                        var count = element.transform.childCount;
+                        for (var i = 0; i < count; i++)
+                        {
+                            // get first child.
+                            var child = element.transform.GetChild(0);
+                            child.gameObject.SetActive(false);
+                            child.transform.SetParent(null);
+                            GameObject.Destroy(child.gameObject);
+                        }
+                    }
+                }
+
+                var rectTrans = element.GetComponent<RectTransform>();
+                rectTrans.anchoredPosition = Vector2.zero;
+            }
+
+            layouter.UpdateValuesAsync(elements, updateValues);
+
+            var lineContents = new List<RectTransform>();// 同じ行に入っている要素を整列させるために使用するリスト
+            var currentLineMaxHeight = 0f;
+
+            var opId = Guid.NewGuid().ToString();
+
+            var currentSize = size;
+
+            // この下のレイヤーで全ての非同期layout処理を集める。
+            var layoutOps = layouter.LayoutAsync<T>(ref currentSize, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+
+            ParameterReference resultRefObject = null;
+
+            AsyncLayoutExecutor.LaunchLayoutOps(
+                opId,
+                currentSize.x,
+                layoutOps,
+                pos =>
+                {
+                    resultRefObject = pos;
+
+                    layouter.AfterLayout(size, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
+                    lineContents.Clear();
+
+                    onRelayouted();
                 }
             );
         }
