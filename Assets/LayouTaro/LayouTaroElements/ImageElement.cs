@@ -23,6 +23,19 @@ public class ImageElement : LTElement, ILayoutableRect
         return r;
     }
 
+    public static ImageElement GO(float width, float height)
+    {
+        // prefab名を固定してGOを作ってしまおう
+        var prefabName = "LayouTaroPrefabs/Image";
+        var res = Resources.Load(prefabName) as GameObject;
+        var r = Instantiate(res).AddComponent<ImageElement>();
+
+        var rectTras = r.GetComponent<RectTransform>();
+        rectTras.sizeDelta = new Vector2(width, height);
+        r.Image = null;
+        return r;
+    }
+
     public Vector2 RectSize()
     {
         // ここで、最低でもこのサイズ、とか、ロード失敗したらこのサイズ、とかができる。

@@ -5,6 +5,7 @@ using Miyamasu;
 using System;
 using System.Text;
 using NUnit.Framework;
+using UnityEngine.UI;
 
 public class AsyncLayoutTests : MiyamasuTestRunner
 {
@@ -496,7 +497,8 @@ public class AsyncLayoutTests : MiyamasuTestRunner
             },
             AsyncTextElement.GO("hannin is yasu! this is public problem! gooooooood"),// テキスト
             AsyncImageElement.GO(null),// 画像
-            AsyncTextElement.GO("llllllllllllllli"),
+            AsyncImageElement.GO(6.558f + 0.0002f, 10f),
+            AsyncTextElement.GO("lllllllllllllx"),
             AsyncTextElement.GO("dijklmnoああああああああああああいえああああ")
         );
 

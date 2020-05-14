@@ -179,15 +179,16 @@ namespace UILayouTaro
 
             var isHeadOfLine = refs.originX == 0;
             var isMultiLined = 1 < tmLineCount;
-            var isLayoutedOutOfView = (firstLine.visibleCharacterCount == 1) && (viewWidth < refs.originX + currentFirstLineWidth);// 最初の行の1文字だけが入って、なおかつ幅的にTMProの計算がガバガバな結果文字表示が指定範囲を溢れる場合、改行する。
 
-            // 文字位置を見ずに幅だけで換算すると、TMProはレイアウトできるというがそのままレイアウトすると文字列の末尾が溢れるケースがある。コメントアウトしてあるブロックでそれを確認できる。
-            // if (viewWidth < refs.originX + currentFirstLineWidth)
-            // {
-            //     Debug.Log("async viewWidth:" + viewWidth + " originX:" + refs.originX + " currentFirstLineWidth:" + currentFirstLineWidth + " firstLine.visibleCharacterCount:" + firstLine.visibleCharacterCount);
-            //     // Debug.Break();
-            // }
-            var status = TextLayoutDefinitions.GetTextLayoutStatus(isHeadOfLine, isMultiLined, isLayoutedOutOfView);
+            /*
+                予定している1行目の文字の幅が予定幅を超えている = オーバーフローしている場合、次のケースがある
+                ・文字列の1行目の末尾がたまたま幅予算を超えてレイアウトされた
+
+                この場合、溢れたケースとして文字列の長さを調整してレイアウトを行う。
+            */
+            var isTextOverflow = (viewWidth < refs.originX + currentFirstLineWidth);
+
+            var status = TextLayoutDefinitions.GetTextLayoutStatus(isHeadOfLine, isMultiLined, isTextOverflow);
             switch (status)
             {
                 case TextLayoutStatus.NotHeadAndSingle:
@@ -408,18 +409,145 @@ namespace UILayouTaro
                             goto NextLine;
                         }
                     }
-                case TextLayoutStatus.NotHeadAndOutOfView:
+                case TextLayoutStatus.OutOfViewAndSingle:
                     {
-                        // 次の行にコンテンツを置き、継続する
+                        // 1行ぶんのみのコンテンツで、行末が溢れている。入るように要素を切り、残りを継続してHeadAndSingleとして処理する。
 
-                        // 現在最後の追加要素である自分自身を取り出し、ここまでの行の要素を整列させる。
-                        refs.lineContents.RemoveAt(refs.lineContents.Count - 1);
-                        LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, refs.currentLineMaxHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
+                        // 超過している幅を収めるために、1文字ぶんだけ引いた文字を使ってレイアウトを行う。
+                        var index = contentText.Length - 1;
+                        var firstLineText = contentText.Substring(0, index);
+                        var restText = contentText.Substring(index);
 
-                        // レイアウト対象のビューサイズを新しい行のものとして更新する
-                        refs.restWidth = viewWidth;
-                        refs.lineContents.Add(textComponent.rectTransform);
-                        goto NextLine;
+                        // 現在の行のセット
+                        textComponent.text = firstLineText;
+                        if (0 < textComponent.transform.childCount)
+                        {
+                            for (var i = 0; i < textComponent.transform.childCount; i++)
+                            {
+                                var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                                childRectTrans.pivot = new Vector2(0, 1);
+                                childRectTrans.anchorMin = new Vector2(0, 1);
+                                childRectTrans.anchorMax = new Vector2(0, 1);
+                                childRectTrans.anchoredPosition = Vector2.zero;
+                            }
+                        }
+
+                        textComponent.rectTransform.anchoredPosition = new Vector2(refs.originX, refs.originY);
+                        textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
+
+                        var childOriginX = refs.originX;
+                        var currentTotalLineHeight = LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);// 文字コンテンツの高さ分改行する
+
+                        // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
+                        // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
+                        {
+                            // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
+                            refs.restWidth = viewWidth;
+
+                            // 次の行のコンテンツを入れる
+                            var nextLineTextElement = textElement.GenerateGO(restText).GetComponent<T>();
+                            nextLineTextElement.transform.SetParent(textElement.transform, false);// 消しやすくするため、この新規コンテンツを子にする
+
+                            // xは-に、yは親の直下に置く。yは特に、「親が親の行上でどのように配置されたのか」を加味する必要がある。
+                            // 例えば親行の中で親が最大の背の高さのコンテンツでない場合、改行すべき値は 親の背 + (行の背 - 親の背)/2 になる。
+
+                            var yPosFromLinedParentY =
+                                -(// 下向きがマイナスな座標系なのでマイナス
+                                    currentFirstLineHeight// 現在の文字の高さと行の高さを比較し、文字の高さ + 上側の差の高さ(差/2)を足して返す。
+                                    + (
+                                        currentTotalLineHeight
+                                        - currentFirstLineHeight
+                                    )
+                                    / 2
+                                );
+
+                            // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeed<LTAsyncRootElement>で変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
+                            var newTailTextElementRectTrans = nextLineTextElement.GetComponent<RectTransform>();
+                            newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);
+
+                            // テキスト特有の継続したコンテンツ扱いする。
+                            continueContent = true;
+
+                            // 生成したコンテンツを次の行の要素へと追加する
+                            refs.lineContents.Add(newTailTextElementRectTrans);
+
+                            // 上書きを行う
+                            textElement = nextLineTextElement;
+                            contentText = restText;
+                            goto NextLine;
+                        }
+                    }
+                case TextLayoutStatus.OutOfViewAndMulti:
+                    {
+                        // 複数行があるのが確定していて、最初の行の内容が溢れている。入るように要素を切り、残りを継続してHeadAndMultiとして処理する。
+
+                        // 複数行が既に存在するのが確定しているので、次の行のコンテンツをそのまま取得、分割する。
+                        var nextLineTextIndex = tmGeneratorLines[1].firstCharacterIndex;
+
+                        // 超過している幅を収めるために、1文字ぶんだけ引いた文字を使ってレイアウトを行う。
+                        var index = nextLineTextIndex - 1;
+
+                        var firstLineText = contentText.Substring(0, index);
+                        var restText = contentText.Substring(index);
+
+                        // 現在の行のセット
+                        textComponent.text = firstLineText;
+                        if (0 < textComponent.transform.childCount)
+                        {
+                            for (var i = 0; i < textComponent.transform.childCount; i++)
+                            {
+                                var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                                childRectTrans.pivot = new Vector2(0, 1);
+                                childRectTrans.anchorMin = new Vector2(0, 1);
+                                childRectTrans.anchorMax = new Vector2(0, 1);
+                                childRectTrans.anchoredPosition = Vector2.zero;
+                            }
+                        }
+
+                        textComponent.rectTransform.anchoredPosition = new Vector2(refs.originX, refs.originY);
+                        textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
+
+                        var childOriginX = refs.originX;
+                        var currentTotalLineHeight = LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);// 文字コンテンツの高さ分改行する
+
+                        // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
+                        // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
+                        {
+                            // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
+                            refs.restWidth = viewWidth;
+
+                            // 次の行のコンテンツを入れる
+                            var nextLineTextElement = textElement.GenerateGO(restText).GetComponent<T>();
+                            nextLineTextElement.transform.SetParent(textElement.transform, false);// 消しやすくするため、この新規コンテンツを子にする
+
+                            // xは-に、yは親の直下に置く。yは特に、「親が親の行上でどのように配置されたのか」を加味する必要がある。
+                            // 例えば親行の中で親が最大の背の高さのコンテンツでない場合、改行すべき値は 親の背 + (行の背 - 親の背)/2 になる。
+
+                            var yPosFromLinedParentY =
+                                -(// 下向きがマイナスな座標系なのでマイナス
+                                    currentFirstLineHeight// 現在の文字の高さと行の高さを比較し、文字の高さ + 上側の差の高さ(差/2)を足して返す。
+                                    + (
+                                        currentTotalLineHeight
+                                        - currentFirstLineHeight
+                                    )
+                                    / 2
+                                );
+
+                            // X表示位置を原点にずらす、Yは次のコンテンツの開始Y位置 = LineFeed<LTAsyncRootElement>で変更された親の位置に依存し、親の位置からoriginYを引いた値になる。
+                            var newTailTextElementRectTrans = nextLineTextElement.GetComponent<RectTransform>();
+                            newTailTextElementRectTrans.anchoredPosition = new Vector2(-childOriginX, yPosFromLinedParentY);
+
+                            // テキスト特有の継続したコンテンツ扱いする。
+                            continueContent = true;
+
+                            // 生成したコンテンツを次の行の要素へと追加する
+                            refs.lineContents.Add(newTailTextElementRectTrans);
+
+                            // 上書きを行う
+                            textElement = nextLineTextElement;
+                            contentText = restText;
+                            goto NextLine;
+                        }
                     }
             }
             yield break;
@@ -736,7 +864,7 @@ namespace UILayouTaro
         private static float LineFeed<T>(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedElements) where T : LTAsyncRootElement
         {
             // 列の概念の中で最大の高さを持つ要素を中心に、それより小さい要素をy軸に対して整列させる
-            var lineHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
+            var maxHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
             foreach (var rectTrans in linedElements)
             {
                 var elementHeight = rectTrans.sizeDelta.y;
@@ -745,7 +873,7 @@ namespace UILayouTaro
                 {
                     rectTrans.anchoredPosition = new Vector2(
                         rectTrans.anchoredPosition.x,// xは維持
-                        y - (lineHeight - elementHeight) / 2// yは行の高さから要素の高さを引いて/2したものをセット(縦の中央揃え)
+                        y - (maxHeight - elementHeight) / 2// yは行の高さから要素の高さを引いて/2したものをセット(縦の中央揃え)
                     );
                 }
                 else
@@ -753,18 +881,18 @@ namespace UILayouTaro
                     // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
                     rectTrans.anchoredPosition = new Vector2(
                         rectTrans.anchoredPosition.x,// xは維持
-                        rectTrans.anchoredPosition.y - (currentLineMaxHeight - elementHeight) / 2
+                        rectTrans.anchoredPosition.y - (maxHeight - elementHeight) / 2
                     );
                 }
             }
             linedElements.Clear();
 
             x = 0;
-            y -= lineHeight;
+            y -= maxHeight;
             currentLineMaxHeight = 0f;
 
             // 純粋にその行の中でどの要素が最も背が高かったのかを判別するために、計算結果による変数の初期化に関係なくこの値が必要な箇所がある。
-            return lineHeight;
+            return maxHeight;
         }
 
         private static void ContinueLine(ref float x, float newX, float currentElementHeight, ref float currentLineMaxHeight)

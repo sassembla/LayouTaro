@@ -95,7 +95,7 @@ namespace UILayouTaro
         // async series.
 
 
-        public static IEnumerator LayoutAsync<T>(Transform parent, Vector2 size, LTAsyncRootElement rootElement, IAsyncLayouter layouter) where T : IMissingSpriteCache, new()
+        public static IEnumerator LayoutAsync<T>(Transform parent, Vector2 baseSize, LTAsyncRootElement rootElement, IAsyncLayouter layouter) where T : IMissingSpriteCache, new()
         {
             Debug.Assert(parent.GetComponent<Canvas>() != null, "should set parent transform which contains Canvas. this limitation is caused by spec of TextMesh Pro.");
             var originX = 0f;
@@ -107,7 +107,7 @@ namespace UILayouTaro
             var rootRect = rootObject.GetComponent<RectTransform>();
 
             // 親の基礎サイズをセット
-            rootRect.sizeDelta = size;
+            rootRect.sizeDelta = baseSize;
 
             // set parent.
             foreach (var element in elements)
@@ -123,7 +123,7 @@ namespace UILayouTaro
 
             var opId = Guid.NewGuid().ToString();
 
-            var currentSize = size;
+            var currentSize = baseSize;
 
             // この下のレイヤーで全ての非同期layout処理を集める。
             var layoutOps = layouter.LayoutAsync<T>(ref currentSize, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
@@ -147,13 +147,13 @@ namespace UILayouTaro
                 yield return null;
             }
 
-            layouter.AfterLayout(size, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
+            layouter.AfterLayout(baseSize, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
 
             lineContents.Clear();
             yield break;
         }
 
-        public static IEnumerator RelayoutWithUpdateAsync<T>(Vector2 size, LTAsyncRootElement rootElement, Dictionary<LTElementType, object> updateValues, IAsyncLayouter layouter) where T : IMissingSpriteCache, new()
+        public static IEnumerator RelayoutWithUpdateAsync<T>(Vector2 baseSize, LTAsyncRootElement rootElement, Dictionary<LTElementType, object> updateValues, IAsyncLayouter layouter) where T : IMissingSpriteCache, new()
         {
             var originX = 0f;
             var originY = 0f;
@@ -189,7 +189,7 @@ namespace UILayouTaro
 
             var opId = Guid.NewGuid().ToString();
 
-            var currentSize = size;
+            var currentSize = baseSize;
 
             // この下のレイヤーで全ての非同期layout処理を集める。
             var layoutOps = layouter.LayoutAsync<T>(ref currentSize, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
@@ -213,13 +213,13 @@ namespace UILayouTaro
                 yield return null;
             }
 
-            layouter.AfterLayout(size, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
+            layouter.AfterLayout(baseSize, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
 
             lineContents.Clear();
         }
 
 
-        public static void LayoutAsync<T>(Transform parent, Vector2 size, LTAsyncRootElement rootElement, IAsyncLayouter layouter, Action onLayouted) where T : IMissingSpriteCache, new()
+        public static void LayoutAsync<T>(Transform parent, Vector2 baseSize, LTAsyncRootElement rootElement, IAsyncLayouter layouter, Action onLayouted) where T : IMissingSpriteCache, new()
         {
             Debug.Assert(parent.GetComponent<Canvas>() != null, "should set parent transform which contains Canvas. this limitation is caused by spec of TextMesh Pro.");
             var originX = 0f;
@@ -231,7 +231,7 @@ namespace UILayouTaro
             var rootRect = rootObject.GetComponent<RectTransform>();
 
             // 親の基礎サイズをセット
-            rootRect.sizeDelta = size;
+            rootRect.sizeDelta = baseSize;
 
             // set parent.
             foreach (var element in elements)
@@ -247,7 +247,7 @@ namespace UILayouTaro
 
             var opId = Guid.NewGuid().ToString();
 
-            var currentSize = size;
+            var currentSize = baseSize;
 
             // この下のレイヤーで全ての非同期layout処理を集める。
             var layoutOps = layouter.LayoutAsync<T>(ref currentSize, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
@@ -262,7 +262,7 @@ namespace UILayouTaro
                 {
                     resultRefObject = pos;
 
-                    layouter.AfterLayout(size, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
+                    layouter.AfterLayout(baseSize, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
                     lineContents.Clear();
 
                     onLayouted();
@@ -270,7 +270,7 @@ namespace UILayouTaro
             );
         }
 
-        public static void RelayoutWithUpdateAsync<T>(Vector2 size, LTAsyncRootElement rootElement, Dictionary<LTElementType, object> updateValues, IAsyncLayouter layouter, Action onRelayouted) where T : IMissingSpriteCache, new()
+        public static void RelayoutWithUpdateAsync<T>(Vector2 baseSize, LTAsyncRootElement rootElement, Dictionary<LTElementType, object> updateValues, IAsyncLayouter layouter, Action onRelayouted) where T : IMissingSpriteCache, new()
         {
             var originX = 0f;
             var originY = 0f;
@@ -306,7 +306,7 @@ namespace UILayouTaro
 
             var opId = Guid.NewGuid().ToString();
 
-            var currentSize = size;
+            var currentSize = baseSize;
 
             // この下のレイヤーで全ての非同期layout処理を集める。
             var layoutOps = layouter.LayoutAsync<T>(ref currentSize, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
@@ -321,7 +321,7 @@ namespace UILayouTaro
                 {
                     resultRefObject = pos;
 
-                    layouter.AfterLayout(size, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
+                    layouter.AfterLayout(baseSize, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
                     lineContents.Clear();
 
                     onRelayouted();

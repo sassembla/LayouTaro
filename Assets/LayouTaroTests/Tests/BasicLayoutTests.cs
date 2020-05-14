@@ -458,7 +458,8 @@ public class BasicLayoutTests : MiyamasuTestRunner
             },
             TextElement.GO("hannin is yasu! this is public problem! gooooooood"),// テキスト
             ImageElement.GO(null),// 画像
-            TextElement.GO("llllllllllllllli"),
+            ImageElement.GO(6.558f + 0.0002f, 10f),
+            TextElement.GO("lllllllllllllx"),
             TextElement.GO("dijklmnoああああああああああああいえああああ")
         );
 
