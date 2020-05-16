@@ -15,7 +15,7 @@ public class LayouTaroEditorTool
         var frameworkPath = "Assets/LayouTaro";
         CollectPathRecursive(frameworkPath, assetPaths);
 
-        AssetDatabase.ExportPackage(assetPaths.ToArray(), "LayouTaro.unitypackage", ExportPackageOptions.IncludeDependencies);
+        AssetDatabase.ExportPackage(assetPaths.ToArray(), "LayouTaro.unitypackage", ExportPackageOptions.Default);
     }
 
     private static void CollectPathRecursive(string path, List<string> collectedPaths)
