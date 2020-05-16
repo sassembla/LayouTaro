@@ -176,7 +176,7 @@ public class YourLayouter : ILayouter
         Layout method will be called when the LayouTaro.Layout is called.
         this requires layouting the root element and it's child elements.
     */
-    public void Layout(Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+    public void Layout(Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents, ref Vector2 wrappedSize)
     {
         // start with initialize element pos.
         originX = 0f;
@@ -242,10 +242,10 @@ public class YourLayouter : ILayouter
         }
 
         // layout last line if need. LayoutLastLine layouts the element which located the last line of all elements.
-        BasicLayoutFunctions.LayoutLastLine(ref originY, currentLineMaxHeight, ref lineContents);
+        BasicLayoutFunctions.LayoutLastLine<LTRootElement>(ref originY, currentLineMaxHeight, ref lineContents);
 
         // if you want to resize the root element to it's containing element size, you can do that here.
-        rootTrans.sizeDelta = new Vector2(originalViewWidth, Mathf.Abs(originY));}
+        rootTrans.sizeDelta = new Vector2(wrappedSize.x + outsideSpacing * 2, wrappedSize.y + outsideSpacing * 2);
     }
 
     /*
@@ -283,7 +283,7 @@ public class YourLayouter : ILayouter
 ```
 
 
-## Detecting missing Character/Emoji/Mark
+## Detecting and loading missing Character/Emoji/Mark from somewhere outside of the app
 use async version and set IMissingSpriteCache-implemented class to LayoutAsync method.
 
 BasicMissingSpriteCache is the example of implementation of IMissingSpriteCache.
