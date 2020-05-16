@@ -144,17 +144,17 @@ public class BasicAsyncLayouter : IAsyncLayouter
     /*
         layout後、LayouTaroから呼ばれる
     */
-    public void AfterLayout(Vector2 viewSize, float originX, float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+    public void AfterLayout(Vector2 viewSize, float originX, float originY, GameObject rootObject, LTAsyncRootElement rootElement, LTAsyncElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lastLineContents, Vector2 wrappedSize)
     {
         // 最終行の整列を行う
-        BasicAsyncLayoutFunctions.LayoutLastLine<LTAsyncRootElement>(ref originY, currentLineMaxHeight, ref lineContents);
+        BasicAsyncLayoutFunctions.LayoutLastLine<LTAsyncRootElement>(ref originY, currentLineMaxHeight, ref lastLineContents);
 
         var outsideSpacing = 10f;
 
         var rootTrans = rootObject.GetComponent<RectTransform>();
 
         // boxのサイズを調整する
-        rootTrans.sizeDelta = new Vector2(viewSize.x, Mathf.Abs(originY) + outsideSpacing * 2);// オリジナル幅で、高さに対して2倍分の余白を足す。
+        rootTrans.sizeDelta = new Vector2(wrappedSize.x + outsideSpacing * 2, wrappedSize.y + outsideSpacing * 2);// オリジナル幅で、幅と高さに対して2倍分の余白を足す。
 
         // 子要素の余白分の移動
         foreach (var e in elements)

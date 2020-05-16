@@ -8,7 +8,7 @@ namespace UILayouTaro
     {
         public readonly RectTransform rectTrans;
         public readonly Func<(bool, ParameterReference)> MoveNext;
-        public ParameterReference refs;
+        public ParameterReference refs { get; private set; }
 
         public AsyncLayoutOperation(RectTransform rectTrans, ParameterReference refs, Func<(bool, ParameterReference)> moveNext)
         {
@@ -26,6 +26,7 @@ namespace UILayouTaro
             this.refs.restWidth = baseRefs.restWidth;
             this.refs.currentLineMaxHeight = baseRefs.currentLineMaxHeight;
             this.refs.lineContents = baseRefs.lineContents;
+            this.refs.wrappedSize = baseRefs.wrappedSize;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace UILayouTaro
     public static class BasicLayoutFunctions
     {
 
-        public static void TextLayout<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
+        public static void TextLayout<T>(T textElement, string contentText, RectTransform rectTrans, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents, ref Vector2 wrappedSize) where T : LTElement, ILayoutableText
         {
             // 文字列が空な場合、何もせずに返す。
             if (string.IsNullOrEmpty(contentText))
@@ -72,7 +72,7 @@ namespace UILayouTaro
                 textComponent.rectTransform.sizeDelta = new Vector2(restWidth, 0);// 高さが0で問題ない。
 
                 // この内部で全てのレイアウトを終わらせる。
-                LayoutContentWithEmoji(textElement, contentText, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+                LayoutContentWithEmoji(textElement, contentText, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);
                 return;
             }
 
@@ -94,6 +94,46 @@ namespace UILayouTaro
                 この場合、溢れたケースとして文字列の長さを調整してレイアウトを行う。
             */
             var isTextOverflow = (viewWidth < originX + currentFirstLineWidth);
+
+            // TMProで末尾がwhitespaceで終わっている場合、正しい幅を出せていなく、そのくせ改行設定などは正しい。
+            // 幅がわかる文字を用意し、スペース文字 + 文字をつくり、コンテンツの幅から文字の幅を引けば、スペースの幅が出せる。
+            // それを1単位として、末尾にあるスペースの幅 x 個数をやれば、このコンテンツの正しい幅が出せる。
+            if (Char.IsWhiteSpace(contentText[firstLine.lastCharacterIndex]))
+            {
+                // 行末の、whitespaceかそれに該当する非表示な要素の個数
+                var numEndWhiteSpaceCount = firstLine.lastCharacterIndex - firstLine.lastVisibleCharacterIndex;
+
+                // サンプリングする対象を今回の文字列の末尾から取得する。
+                // このため、幅が異なるwhitespace扱いのものが混じっていても、正しい長さを返せない。
+                var samplingWhiteSpace = contentText[firstLine.lastCharacterIndex];
+
+                // 一時退避する
+                var sourceText = textComponent.text;
+
+                // 0の文字の幅を取得するためにtextComponentにセット、現在のフォントでの0の幅を計測する。
+                textComponent.text = "0";
+                var widthOf0 = textComponent.preferredWidth;
+
+                // whitespace + 0の文字の幅を取得するためにtextComponentにセット、現在のフォントでのws + 0の幅を計測する。
+                textComponent.text = samplingWhiteSpace + "0";
+
+                // 差 = whitespaceの幅を取得する。
+                var singleWidthOfWhiteSpace = textComponent.preferredWidth - widthOf0;
+
+                // 退避したテキストを戻す
+                textComponent.text = sourceText;
+
+                // 現在のコンテンツのX起点 + whitespaceが含まれない幅 + whitespace幅 * 個数 を足し、この行の正しい幅を出す。
+                var totalWidthWithSpaces = originX + currentFirstLineWidth + (singleWidthOfWhiteSpace * numEndWhiteSpaceCount);
+
+                // 画面の幅と比較し、小さい方をとる。
+                // これは、whitespaceを使ってレイアウトした場合、TMProがリクエスト幅を超えたぶんのwhitespaceの計算をサボって、whitespaceではない文字が来た時点でその文字を頭とする改行を行うため。
+                // 最大でも画面幅になるようにする。
+                var maxWidth = Mathf.Min(viewWidth, totalWidthWithSpaces);
+
+                // 行送りが発生しているため、この行の値の幅の更新はもう起きない。そのため、ここでwrappedSize.xを更新する。
+                wrappedSize.x = Mathf.Max(wrappedSize.x, maxWidth);
+            }
 
             var status = TextLayoutDefinitions.GetTextLayoutStatus(isHeadOfLine, isMultiLined, isTextOverflow);
             switch (status)
@@ -127,7 +167,7 @@ namespace UILayouTaro
 
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
-                        ContinueLine(ref originX, currentFirstLineWidth, currentFirstLineHeight, ref currentLineMaxHeight);
+                        ContinueLine(ref originX, originY, currentFirstLineWidth, currentFirstLineHeight, ref currentLineMaxHeight, ref wrappedSize);
                         break;
                     }
 
@@ -159,7 +199,7 @@ namespace UILayouTaro
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
                         var childOriginX = originX;
-                        var currentTotalLineHeight = LineFeed<LTRootElement>(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
+                        var currentTotalLineHeight = LineFeed<LTRootElement>(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);// 文字コンテンツの高さ分改行する
 
                         // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                         // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
@@ -253,7 +293,7 @@ namespace UILayouTaro
                         if (continueContent)
                         {
                             // 別のコンテンツから継続している行はじめの処理なので、子をセットする前にここまでの分の改行を行う。
-                            LineFeed<LTRootElement>(ref originX, ref originY, rectHeight, ref currentLineMaxHeight, ref lineContents);
+                            LineFeed<LTRootElement>(ref originX, ref originY, rectHeight, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);
 
                             // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
                             restWidth = viewWidth;
@@ -342,7 +382,7 @@ namespace UILayouTaro
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
                         var childOriginX = originX;
-                        var currentTotalLineHeight = LineFeed<LTRootElement>(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
+                        var currentTotalLineHeight = LineFeed<LTRootElement>(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);// 文字コンテンツの高さ分改行する
 
                         // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                         // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
@@ -414,7 +454,7 @@ namespace UILayouTaro
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
                         var childOriginX = originX;
-                        var currentTotalLineHeight = LineFeed<LTRootElement>(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents);// 文字コンテンツの高さ分改行する
+                        var currentTotalLineHeight = LineFeed<LTRootElement>(ref originX, ref originY, currentFirstLineHeight, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);// 文字コンテンツの高さ分改行する
 
                         // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                         // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
@@ -461,7 +501,7 @@ namespace UILayouTaro
         /*
             絵文字が入った文字列をintenalな矩形と文字としてレイアウトする。ここでやることで、TM Proによるレイアウトの破綻を避ける。
         */
-        private static void LayoutContentWithEmoji<T>(T textElement, string contentText, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTElement, ILayoutableText
+        private static void LayoutContentWithEmoji<T>(T textElement, string contentText, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents, ref Vector2 wrappedSize) where T : LTElement, ILayoutableText
         {
             /*
                 絵文字が含まれている文字列を、絵文字と矩形に分解、再構成を行う。絵文字を単に画像が入る箱としてRectLayoutに放り込む。というのがいいのか、それとも独自にinternalを定義した方がいいのか。
@@ -483,7 +523,7 @@ namespace UILayouTaro
                 {
                     // emojiRectが入っている
                     var internalRectElement = (InternalEmojiRect)element;
-                    EmojiRectLayout(internalRectElement, rectTrans, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+                    EmojiRectLayout(internalRectElement, rectTrans, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);
                     continue;
                 }
 
@@ -491,7 +531,7 @@ namespace UILayouTaro
                 var internalTextElement = (T)element;
                 var internalContentText = internalTextElement.Text();
 
-                TextLayout(internalTextElement, internalContentText, rectTrans, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+                TextLayout(internalTextElement, internalContentText, rectTrans, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);
             }
         }
 
@@ -625,20 +665,20 @@ namespace UILayouTaro
         }
 
 
-        private static void EmojiRectLayout(InternalEmojiRect rectElement, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        private static void EmojiRectLayout(InternalEmojiRect rectElement, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents, ref Vector2 wrappedSize)
         {
             var rectSize = rectElement.RectSize();
-            RectLayout(rectElement, transform, rectSize, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents);
+            RectLayout(rectElement, transform, rectSize, viewWidth, ref originX, ref originY, ref restWidth, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);
         }
 
-        public static void RectLayout(LTElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+        public static void RectLayout(LTElement rectElement, RectTransform transform, Vector2 rectSize, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents, ref Vector2 wrappedSize)
         {
             Debug.Assert(transform.pivot.x == 0 && transform.pivot.y == 1 && transform.anchorMin.x == 0 && transform.anchorMin.y == 1 && transform.anchorMax.x == 0 && transform.anchorMax.y == 1, "rectTransform for LayouTaro should set pivot to 0,1 and anchorMin 0,1 anchorMax 0,1.");
             if (restWidth < rectSize.x)// 同じ列にレイアウトできないので次の列に行く。
             {
                 // 現在最後の追加要素である自分自身を取り出し、整列させる。
                 lineContents.RemoveAt(lineContents.Count - 1);
-                LineFeed<LTRootElement>(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents);
+                LineFeed<LTRootElement>(ref originX, ref originY, currentLineMaxHeight, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);
                 lineContents.Add(transform);
 
                 // 位置をセット
@@ -653,23 +693,26 @@ namespace UILayouTaro
             // ジャストで埋まったら、次の行を作成する。
             if (restWidth == rectSize.x)
             {
-                LineFeed<LTRootElement>(ref originX, ref originY, transform.sizeDelta.y, ref currentLineMaxHeight, ref lineContents);
+                LineFeed<LTRootElement>(ref originX, ref originY, transform.sizeDelta.y, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);
                 return;
             }
 
-            ContinueLine(ref originX, rectSize.x, transform.sizeDelta.y, ref currentLineMaxHeight);
+            ContinueLine(ref originX, originY, rectSize.x, transform.sizeDelta.y, ref currentLineMaxHeight, ref wrappedSize);
         }
 
 
         /*
             改行、行継続に関するレイアウトコントロール系
         */
-        private static float LineFeed<T>(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedRectTransforms) where T : LTRootElement
+        private static float LineFeed<T>(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedElements, ref Vector2 wrappedSize) where T : LTRootElement
         {
             // 列の概念の中で最大の高さを持つ要素を中心に、それより小さい要素をy軸に対して整列させる
             var maxHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
-            foreach (var rectTrans in linedRectTransforms)
+
+            for (var i = 0; i < linedElements.Count; i++)
             {
+                var rectTrans = linedElements[i];
+
                 var elementHeight = rectTrans.sizeDelta.y;
                 var isParentRoot = rectTrans.parent.GetComponent<T>() is T;
                 if (isParentRoot)
@@ -687,27 +730,65 @@ namespace UILayouTaro
                         rectTrans.anchoredPosition.y - (maxHeight - elementHeight) / 2
                     );
                 }
+
+                // 最後の要素を使ってwrappedなコンテンツの幅の更新を行う
+                if (i == linedElements.Count - 1)
+                {
+                    // wrappedな幅の更新
+                    var rectTransOfLastElement = linedElements[linedElements.Count - 1];
+
+                    var currentLineWidth = 0f;
+                    if (isParentRoot)
+                    {
+                        currentLineWidth = rectTransOfLastElement.anchoredPosition.x + rectTransOfLastElement.sizeDelta.x;
+                    }
+                    else
+                    {
+                        // 子要素なので、親のx位置を足す。
+                        currentLineWidth = rectTransOfLastElement.parent.GetComponent<RectTransform>().anchoredPosition.x + rectTransOfLastElement.anchoredPosition.x + rectTransOfLastElement.sizeDelta.x;
+                    }
+
+                    // wrappedな幅の更新
+                    wrappedSize.x = Mathf.Max(wrappedSize.x, currentLineWidth);
+                }
             }
-            linedRectTransforms.Clear();
+
+            // 行の整列が終わったので初期化する
+            linedElements.Clear();
+
 
             x = 0;
             y -= maxHeight;
+
+            // wrappedな高さの更新
+            wrappedSize.y = Mathf.Abs(y);
+
+            // 記録してある行の最大高度のリセットを行う
             currentLineMaxHeight = 0f;
 
             // 純粋にその行の中でどの要素が最も背が高かったのかを判別するために、計算結果による変数の初期化に関係なくこの値が必要な箇所がある。
             return maxHeight;
         }
 
-        private static void ContinueLine(ref float x, float newX, float currentElementHeight, ref float currentLineMaxHeight)
+        private static void ContinueLine(ref float x, float currentY, float newX, float currentElementHeight, ref float currentLineMaxHeight, ref Vector2 wrappedSize)
         {
+            // 継続するコンテンツのX位置の更新
             x += newX;
+
+            // 現在の行の高さの更新
             currentLineMaxHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
+
+            // wrappedなサイズの更新
+            wrappedSize.x = Mathf.Max(wrappedSize.x, x);
+            wrappedSize.y = Mathf.Max(wrappedSize.y, Math.Abs(currentY) + currentLineMaxHeight);
         }
+
 
         public static void LayoutLastLine<T>(ref float y, float currentLineMaxHeight, ref List<RectTransform> linedRectTransforms) where T : LTRootElement
         {
             var x = 0f;
-            LineFeed<T>(ref x, ref y, currentLineMaxHeight, ref currentLineMaxHeight, ref linedRectTransforms);
+            var w = Vector2.zero;
+            LineFeed<T>(ref x, ref y, currentLineMaxHeight, ref currentLineMaxHeight, ref linedRectTransforms, ref w);
         }
     }
 }

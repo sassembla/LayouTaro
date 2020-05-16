@@ -22,17 +22,18 @@ namespace UILayouTaro
             // このオブジェクトの中でopsを回して、ParamRefを引きまわす。
             private IEnumerator<(bool, ParameterReference)> RunLayout(string opsId, float viewWidth, List<AsyncLayoutOperation> ops)
             {
-                var targeOp = ops[0];
+                // 初期opを取り出す
+                var targetOp = ops[0];
 
                 // レイアウトの起点
-                var baseRefs = targeOp.refs;
+                var baseRefs = targetOp.refs;
 
                 // ここでRectTransformを取り出し、refsのlinedにセットする必要がある。
-                baseRefs.lineContents.Add(targeOp.rectTrans);
+                baseRefs.lineContents.Add(targetOp.rectTrans);
 
                 while (true)
                 {
-                    var (cont, refs) = targeOp.MoveNext();
+                    var (cont, refs) = targetOp.MoveNext();
 
                     baseRefs = refs;
 
@@ -50,15 +51,19 @@ namespace UILayouTaro
 
                         var endOpsOriginX = baseRefs.originX;
 
-                        targeOp = ops[0];
+                        // 次のopを取り出す
+                        targetOp = ops[0];
 
+                        // コンテンツが継続してレイアウトされるための残り幅を更新し渡す
                         baseRefs.restWidth = viewWidth - endOpsOriginX;
-                        baseRefs.lineContents.Add(targeOp.rectTrans);
+
+                        // 新たなOpを現在まで積まれている行配列に追加、行単位のy揃えに利用する。
+                        baseRefs.lineContents.Add(targetOp.rectTrans);
 
                         // refsを更新する
-                        targeOp.UpdateRef(baseRefs);
+                        targetOp.UpdateRef(baseRefs);
 
-                        // 開始位置に戻り、次のOpsのMoveNextを行う
+                        // 開始位置に戻り、次のOpのMoveNextを行う
                         continue;
                     }
 

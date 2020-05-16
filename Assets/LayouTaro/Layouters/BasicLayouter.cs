@@ -10,7 +10,7 @@ public class BasicLayouter : ILayouter
     /*
         子要素をレイアウトし、親要素が余白ありでそれを包む。
     */
-    public void Layout(Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents)
+    public void Layout(Vector2 viewSize, out float originX, out float originY, GameObject rootObject, LTRootElement rootElement, LTElement[] elements, ref float currentLineMaxHeight, ref List<RectTransform> lineContents, ref Vector2 wrappedSize)
     {
         var outsideSpacing = 10f;
         originX = 0f;
@@ -48,7 +48,8 @@ public class BasicLayouter : ILayouter
                         ref originY,
                         ref restWidth,
                         ref currentLineMaxHeight,
-                        ref lineContents
+                        ref lineContents,
+                        ref wrappedSize
                     );
                     break;
                 case LTElementType.Text:
@@ -64,7 +65,8 @@ public class BasicLayouter : ILayouter
                         ref originY,
                         ref restWidth,
                         ref currentLineMaxHeight,
-                        ref lineContents
+                        ref lineContents,
+                        ref wrappedSize
                     );
                     break;
                 case LTElementType.Text2:
@@ -80,7 +82,8 @@ public class BasicLayouter : ILayouter
                         ref originY,
                         ref restWidth,
                         ref currentLineMaxHeight,
-                        ref lineContents
+                        ref lineContents,
+                        ref wrappedSize
                     );
                     break;
                 case LTElementType.Button:
@@ -95,7 +98,8 @@ public class BasicLayouter : ILayouter
                         ref originY,
                         ref restWidth,
                         ref currentLineMaxHeight,
-                        ref lineContents
+                        ref lineContents,
+                        ref wrappedSize
                     );
                     break;
 
@@ -112,7 +116,7 @@ public class BasicLayouter : ILayouter
         BasicLayoutFunctions.LayoutLastLine<LTRootElement>(ref originY, currentLineMaxHeight, ref lineContents);
 
         // boxのサイズを調整する
-        rootTrans.sizeDelta = new Vector2(originalViewWidth, Mathf.Abs(originY) + outsideSpacing * 2);// オリジナル幅で、高さに対して2倍分の余白を足す。
+        rootTrans.sizeDelta = new Vector2(wrappedSize.x + outsideSpacing * 2, wrappedSize.y + outsideSpacing * 2);// オリジナル幅で、幅と高さに対して2倍分の余白を足す。
 
         // 子要素の余白分の移動
         foreach (var e in elements)

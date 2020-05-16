@@ -34,7 +34,8 @@ namespace UILayouTaro
             var lineContents = new List<RectTransform>();// 同じ行に入っている要素を整列させるために使用するリスト
             var currentLineMaxHeight = 0f;
 
-            layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+            var wrappedSize = Vector2.zero;
+            layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);
 
             lineContents.Clear();
 
@@ -77,7 +78,8 @@ namespace UILayouTaro
             var lineContents = new List<RectTransform>();// 同じ行に入っている要素を整列させるために使用するリスト
             var currentLineMaxHeight = 0f;
 
-            layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
+            var wrappedSize = Vector2.zero;
+            layouter.Layout(size, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents, ref wrappedSize);
 
             lineContents.Clear();
 
@@ -135,10 +137,10 @@ namespace UILayouTaro
                 opId,
                 currentSize.x,
                 layoutOps,
-                pos =>
+                refs =>
                 {
                     layouted = true;
-                    resultRefObject = pos;
+                    resultRefObject = refs;
                 }
             );
 
@@ -147,7 +149,7 @@ namespace UILayouTaro
                 yield return null;
             }
 
-            layouter.AfterLayout(baseSize, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
+            layouter.AfterLayout(baseSize, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents, resultRefObject.wrappedSize);
 
             lineContents.Clear();
             yield break;
@@ -213,7 +215,7 @@ namespace UILayouTaro
                 yield return null;
             }
 
-            layouter.AfterLayout(baseSize, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
+            layouter.AfterLayout(baseSize, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents, resultRefObject.wrappedSize);
 
             lineContents.Clear();
         }
@@ -252,17 +254,13 @@ namespace UILayouTaro
             // この下のレイヤーで全ての非同期layout処理を集める。
             var layoutOps = layouter.LayoutAsync<T>(ref currentSize, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
 
-            ParameterReference resultRefObject = null;
-
             AsyncLayoutExecutor.LaunchLayoutOps(
                 opId,
                 currentSize.x,
                 layoutOps,
-                pos =>
+                refs =>
                 {
-                    resultRefObject = pos;
-
-                    layouter.AfterLayout(baseSize, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
+                    layouter.AfterLayout(baseSize, refs.originX, refs.originY, rootObject, rootElement, elements, ref refs.currentLineMaxHeight, ref refs.lineContents, refs.wrappedSize);
                     lineContents.Clear();
 
                     onLayouted();
@@ -311,17 +309,13 @@ namespace UILayouTaro
             // この下のレイヤーで全ての非同期layout処理を集める。
             var layoutOps = layouter.LayoutAsync<T>(ref currentSize, out originX, out originY, rootObject, rootElement, elements, ref currentLineMaxHeight, ref lineContents);
 
-            ParameterReference resultRefObject = null;
-
             AsyncLayoutExecutor.LaunchLayoutOps(
                 opId,
                 currentSize.x,
                 layoutOps,
-                pos =>
+                refs =>
                 {
-                    resultRefObject = pos;
-
-                    layouter.AfterLayout(baseSize, resultRefObject.originX, resultRefObject.originY, rootObject, rootElement, elements, ref resultRefObject.currentLineMaxHeight, ref resultRefObject.lineContents);
+                    layouter.AfterLayout(baseSize, refs.originX, refs.originY, rootObject, rootElement, elements, ref refs.currentLineMaxHeight, ref refs.lineContents, refs.wrappedSize);
                     lineContents.Clear();
 
                     onRelayouted();

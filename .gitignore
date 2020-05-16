@@ -16,3 +16,4 @@ Assembly-CSharp-Editor.csproj
 .vscode/launch.json
 sample.csv
 sample2.csv
+images/*

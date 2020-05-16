@@ -17,6 +17,8 @@ namespace UILayouTaro
         public float currentLineMaxHeight;
         public List<RectTransform> lineContents;
 
+        public Vector2 wrappedSize;
+
         public ParameterReference(float originX, float originY, float restWidth, float currentLineMaxHeight, List<RectTransform> lineContents)
         {
             this.id = Guid.NewGuid().ToString();
@@ -188,6 +190,47 @@ namespace UILayouTaro
             */
             var isTextOverflow = (viewWidth < refs.originX + currentFirstLineWidth);
 
+
+            // TMProで末尾がwhitespaceで終わっている場合、正しい幅を出せていなく、そのくせ改行設定などは正しい。
+            // 幅がわかる文字を用意し、スペース文字 + 文字をつくり、コンテンツの幅から文字の幅を引けば、スペースの幅が出せる。
+            // それを1単位として、末尾にあるスペースの幅 x 個数をやれば、このコンテンツの正しい幅が出せる。
+            if (Char.IsWhiteSpace(contentText[firstLine.lastCharacterIndex]))
+            {
+                // 行末の、whitespaceかそれに該当する非表示な要素の個数
+                var numEndWhiteSpaceCount = firstLine.lastCharacterIndex - firstLine.lastVisibleCharacterIndex;
+
+                // サンプリングする対象を今回の文字列の末尾から取得する。
+                // このため、幅が異なるwhitespace扱いのものが混じっていても、正しい長さを返せない。
+                var samplingWhiteSpace = contentText[firstLine.lastCharacterIndex];
+
+                // 一時退避する
+                var sourceText = textComponent.text;
+
+                // 0の文字の幅を取得するためにtextComponentにセット、現在のフォントでの0の幅を計測する。
+                textComponent.text = "0";
+                var widthOf0 = textComponent.preferredWidth;
+
+                // whitespace + 0の文字の幅を取得するためにtextComponentにセット、現在のフォントでのws + 0の幅を計測する。
+                textComponent.text = samplingWhiteSpace + "0";
+
+                // 差 = whitespaceの幅を取得する。
+                var singleWidthOfWhiteSpace = textComponent.preferredWidth - widthOf0;
+
+                // 退避したテキストを戻す
+                textComponent.text = sourceText;
+
+                // 現在のコンテンツのX起点 + whitespaceが含まれない幅 + whitespace幅 * 個数 を足し、この行の正しい幅を出す。
+                var totalWidthWithSpaces = refs.originX + currentFirstLineWidth + (singleWidthOfWhiteSpace * numEndWhiteSpaceCount);
+
+                // 画面の幅と比較し、小さい方をとる。
+                // これは、whitespaceを使ってレイアウトした場合、TMProがリクエスト幅を超えたぶんのwhitespaceの計算をサボって、whitespaceではない文字が来た時点でその文字を頭とする改行を行うため。
+                // 最大でも画面幅になるようにする。
+                var maxWidth = Mathf.Min(viewWidth, totalWidthWithSpaces);
+
+                // 行送りが発生しているため、この行の値の幅の更新はもう起きない。そのため、ここでwrappedSize.xを更新する。
+                refs.wrappedSize.x = Mathf.Max(refs.wrappedSize.x, maxWidth);
+            }
+
             var status = TextLayoutDefinitions.GetTextLayoutStatus(isHeadOfLine, isMultiLined, isTextOverflow);
             switch (status)
             {
@@ -221,7 +264,7 @@ namespace UILayouTaro
 
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
-                        ContinueLine(ref refs.originX, currentFirstLineWidth, currentFirstLineHeight, ref refs.currentLineMaxHeight);
+                        ContinueLine(ref refs.originX, refs.originY, currentFirstLineWidth, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.wrappedSize);
                         break;
                     }
 
@@ -253,7 +296,7 @@ namespace UILayouTaro
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
                         var childOriginX = refs.originX;
-                        var currentTotalLineHeight = LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);// 文字コンテンツの高さ分改行する
+                        var currentTotalLineHeight = LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.lineContents, ref refs.wrappedSize);// 文字コンテンツの高さ分改行する
 
                         // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                         // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
@@ -347,7 +390,7 @@ namespace UILayouTaro
                         if (continueContent)
                         {
                             // 別のコンテンツから継続している行はじめの処理なので、子をセットする前にここまでの分の改行を行う。
-                            LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, rectHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
+                            LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, rectHeight, ref refs.currentLineMaxHeight, ref refs.lineContents, ref refs.wrappedSize);
 
                             // 末尾でgotoを使って次の行頭からのコンテンツの設置に行くので、計算に使う残り幅をビュー幅へとセットする。
                             refs.restWidth = viewWidth;
@@ -376,6 +419,7 @@ namespace UILayouTaro
                             contentText = lastLineText;
                             goto NextLine;
                         }
+
 
                         // 誰かの子ではないので、独自に自分の位置をセットする
                         textComponent.rectTransform.anchoredPosition = new Vector2(refs.originX, refs.originY);
@@ -436,7 +480,8 @@ namespace UILayouTaro
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
                         var childOriginX = refs.originX;
-                        var currentTotalLineHeight = LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);// 文字コンテンツの高さ分改行する
+                        var currentTotalLineHeight = LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.lineContents, ref refs.wrappedSize
+                        );// 文字コンテンツの高さ分改行する
 
                         // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                         // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
@@ -508,7 +553,7 @@ namespace UILayouTaro
                         textComponent.rectTransform.sizeDelta = new Vector2(currentFirstLineWidth, currentFirstLineHeight);
 
                         var childOriginX = refs.originX;
-                        var currentTotalLineHeight = LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);// 文字コンテンツの高さ分改行する
+                        var currentTotalLineHeight = LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, currentFirstLineHeight, ref refs.currentLineMaxHeight, ref refs.lineContents, ref refs.wrappedSize);// 文字コンテンツの高さ分改行する
 
                         // 次の行のコンテンツをこのコンテンツの子として生成するが、レイアウトまでを行わず次の行の起点の計算を行う。
                         // ここで全てを計算しない理由は、この処理の結果、複数種類のレイアウトが発生するため、ここで全てを書かない方が変えやすい。
@@ -832,7 +877,7 @@ namespace UILayouTaro
             {
                 // 現在最後の追加要素である自分自身を取り出し、整列させる。
                 refs.lineContents.RemoveAt(refs.lineContents.Count - 1);
-                LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, refs.currentLineMaxHeight, ref refs.currentLineMaxHeight, ref refs.lineContents);
+                LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, refs.currentLineMaxHeight, ref refs.currentLineMaxHeight, ref refs.lineContents, ref refs.wrappedSize);
                 refs.lineContents.Add(transform);
 
                 // 位置をセット
@@ -847,13 +892,13 @@ namespace UILayouTaro
             // ジャストで埋まったら、次の行を作成する。
             if (refs.restWidth == rectSize.x)
             {
-                LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, transform.sizeDelta.y, ref refs.currentLineMaxHeight, ref refs.lineContents);
+                LineFeed<LTAsyncRootElement>(ref refs.originX, ref refs.originY, transform.sizeDelta.y, ref refs.currentLineMaxHeight, ref refs.lineContents, ref refs.wrappedSize);
 
                 refs.restWidth = viewWidth;
                 yield break;
             }
 
-            ContinueLine(ref refs.originX, rectSize.x, transform.sizeDelta.y, ref refs.currentLineMaxHeight);
+            ContinueLine(ref refs.originX, refs.originY, rectSize.x, transform.sizeDelta.y, ref refs.currentLineMaxHeight, ref refs.wrappedSize);
             refs.restWidth = viewWidth - refs.originX;
             yield break;
         }
@@ -861,12 +906,15 @@ namespace UILayouTaro
         /*
             改行、行継続に関するレイアウトコントロール系
         */
-        private static float LineFeed<T>(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedElements) where T : LTAsyncRootElement
+        private static float LineFeed<T>(ref float x, ref float y, float currentElementHeight, ref float currentLineMaxHeight, ref List<RectTransform> linedElements, ref Vector2 wrappedSize) where T : LTAsyncRootElement
         {
             // 列の概念の中で最大の高さを持つ要素を中心に、それより小さい要素をy軸に対して整列させる
             var maxHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
-            foreach (var rectTrans in linedElements)
+
+            for (var i = 0; i < linedElements.Count; i++)
             {
+                var rectTrans = linedElements[i];
+
                 var elementHeight = rectTrans.sizeDelta.y;
                 var isParentRoot = rectTrans.parent.GetComponent<T>() is T;
                 if (isParentRoot)
@@ -884,63 +932,65 @@ namespace UILayouTaro
                         rectTrans.anchoredPosition.y - (maxHeight - elementHeight) / 2
                     );
                 }
+
+                // 最後の要素を使ってwrappedなコンテンツの幅の更新を行う
+                if (i == linedElements.Count - 1)
+                {
+                    // wrappedな幅の更新
+                    var rectTransOfLastElement = linedElements[linedElements.Count - 1];
+
+                    var currentLineWidth = 0f;
+                    if (isParentRoot)
+                    {
+                        currentLineWidth = rectTransOfLastElement.anchoredPosition.x + rectTransOfLastElement.sizeDelta.x;
+                    }
+                    else
+                    {
+                        // 子要素なので、親のx位置を足す。
+                        currentLineWidth = rectTransOfLastElement.parent.GetComponent<RectTransform>().anchoredPosition.x + rectTransOfLastElement.anchoredPosition.x + rectTransOfLastElement.sizeDelta.x;
+                    }
+
+                    // wrappedな幅の更新
+                    wrappedSize.x = Mathf.Max(wrappedSize.x, currentLineWidth);
+                }
             }
+
+            // 行の整列が終わったので初期化する
             linedElements.Clear();
+
 
             x = 0;
             y -= maxHeight;
+
+            // wrappedな高さの更新
+            wrappedSize.y = Mathf.Abs(y);
+
+            // 記録してある行の最大高度のリセットを行う
             currentLineMaxHeight = 0f;
 
             // 純粋にその行の中でどの要素が最も背が高かったのかを判別するために、計算結果による変数の初期化に関係なくこの値が必要な箇所がある。
             return maxHeight;
         }
 
-        private static void ContinueLine(ref float x, float newX, float currentElementHeight, ref float currentLineMaxHeight)
+        private static void ContinueLine(ref float x, float currentY, float newX, float currentElementHeight, ref float currentLineMaxHeight, ref Vector2 wrappedSize)
         {
+            // 継続するコンテンツのX位置の更新
             x += newX;
+
+            // 現在の行の高さの更新
             currentLineMaxHeight = Mathf.Max(currentElementHeight, currentLineMaxHeight);
+
+            // wrappedなサイズの更新
+            wrappedSize.x = Mathf.Max(wrappedSize.x, x);
+            wrappedSize.y = Mathf.Max(wrappedSize.y, Math.Abs(currentY) + currentLineMaxHeight);
         }
 
 
-        public static void LayoutLastLine<T>(ref float originY, float currentLineMaxHeight, ref List<RectTransform> lineContents) where T : LTAsyncRootElement
+        public static void LayoutLastLine<T>(ref float y, float currentLineMaxHeight, ref List<RectTransform> linedRectTransforms) where T : LTAsyncRootElement
         {
-            // レイアウト終了後、最後の列の要素を並べる。
-            foreach (var rectTrans in lineContents)
-            {
-                // Debug.Log("rectTrans.gameObject:" + rectTrans.gameObject.com);
-                var elementHeight = rectTrans.sizeDelta.y;
-                var parent = rectTrans.parent;
-                if (parent == null)
-                {
-                    continue;
-                }
-
-                // これ計測方法に問題があるんだよな、親のtransとかで判定できるような感じだといいんだよな
-                var isParentRoot = parent.GetComponent<T>() is T;
-                if (isParentRoot)
-                {
-                    rectTrans.anchoredPosition = new Vector2(
-                        rectTrans.anchoredPosition.x,
-                        originY - (currentLineMaxHeight - elementHeight) / 2
-                    );
-                }
-                else
-                {
-                    // 親がRootElementではない場合、なんらかの子要素なので、行の高さは合うが、上位の単位であるoriginYとの相性が悪すぎる。なので、独自の計算系で合わせる。
-                    rectTrans.anchoredPosition = new Vector2(
-                        rectTrans.anchoredPosition.x,
-                        rectTrans.anchoredPosition.y -// 子要素は親からの絶対的な距離を独自に保持しているので、それ + 行全体を整頓した際の高さの隙間、という計算を行う。
-                            (
-                                currentLineMaxHeight// この行全体の高さからこの要素の高さを引いて/2して、「要素の上の方の隙間高さ」を手に入れる
-                                - elementHeight
-                            )
-                            / 2
-                        );
-                }
-            }
-
-            // 最終的にyを更新する。
-            originY -= currentLineMaxHeight;
+            var x = 0f;
+            var w = Vector2.zero;
+            LineFeed<T>(ref x, ref y, currentLineMaxHeight, ref currentLineMaxHeight, ref linedRectTransforms, ref w);
         }
     }
 }

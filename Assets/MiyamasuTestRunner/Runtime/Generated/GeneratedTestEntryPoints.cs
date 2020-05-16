@@ -1317,6 +1317,28 @@ public class ErrorTests_Miyamasu {
             throw;
         }
     }
+    [UnityTest] public IEnumerator SpacesAndLayoutAsync() {
+        var instance = new ErrorTests();
+        instance.SetInfo("ErrorTests", "SpacesAndLayoutAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.SpacesAndLayoutAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
     [UnityTest] public IEnumerator SpacesAndLayoutRelayout() {
         var instance = new ErrorTests();
         instance.SetInfo("ErrorTests", "SpacesAndLayoutRelayout");
@@ -1383,28 +1405,6 @@ public class ErrorTests_Miyamasu {
             throw;
         }
     }
-    [UnityTest] public IEnumerator SpacesAndLayoutAsync() {
-        var instance = new ErrorTests();
-        instance.SetInfo("ErrorTests", "SpacesAndLayoutAsync");
-        
-        try {
-            instance.Setup();
-        } catch (Exception e) {
-            instance.SetupFailed(e);
-            throw;
-        }
-        var startDate = DateTime.Now;
-        yield return instance.SpacesAndLayoutAsync();
-        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
-
-        
-        try {
-            instance.Teardown();
-        } catch (Exception e) {
-            instance.TeardownFailed(e);
-            throw;
-        }
-    }
     [UnityTest] public IEnumerator SpacesAndLayout2Async() {
         var instance = new ErrorTests();
         instance.SetInfo("ErrorTests", "SpacesAndLayout2Async");
@@ -1439,6 +1439,94 @@ public class ErrorTests_Miyamasu {
         }
         var startDate = DateTime.Now;
         yield return instance.SpacesAndLayout2RelayoutAsync();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator SpacesAndLayout3() {
+        var instance = new ErrorTests();
+        instance.SetInfo("ErrorTests", "SpacesAndLayout3");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.SpacesAndLayout3();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator SpacesAndLayout3Relayout() {
+        var instance = new ErrorTests();
+        instance.SetInfo("ErrorTests", "SpacesAndLayout3Relayout");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.SpacesAndLayout3Relayout();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator SpacesAndLayout3Async() {
+        var instance = new ErrorTests();
+        instance.SetInfo("ErrorTests", "SpacesAndLayout3Async");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.SpacesAndLayout3Async();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
+    [UnityTest] public IEnumerator SpacesAndLayout3RelayoutAsync() {
+        var instance = new ErrorTests();
+        instance.SetInfo("ErrorTests", "SpacesAndLayout3RelayoutAsync");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.SpacesAndLayout3RelayoutAsync();
         instance.MarkAsPassed((DateTime.Now - startDate).ToString());
 
         
@@ -1929,30 +2017,6 @@ public class RelayoutTests_Miyamasu {
         }
         var startDate = DateTime.Now;
         yield return instance.RelayoutWithLongEmoji();
-        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
-
-        
-        try {
-            instance.Teardown();
-        } catch (Exception e) {
-            instance.TeardownFailed(e);
-            throw;
-        }
-    }
-}
-public class WrappedSizeTests_Miyamasu {
-    [UnityTest] public IEnumerator WrappedSize() {
-        var instance = new WrappedSizeTests();
-        instance.SetInfo("WrappedSizeTests", "WrappedSize");
-        
-        try {
-            instance.Setup();
-        } catch (Exception e) {
-            instance.SetupFailed(e);
-            throw;
-        }
-        var startDate = DateTime.Now;
-        yield return instance.WrappedSize();
         instance.MarkAsPassed((DateTime.Now - startDate).ToString());
 
         
