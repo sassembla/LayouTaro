@@ -372,6 +372,7 @@ namespace UILayouTaro
 
                         // 改行コードを入れ、複数行での表示をいい感じにする。
                         textComponent.text = string.Join("\n", rectTexts);
+
                         if (0 < textComponent.transform.childCount)
                         {
                             for (var i = 0; i < textComponent.transform.childCount; i++)
@@ -385,6 +386,12 @@ namespace UILayouTaro
                         }
 
                         textComponent.rectTransform.sizeDelta = new Vector2(refs.restWidth, rectHeight);
+
+                        // 幅の最大値を取得
+                        var max = Mathf.Max(textComponent.rectTransform.sizeDelta.x, textComponent.preferredWidth);
+
+                        // サイズを更新する。
+                        refs.wrappedSize.x = Mathf.Max(refs.wrappedSize.x, max);
 
                         // なんらかの続きの文字コンテンツである場合、そのコンテンツの子になっているので位置情報を調整しない。最終行を分割する。
                         if (continueContent)

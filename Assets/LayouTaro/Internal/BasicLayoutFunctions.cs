@@ -289,6 +289,12 @@ namespace UILayouTaro
 
                         textComponent.rectTransform.sizeDelta = new Vector2(restWidth, rectHeight);
 
+                        // 幅の最大値を取得
+                        var max = Mathf.Max(textComponent.rectTransform.sizeDelta.x, textComponent.preferredWidth);
+
+                        // wrappedな幅の更新
+                        wrappedSize.x = Mathf.Max(wrappedSize.x, max);
+
                         // なんらかの続きの文字コンテンツである場合、そのコンテンツの子になっているので位置情報を調整しない。最終行を分割する。
                         if (continueContent)
                         {
