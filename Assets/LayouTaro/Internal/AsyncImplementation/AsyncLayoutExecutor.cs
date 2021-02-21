@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.LowLevel;
 
 namespace UILayouTaro
 {
@@ -78,6 +77,8 @@ namespace UILayouTaro
 
         private static List<OpsGroup> rootOps = new List<OpsGroup>();
 
+        private static AsyncRunnerComponent runnerComponent;
+
         public static void LaunchLayoutOps(string opsId, float viewWidth, List<AsyncLayoutOperation> newOps, Action<ParameterReference> onDone)
         {
             var opsGroup = new OpsGroup(opsId, viewWidth, newOps, onDone);
@@ -89,28 +90,13 @@ namespace UILayouTaro
                 return;
             }
 
-            // 最初の一つだったらRunnerを追加する
-            if (rootOps.Count == 0)
+            // add runner for LayouTaro itself.
+            // we stopped using RunLoop for this for avoiding confusion against main loop.
+            if (runnerComponent == null)
             {
-                var layoutUpdateSystem = new PlayerLoopSystem()
-                {
-                    type = typeof(AsyncLayoutExecutor),
-                    updateDelegate = LayoutRunner
-                };
-
-                var playerLoop = PlayerLoop.GetDefaultPlayerLoop();
-
-                // updateのシステムを取得する
-                var updateSystem = playerLoop.subSystemList[4];
-                var subSystem = new List<PlayerLoopSystem>(updateSystem.subSystemList);
-
-                // updateブロックを追加する
-                subSystem.Add(layoutUpdateSystem);
-                updateSystem.subSystemList = subSystem.ToArray();
-                playerLoop.subSystemList[4] = updateSystem;
-
-                // セット
-                PlayerLoop.SetPlayerLoop(playerLoop);
+                var go = new GameObject();
+                runnerComponent = go.AddComponent<AsyncRunnerComponent>();
+                runnerComponent.Initialize(LayoutRunner);
             }
 
             rootOps.Add(opsGroup);
@@ -135,41 +121,8 @@ namespace UILayouTaro
 
                     // 終了実行
                     opsGroup.onDone(pos);
-
-                    // 全てのopsGroupが消えたら、Runner自体を削除する。
-                    if (rootOps.Count == 0)
-                    {
-                        RemoveLayoutRunner();
-                    }
                 }
             }
-        }
-
-        private static void RemoveLayoutRunner()
-        {
-            var playerLoop = PlayerLoop.GetDefaultPlayerLoop();
-
-            // updateのシステムを取得する
-            var updateSystem = playerLoop.subSystemList[4];
-            var subSystem = new List<PlayerLoopSystem>(updateSystem.subSystemList);
-
-            // remove AsyncLayoutOperation.
-            var count = subSystem.Count;
-            for (var i = 0; i < count; i++)
-            {
-                var item = subSystem[i];
-                if (item.type == typeof(AsyncLayoutExecutor))
-                {
-                    subSystem.RemoveAt(i);
-                    break;
-                }
-            }
-
-            // セット
-            updateSystem.subSystemList = subSystem.ToArray();
-            playerLoop.subSystemList[4] = updateSystem;
-
-            PlayerLoop.SetPlayerLoop(playerLoop);
         }
     }
 }
