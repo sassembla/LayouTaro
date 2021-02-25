@@ -147,7 +147,7 @@ namespace UILayouTaro
                         {
                             for (var i = 0; i < textComponent.transform.childCount; i++)
                             {
-                                var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                                var childRectTrans = textComponent.transform.GetChild(i).GetComponent<RectTransform>();
                                 childRectTrans.pivot = new Vector2(0, 1);
                                 childRectTrans.anchorMin = new Vector2(0, 1);
                                 childRectTrans.anchorMax = new Vector2(0, 1);
@@ -187,7 +187,7 @@ namespace UILayouTaro
                         {
                             for (var i = 0; i < textComponent.transform.childCount; i++)
                             {
-                                var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                                var childRectTrans = textComponent.transform.GetChild(i).GetComponent<RectTransform>();
                                 childRectTrans.pivot = new Vector2(0, 1);
                                 childRectTrans.anchorMin = new Vector2(0, 1);
                                 childRectTrans.anchorMax = new Vector2(0, 1);
@@ -279,7 +279,7 @@ namespace UILayouTaro
                         {
                             for (var i = 0; i < textComponent.transform.childCount; i++)
                             {
-                                var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                                var childRectTrans = textComponent.transform.GetChild(i).GetComponent<RectTransform>();
                                 childRectTrans.pivot = new Vector2(0, 1);
                                 childRectTrans.anchorMin = new Vector2(0, 1);
                                 childRectTrans.anchorMax = new Vector2(0, 1);
@@ -376,7 +376,7 @@ namespace UILayouTaro
                         {
                             for (var i = 0; i < textComponent.transform.childCount; i++)
                             {
-                                var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                                var childRectTrans = textComponent.transform.GetChild(i).GetComponent<RectTransform>();
                                 childRectTrans.pivot = new Vector2(0, 1);
                                 childRectTrans.anchorMin = new Vector2(0, 1);
                                 childRectTrans.anchorMax = new Vector2(0, 1);
@@ -448,7 +448,7 @@ namespace UILayouTaro
                         {
                             for (var i = 0; i < textComponent.transform.childCount; i++)
                             {
-                                var childRectTrans = textComponent.transform.GetChild(0).GetComponent<RectTransform>();
+                                var childRectTrans = textComponent.transform.GetChild(i).GetComponent<RectTransform>();
                                 childRectTrans.pivot = new Vector2(0, 1);
                                 childRectTrans.anchorMin = new Vector2(0, 1);
                                 childRectTrans.anchorMax = new Vector2(0, 1);
