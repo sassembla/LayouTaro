@@ -1559,6 +1559,28 @@ public class ErrorTests_Miyamasu {
             throw;
         }
     }
+    [UnityTest] public IEnumerator IsEmojiOrNotComplexCase2() {
+        var instance = new ErrorTests();
+        instance.SetInfo("ErrorTests", "IsEmojiOrNotComplexCase2");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.IsEmojiOrNotComplexCase2();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
 }
 public class FrameTests_Miyamasu {
     [UnityTest] public IEnumerator BasicPatternFrames() {

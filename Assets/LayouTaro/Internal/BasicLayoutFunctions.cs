@@ -52,8 +52,8 @@ namespace UILayouTaro
                 textComponent.enableWordWrapping = false;
             }
 
-            // 絵文字や記号が含まれている場合、画像と文字に分けてレイアウトを行う。
-            if (IsDetectEmojiAndMarkAndTextExist(contentText))
+            // 絵文字が含まれている場合、画像と文字に分けてレイアウトを行う。
+            if (IsContainsEmoji(contentText))
             {
                 textComponent.text = string.Empty;
 
@@ -541,18 +541,11 @@ namespace UILayouTaro
             }
         }
 
-        public static bool IsDetectEmojiAndMarkAndTextExist(string contentText)
+        public static bool IsContainsEmoji(string contentText)
         {
             for (var i = 0; i < contentText.Length; i++)
             {
                 var firstChar = contentText[i];
-
-                // \u26A1
-                var isSymbol = Char.IsSymbol(firstChar);
-                if (isSymbol)
-                {
-                    return true;
-                }
 
                 // \U0001F971
                 var isSurrogate = Char.IsSurrogate(firstChar);

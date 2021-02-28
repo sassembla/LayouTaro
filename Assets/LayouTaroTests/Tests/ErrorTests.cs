@@ -781,4 +781,49 @@ public class ErrorTests : MiyamasuTestRunner
         ScreenCapture.CaptureScreenshot("./images/" + methodName);
         yield break;
     }
+
+
+    [MTest]
+    public IEnumerator IsEmojiOrNotComplexCase2()
+    {
+        var go = AsyncTextElement.GO("あ^い");// 記号がmissingとして扱われてしまう場合がある
+        var box = AsyncBoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            AsyncButtonElement.GO(null, () => { }),
+            go
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicAsyncLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
 }

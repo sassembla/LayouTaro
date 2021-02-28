@@ -122,8 +122,8 @@ namespace UILayouTaro
                 textComponent.enableWordWrapping = false;
             }
 
-            // 絵文字や記号が含まれている場合、画像と文字に分けてレイアウトを行う。
-            if (BasicLayoutFunctions.IsDetectEmojiAndMarkAndTextExist(contentText))
+            // 絵文字が含まれている場合、画像と文字に分けてレイアウトを行う。
+            if (BasicLayoutFunctions.IsContainsEmoji(contentText))
             {
                 textComponent.text = string.Empty;
 
@@ -746,6 +746,8 @@ namespace UILayouTaro
 
         private static IEnumerator LayoutContentWithMissingTextAsync<T, U>(T textElement, string contentText, float viewWidth, ParameterReference refs) where T : LTAsyncElement, ILayoutableText where U : IMissingSpriteCache, new()
         {
+            Debug.Log("LayoutContentWithMissingTextAsync contentText:" + contentText);
+
             /*
                 missingな文字が含まれている文字列を、文字と矩形に分解、再構成を行う。missing文字を単に画像が入る箱としてRectLayoutに放り込む。
                 文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
@@ -800,6 +802,7 @@ namespace UILayouTaro
                 var isExist = TextLayoutDefinitions.TMPro_CheckIfTextCharacterExist(font, firstChar);
                 if (!isExist)
                 {
+                    Debug.Log("not exist CollectMissingAndTextElement firstChar:" + firstChar);
                     // missingにぶち当たった。ここまでに用意されているテキストを取り出す
                     if (0 < length)
                     {
