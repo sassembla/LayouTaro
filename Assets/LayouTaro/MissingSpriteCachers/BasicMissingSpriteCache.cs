@@ -83,7 +83,7 @@ public class BasicMissingSpriteCache : IMissingSpriteCache
         onRequest(cor);
     }
 
-    public void LoadMissingEmojiOrMark(string fontName, float fontSize, float requestWidth, float requestHeight, uint codePoint, Action<IEnumerator> onRequest, Action<Texture2D> onSucceeded, Action onFailed)
+    public void LoadMissingEmoji(string fontName, float fontSize, float requestWidth, float requestHeight, uint codePoint, Action<IEnumerator> onRequest, Action<Texture2D> onSucceeded, Action onFailed)
     {
         debug_onMissingCharacter();
 

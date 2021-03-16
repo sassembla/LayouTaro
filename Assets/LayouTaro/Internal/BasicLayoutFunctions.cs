@@ -516,7 +516,7 @@ namespace UILayouTaro
                 自分自身を書き換えて、一連のコマンドを実行するようにする。
                 文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
             */
-            var elementsWithEmoji = CollectEmojiAndMarkAndTextElement(textElement, contentText);
+            var elementsWithEmoji = CollectEmojiAndTextElement(textElement, contentText);
 
             for (var i = 0; i < elementsWithEmoji.Count; i++)
             {
@@ -572,7 +572,7 @@ namespace UILayouTaro
             return false;
         }
 
-        private static List<LTElement> CollectEmojiAndMarkAndTextElement<T>(T textElement, string contentText) where T : LTElement, ILayoutableText
+        private static List<LTElement> CollectEmojiAndTextElement<T>(T textElement, string contentText) where T : LTElement, ILayoutableText
         {
             var elementsWithEmoji = new List<LTElement>();
 
@@ -581,29 +581,6 @@ namespace UILayouTaro
             for (var i = 0; i < contentText.Length; i++)
             {
                 var firstChar = contentText[i];
-
-                // \u26A1
-                var isSymbol = Char.IsSymbol(firstChar);
-                if (isSymbol)
-                {
-                    if (0 < length)
-                    {
-                        var currentText = contentText.Substring(textStartIndex, length);
-                        var newTextElement = textElement.GenerateGO(currentText).GetComponent<T>();
-                        newTextElement.transform.SetParent(textElement.transform, false);
-                        elementsWithEmoji.Add(newTextElement);
-                    }
-
-                    length = 0;
-
-                    // 記号確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
-                    var emojiElement = InternalEmojiRect.GO(textElement, new Char[] { firstChar }).GetComponent<InternalEmojiRect>();
-                    elementsWithEmoji.Add(emojiElement);
-
-                    // 文字は次から始まる、、かもしれない。
-                    textStartIndex = i + 1;
-                    continue;
-                }
 
                 // \U0001F971
                 var isSurrogate = Char.IsSurrogate(firstChar);

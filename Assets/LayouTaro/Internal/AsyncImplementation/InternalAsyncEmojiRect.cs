@@ -97,7 +97,7 @@ namespace UILayouTaro
 
                 var cacheInstance = InternalCachePool.Get<U>();
 
-                cacheInstance.LoadMissingEmojiOrMark(
+                cacheInstance.LoadMissingEmoji(
                     fontName,
                     fontSize,
                     requestWidth,

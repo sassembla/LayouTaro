@@ -70,7 +70,7 @@ namespace UILayouTaro
             Action onFailed
         );
 
-        void LoadMissingEmojiOrMark(
+        void LoadMissingEmoji(
             string fontName,
             float fontSize,
              float requestWidth,

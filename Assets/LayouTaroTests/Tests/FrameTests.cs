@@ -413,7 +413,7 @@ public class FrameTests : MiyamasuTestRunner
         var cached = false;
         var currentCache = InternalCachePool.Get<BasicMissingSpriteCache>();
         // https://dummyimage.com/21.76744x41.39648/129393
-        currentCache.LoadMissingEmojiOrMark(
+        currentCache.LoadMissingEmoji(
             "",
             0f,
             21.76744f,
@@ -491,7 +491,7 @@ public class FrameTests : MiyamasuTestRunner
         var cached = false;
         var currentCache = InternalCachePool.Get<BasicMissingSpriteCache>();
         // https://dummyimage.com/21.76744x41.39648/9889
-        currentCache.LoadMissingEmojiOrMark(
+        currentCache.LoadMissingEmoji(
             "",
             0f,
             21.76744f,
@@ -614,7 +614,7 @@ public class FrameTests : MiyamasuTestRunner
         var cached = false;
         var currentCache = InternalCachePool.Get<BasicMissingSpriteCache>();
         // https://dummyimage.com/21.76744x41.39648/129393
-        currentCache.LoadMissingEmojiOrMark(
+        currentCache.LoadMissingEmoji(
             "",
             0f,
             21.76744f,
