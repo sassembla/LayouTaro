@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UILayouTaro
 {
+    // TODO: SpriteRectにrenameする
     public class InternalEmojiRect : LTElement, ILayoutableRect
     {
         private Vector2 Size;

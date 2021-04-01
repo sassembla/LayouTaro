@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace UILayouTaro
 {
+    // TODO: SpriteRectにrenameする
     public class InternalAsyncEmojiRect : LTAsyncLoadableElement, ILayoutableRect
     {
         private Vector2 Size;
@@ -64,7 +65,7 @@ namespace UILayouTaro
             var (isExist, codePoint) = TextLayoutDefinitions.TMPro_ChechIfEmojiOrMarkExist(emojiOrMarkStr);
             if (isExist)
             {
-                // 最低一つ要素が作られているはずなので、そのSptiteの位置情報を冷雨後に合致するように調整する。
+                // 最低一つ要素が作られているはずなので、そのSptiteの位置情報をレイアウト後に合致するように調整する。
                 if (rectTrans.childCount == 1)
                 {
                     var emojiRectTrans = rectTrans.GetChild(0).GetComponent<RectTransform>();
@@ -75,7 +76,7 @@ namespace UILayouTaro
                 }
                 else
                 {
-                    Debug.LogError("絵文字かマークがある状態だが、このcodePointの文字を示すspriteがロードされない codePoint:" + codePoint);
+                    Debug.LogWarning("絵文字かマークがある状態だが、このcodePointの文字を示すspriteがロードされない codePoint:" + codePoint);
                 }
             }
             else

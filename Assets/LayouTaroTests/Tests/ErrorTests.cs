@@ -738,7 +738,7 @@ public class ErrorTests : MiyamasuTestRunner
     [MTest]
     public IEnumerator IsEmojiOrNotComplexCase()
     {
-        var go = AsyncTextElement.GO("あ\u029Aい");// ひらがなの間に出ない絵文字がある -> 該当文字のパラメータがNaNになってしまう
+        var go = AsyncTextElement.GO("A\u029AB");// 出ない絵文字がある -> 該当文字のパラメータがNaNになってしまう
         var box = AsyncBoxElement.GO(
             null,// bg画像
             () =>
@@ -764,7 +764,8 @@ public class ErrorTests : MiyamasuTestRunner
             layouter
         );
 
-        var targetRectTrans = go.transform.GetChild(1).GetComponent<RectTransform>();
+        // NaNになっていないかどうかをチェックする
+        var targetRectTrans = go.transform.GetChild(0).GetComponent<RectTransform>();
         Assert.True(targetRectTrans.anchoredPosition.y == 0, "not match, targetRectTrans.anchoredPosition.y:" + targetRectTrans.anchoredPosition.y);
 
         var rectTrans = box.gameObject.GetComponent<RectTransform>();
@@ -854,6 +855,53 @@ public class ErrorTests : MiyamasuTestRunner
             box,
             layouter
         );
+
+        var rectTrans = box.gameObject.GetComponent<RectTransform>();
+        rectTrans.anchoredPosition3D = Vector3.zero;
+        rectTrans.localScale = Vector3.one;
+
+        yield return null;
+
+        while (false)
+        {
+            yield return null;
+        }
+
+        ScreenCapture.CaptureScreenshot("./images/" + methodName);
+        yield break;
+    }
+
+    [MTest]
+    public IEnumerator ShouldNotMissingSprite()
+    {
+        var go = AsyncTextElement.GO("A\u26E9B♥");
+        var box = AsyncBoxElement.GO(
+            null,// bg画像
+            () =>
+            {
+                Debug.Log("ルートがタップされた");
+            },
+            go
+        );
+
+        // レイアウトに使うクラスを生成する
+        var layouter = new BasicAsyncLayouter();
+
+        // コンテンツのサイズをセットする
+        var size = new Vector2(600, 100);
+
+        // レイアウトを行う
+
+        yield return LayouTaro.LayoutAsync<BasicMissingSpriteCache>(
+            canvas.transform,
+            size,
+            box,
+            layouter
+        );
+
+        // サイズが0やNaNになっていないかどうかをチェックする
+        var targetRectTrans = go.transform.GetChild(0).GetComponent<RectTransform>();
+        Assert.True(0 < targetRectTrans.sizeDelta.x, "not match, targetRectTrans.sizeDelta:" + targetRectTrans.sizeDelta);
 
         var rectTrans = box.gameObject.GetComponent<RectTransform>();
         rectTrans.anchoredPosition3D = Vector3.zero;

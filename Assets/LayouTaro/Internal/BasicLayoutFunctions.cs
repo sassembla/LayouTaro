@@ -45,15 +45,16 @@ namespace UILayouTaro
 
 
                 // 文字が入る箱のサイズを縦に無限にして、どの程度入るかのレイアウト情報を取得する。
-                textComponent.rectTransform.sizeDelta = new Vector2(restWidth, float.PositiveInfinity);
+                textComponent.rectTransform.sizeDelta = new Vector2(restWidth, Screen.height);
                 textInfos = textComponent.GetTextInfo(contentText);
 
                 // 文字を中央揃えではなく適正な位置にセットするためにラッピングを解除する。
                 textComponent.enableWordWrapping = false;
             }
 
+            // TODO: 直す
             // 絵文字が含まれている場合、画像と文字に分けてレイアウトを行う。
-            if (IsContainsEmoji(contentText))
+            if (IsContainsSurrogatePairOrSprite(contentText))
             {
                 textComponent.text = string.Empty;
 
@@ -516,7 +517,7 @@ namespace UILayouTaro
                 自分自身を書き換えて、一連のコマンドを実行するようにする。
                 文字がどう始まるかも含めて、今足されているlinedからは一度離反する。その上で一つ目のコンテンツを追加する。
             */
-            var elementsWithEmoji = CollectEmojiAndTextElement(textElement, contentText);
+            var elementsWithEmoji = CollectSpriteAndTextElement(textElement, contentText);
 
             for (var i = 0; i < elementsWithEmoji.Count; i++)
             {
@@ -541,7 +542,7 @@ namespace UILayouTaro
             }
         }
 
-        public static bool IsContainsEmoji(string contentText)
+        public static bool IsContainsSurrogatePairOrSprite(string contentText)
         {
             for (var i = 0; i < contentText.Length; i++)
             {
@@ -567,12 +568,31 @@ namespace UILayouTaro
                     // 後続の文字がsurrogateではなかった。
                     continue;
                 }
+
+                // spriteに含まれている文字になる場合
+                var codePoint = (uint)char.ConvertToUtf32(firstChar.ToString(), 0);
+
+                var spriteAsset = TMPro.TMP_Settings.GetSpriteAsset();
+                if (-1 < spriteAsset.GetSpriteIndexFromUnicode(codePoint))
+                {
+                    // 絵文字か記号が既存のSpriteAssetに存在する
+                    return true;
+                }
+
+                // fallbackに登録されているSpriteAssetsも見る
+                foreach (var sAsset in spriteAsset.fallbackSpriteAssets)
+                {
+                    if (-1 < sAsset.GetSpriteIndexFromUnicode(codePoint))
+                    {
+                        return true;
+                    }
+                }
             }
 
             return false;
         }
 
-        private static List<LTElement> CollectEmojiAndTextElement<T>(T textElement, string contentText) where T : LTElement, ILayoutableText
+        private static List<LTElement> CollectSpriteAndTextElement<T>(T textElement, string contentText) where T : LTElement, ILayoutableText
         {
             var elementsWithEmoji = new List<LTElement>();
 
@@ -624,7 +644,65 @@ namespace UILayouTaro
                     continue;
                 }
 
-                // サロゲートではないので文字として扱う
+                // spriteに含まれている文字になる場合
+                var codePoint = (uint)char.ConvertToUtf32(contentText, i);
+                {
+                    var spriteAsset = TMPro.TMP_Settings.GetSpriteAsset();
+                    if (-1 < spriteAsset.GetSpriteIndexFromUnicode(codePoint))
+                    {
+                        if (0 < length)
+                        {
+                            var currentText = contentText.Substring(textStartIndex, length);
+                            var newTextElement = textElement.GenerateGO(currentText).GetComponent<T>();
+                            newTextElement.transform.SetParent(textElement.transform, false);
+                            elementsWithEmoji.Add(newTextElement);
+                        }
+
+                        length = 0;
+
+                        // Sprite確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
+                        var emojiElement = InternalEmojiRect.GO(textElement, new Char[] { firstChar }).GetComponent<InternalEmojiRect>();
+                        elementsWithEmoji.Add(emojiElement);
+
+                        // 文字は次から始まる、、かもしれない。
+                        textStartIndex = i + 1;
+                        continue;
+                    }
+
+                    // fallbackに登録されているSpriteAssetsも見る
+                    var isFound = false;
+                    foreach (var sAsset in spriteAsset.fallbackSpriteAssets)
+                    {
+                        if (-1 < sAsset.GetSpriteIndexFromUnicode(codePoint))
+                        {
+                            if (0 < length)
+                            {
+                                var currentText = contentText.Substring(textStartIndex, length);
+                                var newTextElement = textElement.GenerateGO(currentText).GetComponent<T>();
+                                newTextElement.transform.SetParent(textElement.transform, false);
+                                elementsWithEmoji.Add(newTextElement);
+                            }
+
+                            length = 0;
+
+                            // Sprite確定。なので、要素として扱い、次の文字を飛ばす処理を行う。
+                            var emojiElement = InternalEmojiRect.GO(textElement, new Char[] { firstChar }).GetComponent<InternalEmojiRect>();
+                            elementsWithEmoji.Add(emojiElement);
+
+                            // 文字は次から始まる、、かもしれない。
+                            textStartIndex = i + 1;
+                            isFound = true;
+                            break;// foreachを抜ける
+                        }
+                    }
+                    if (isFound)
+                    {
+                        // 発見できたので消費する
+                        continue;
+                    }
+                }
+
+                // サロゲートやSpriteではないので文字として扱う
                 length++;
             }
 
@@ -641,6 +719,7 @@ namespace UILayouTaro
         }
 
 
+        // TODO: Spriteにrenameする。
         private static void EmojiRectLayout(InternalEmojiRect rectElement, RectTransform transform, float viewWidth, ref float originX, ref float originY, ref float restWidth, ref float currentLineMaxHeight, ref List<RectTransform> lineContents, ref Vector2 wrappedSize)
         {
             var rectSize = rectElement.RectSize();

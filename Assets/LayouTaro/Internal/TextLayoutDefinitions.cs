@@ -46,11 +46,13 @@ namespace UILayouTaro
             return TextLayoutStatus.NotHeadAndMulti;
         }
 
+        // TODO: メソッド名直す
         public static (bool exist, uint codePoint) TMPro_ChechIfEmojiOrMarkExist(string emojiOrMarkStr)
         {
             uint codePoint = 0;
             for (var i = 0; i < emojiOrMarkStr.Length; i++)
             {
+                // TODO: 特定ケースでバグりそう
                 codePoint = (uint)char.ConvertToUtf32(emojiOrMarkStr, i);
 
                 // indexで切り分けられるようであれば、この時点で判断を行う。

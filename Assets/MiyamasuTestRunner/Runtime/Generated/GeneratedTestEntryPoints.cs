@@ -1603,6 +1603,28 @@ public class ErrorTests_Miyamasu {
             throw;
         }
     }
+    [UnityTest] public IEnumerator ShouldNotMissingSprite() {
+        var instance = new ErrorTests();
+        instance.SetInfo("ErrorTests", "ShouldNotMissingSprite");
+        
+        try {
+            instance.Setup();
+        } catch (Exception e) {
+            instance.SetupFailed(e);
+            throw;
+        }
+        var startDate = DateTime.Now;
+        yield return instance.ShouldNotMissingSprite();
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
+
+        
+        try {
+            instance.Teardown();
+        } catch (Exception e) {
+            instance.TeardownFailed(e);
+            throw;
+        }
+    }
 }
 public class FrameTests_Miyamasu {
     [UnityTest] public IEnumerator BasicPatternFrames() {
